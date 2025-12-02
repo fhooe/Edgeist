@@ -1,0 +1,3 @@
+..\..\..\Model\Data.bin,
+..\..\..\Model\Model.bin 
+TO .\STM32H7A3ZIT6Q.axf RTE NOPRINT
