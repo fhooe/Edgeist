@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <chrono>
+#include <memory>
 
 #include "nmcf_ErrorTypes.h"
 #include "nmcm.h"
@@ -25,7 +26,7 @@ constexpr float LEARNING_RATE = 0.001f;
 // === Hilfsfunktionen ===
 
 // L�dt den Inhalt einer Datei in einen Puffer
-char* loadFileToBuffer(const std::string& filename, std::streamsize& size) {
+std::shared_ptr<char[]> loadFileToBuffer(const std::string& filename, std::streamsize& size) {
 	std::ifstream file(filename, std::ios::binary);
 	if (!file) {
 		std::cerr << "Fehler beim �ffnen der Datei: " << filename << std::endl;
@@ -36,10 +37,9 @@ char* loadFileToBuffer(const std::string& filename, std::streamsize& size) {
 	size = file.tellg();
 	file.seekg(0, std::ios::beg);
 
-	char* buffer = new char[size];
-	if (!file.read(buffer, size)) {
+	std::shared_ptr<char[]> buffer = std::make_shared<char[]>(size);
+	if (!file.read(buffer.get(), size)) {
 		std::cerr << "Fehler beim Lesen der Datei: " << filename << std::endl;
-		delete[] buffer;
 		return nullptr;
 	}
 	return buffer;
@@ -84,8 +84,8 @@ void evaluateModel(model<float>& myModel, const std::vector<MnistImage>& images,
 int main() {
 	// === Modell laden ===
 	std::streamsize sizeFixed = 0, sizeTrainable = 0;
-	char* modelFixed = loadFileToBuffer("model.hex", sizeFixed);
-	char* modelTrainable = loadFileToBuffer("model_trainable.hex", sizeTrainable);
+	std::shared_ptr<char[]> modelFixed = loadFileToBuffer("model.hex", sizeFixed);
+	std::shared_ptr<char[]> modelTrainable = loadFileToBuffer("model_trainable.hex", sizeTrainable);
 
 	if (!modelFixed || !modelTrainable) {
 		// Modell konte nicht geladen werden
@@ -151,15 +151,6 @@ int main() {
 
 	// Dauer in Sekunden ausgeben
 	std::cout << "Programmlaufzeit: " << duration.count() << " Sekunden for " << TRAINING_EPOCHS << "Epochen";
-
-	// === Aufr�umen ===
-	if(modelFixed){
-		delete[] modelFixed;
-	}
-
-	if(modelTrainable){
-		delete[] modelTrainable;
-	}
 
 	std::cout << "Debug Segfault" << std::endl;
 

@@ -369,9 +369,9 @@ public:
 	}
 
 	// Constructor
-	model(void* ModelPointer, void* DataPointer, OptimizerID OptimizerType, float LearningRate) : mPtrModel(ModelPointer), mPtrData(DataPointer), mOptimizerType(OptimizerType), mLearningRate(LearningRate) {
+	model(std::shared_ptr<char[]> ModelPointer, std::shared_ptr<char[]> DataPointer, OptimizerID OptimizerType, float LearningRate) : mPtrModel(ModelPointer), mPtrData(DataPointer), mOptimizerType(OptimizerType), mLearningRate(LearningRate) {
 		// populate the Header
-		mHeader = static_cast<Neural_Network_Header_t*>(mPtrModel);
+		mHeader = std::static_pointer_cast<Neural_Network_Header_t>(mPtrModel);
 
 		// Initialize the layer pointer array with correct size
 		mPtrLayerPointers.resize(mHeader->layernrs, nullptr);
@@ -398,13 +398,13 @@ public:
 private:
 
 	// Base Information from file
-	Neural_Network_Header_t* mHeader = nullptr;
+	std::shared_ptr<Neural_Network_Header_t> mHeader = nullptr;
 
 	// pointer to the model in Flash
-	void* mPtrModel = nullptr;
+	std::shared_ptr<char[]> mPtrModel = nullptr;
 
 	// pointer to the trainable data in Flash
-	void* mPtrData = nullptr;
+	std::shared_ptr<char[]> mPtrData = nullptr;
 
 	// Pointer to the Layers in Flash
 	std::vector<std::shared_ptr<uint8_t>> mPtrLayerPointers;
