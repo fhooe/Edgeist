@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <iostream>
+#include <memory>
 
 #include "object.h"
 #include "nmcf_ErrorTypes.h"
@@ -97,47 +98,47 @@ public:
 
 			switch (ID) {
 				case int(LayerIDs::Linear_ID) :
-					layersInSRAM.push_back(new Linear<T>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+					layersInSRAM.push_back(std::make_shared<Linear<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
 					break;
 
 				case int(LayerIDs::ReLU_ID) :
-					layersInSRAM.push_back(new Relu<T>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+					layersInSRAM.push_back(std::make_shared<Relu<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
 					break;
 
 				case int(LayerIDs::Softmax_ID) :
-					layersInSRAM.push_back(new Softmax<T>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+					layersInSRAM.push_back(std::make_shared<Softmax<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
 					break;
 
 				case int(LayerIDs::Conv2d_ID) :
-					layersInSRAM.push_back(new Conv2d<T>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+					layersInSRAM.push_back(std::make_shared<Conv2d<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
 					break;
 
 				case int(LayerIDs::Flatten_ID) :
-					layersInSRAM.push_back(new Flatten<T>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+					layersInSRAM.push_back(std::make_shared<Flatten<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
 					break;
 
 				case int(LayerIDs::MaxPool2d_ID) :
-					layersInSRAM.push_back(new MaxPool2d<T>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+					layersInSRAM.push_back(std::make_shared<MaxPool2d<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
 					break;
 
 				case int(LayerIDs::BatchNorm1d_ID) :
-					layersInSRAM.push_back(new BatchNorm1d<T>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+					layersInSRAM.push_back(std::make_shared<BatchNorm1d<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
 					break;
 
 				case int(LayerIDs::BatchNorm2d_ID) :
-					layersInSRAM.push_back(new BatchNorm2d<T>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+					layersInSRAM.push_back(std::make_shared<BatchNorm2d<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
 					break;
 
 				case int(LayerIDs::AdaptiveAvgPool1d_ID) :
-					layersInSRAM.push_back(new AdaptiveAvgPool1d<T>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+					layersInSRAM.push_back(std::make_shared<AdaptiveAvgPool1d<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
 					break;
 
 				case int(LayerIDs::AdaptiveAvgPool2d_ID) :
-					layersInSRAM.push_back(new AdaptiveAvgPool2d<T>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+					layersInSRAM.push_back(std::make_shared<AdaptiveAvgPool2d<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
 					break;
 
 				case int(LayerIDs::Dropout_ID) :
-					layersInSRAM.push_back(new Dropout<T>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+					layersInSRAM.push_back(std::make_shared<Dropout<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
 					break;
 
 				default:
@@ -383,18 +384,7 @@ public:
 			size_t offset = (sizeof(Neural_Network_Header_t) - mHeader->layernrs*4) / sizeof(uint32_t) + i;
 			uint32_t* targetAddressOffset = static_cast<uint32_t*>(mPtrModel) + offset;
 
-			mPtrLayerPointers[i] = static_cast<uint8_t*>(mPtrModel) + *targetAddressOffset;
-		}
-
-	};
-
-	// Destructor
-	~model() {
-
-		for (Layer<T>* obj : layersInSRAM) {
-			if (obj != nullptr) {
-				delete obj; obj = nullptr;
-			}
+			mPtrLayerPointers[i] = std::shared_ptr<uint8_t>(static_cast<uint8_t*>(mPtrModel) + *targetAddressOffset);
 		}
 
 	};
@@ -417,10 +407,10 @@ private:
 	void* mPtrData = nullptr;
 
 	// Pointer to the Layers in Flash
-	std::vector<uint8_t*> mPtrLayerPointers;
+	std::vector<std::shared_ptr<uint8_t>> mPtrLayerPointers;
 
 	// vector with the Layers in SRAM
-	std::vector<Layer<T>*> layersInSRAM;
+	std::vector<std::shared_ptr<Layer<T>>> layersInSRAM;
 
 	// Pointer to Input Data
 	const T* mPtrInputData = nullptr;
