@@ -1,0 +1,29 @@
+{
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.black-formatter",
+                "ms-python.mypy-type-checker",
+                "ms-python.pylint",
+                "ms-python.isort",
+                "exiasr.hadolint",
+                "timonwong.shellcheck",
+                "vivaxy.vscode-conventional-commits",
+                "streetsidesoftware.code-spell-checker",
+                "eamodio.gitlens",
+                "johnpapa.vscode-peacock",
+                "ms-vscode.cpptools-extension-pack",
+                "cheshirekow.cmake-format",
+                "ms-azuretools.vscode-docker"
+            ]
+        }
+    },
+    "runArgs": [
+        "--init"
+    ]
+}
