@@ -1,22 +1,25 @@
-#pragma once
+/**
+ * @author David Muttenthaler
+ * @brief Implements the base class for all neural network layers.
+ **/
+
+#ifndef LAYER_H
+#define LAYER_H
+
 #include "nmcf_error_types.h"
 #include "object.h"
 
+namespace Edgeist {
+template <typename T>
+class model;
+
 /**
- * @author David Muttenthaler
- * @date 25-06-2025
- *
  * @brief Base class for all neural network layers.
  *
  * This abstract class defines the common interface and behavior for all neural
  * network layers, including forward and backward passes, weight updates,...
+ * @tparam T Datatype of the layer inputs.
  */
-
-// Template-Forward-Deklaration statt include
-template <typename T>
-class model;
-
-// Basisklasse für alle Layer; abstrakte Schnittstelle
 template <typename T>
 class Layer : public object {
 public:
@@ -69,3 +72,6 @@ protected:
     // To have the Data for Backwardspass available
     T* mInputData;
 };
+} // namespace Edgeist
+
+#endif // LAYER_H

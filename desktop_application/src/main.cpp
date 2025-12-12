@@ -1,5 +1,11 @@
-// BackProp.cpp : Entry Point
+/**
+ * @brief Entrypoint
+ **/
 
+#include "loss_function.h"
+#include "mnist_loader.h"
+#include "nmcm.h"
+#include "optimizer_data_types.h"
 #include <chrono>
 #include <fstream>
 #include <iomanip>
@@ -7,22 +13,20 @@
 #include <string>
 #include <vector>
 
-#include "loss_function.h"
-#include "mnist_loader.h"
-#include "nmcm.h"
-#include "optimizer_data_types.h"
+using namespace Edgeist;
 
-// === Konstanten ===
+namespace {
+// constants
 constexpr int NUM_OUTPUTS = 10;
 constexpr int TRAINING_SIZE = 60000;
-constexpr int TEST_SIZE = 1000;
 constexpr int BATCH_SIZE = 64;
 constexpr int TRAINING_EPOCHS = 1;
-constexpr float LEARNING_RATE = 0.001f;
+constexpr float LEARNING_RATE = 0.001F;
+// === Konstanten ===
 
 // === Hilfsfunktionen ===
 
-// L�dt den Inhalt einer Datei in einen Puffer
+// Lädt den Inhalt einer Datei in einen Puffer
 char* loadFileToBuffer(const std::string& filename, std::streamsize& size)
 {
     std::ifstream file(filename, std::ios::binary);
@@ -81,6 +85,7 @@ void evaluateModel(model<float>& myModel, const std::vector<MnistImage>& images,
     std::cout << "Loss " << label << ": " << totalLoss / images.size() << std::endl
               << std::endl;
 }
+} // namespace
 
 int main()
 {

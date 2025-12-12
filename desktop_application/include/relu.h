@@ -1,21 +1,27 @@
-#pragma once
+/**
+ * @author David Muttenthaler
+ * @brief Implements the rectified linear unit (ReLU) activation layer.
+ */
+
+#ifndef RELU_H
+#define RELU_H
+
 #include "layer.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
 
-/**
- * @author David Muttenthaler
- * @date 25-06-2025
- *
- * @brief Rectified Linear Unit (ReLU) Activation Layer.
- *
- * Applies the function `f(x) = max(0, x)` element-wise.
- * Adds non-linearity to the network and prevents vanishing gradients.
- */
+namespace Edgeist {
 
 template <typename T>
 class model;
 
+/**
+ * @brief Rectified Linear Unit (ReLU) Activation Layer.
+ *
+ * Applies the function `f(x) = max(0, x)` element-wise.
+ * Adds non-linearity to the network and prevents vanishing gradients.
+ * @tparam T Datatype of the layer inputs.
+ */
 template <typename T>
 class Relu : public Layer<T> {
 public:
@@ -143,3 +149,6 @@ private:
     // chosen optimizer
     OptimizerID mOptimizerType;
 };
+} // namespace Edgeist
+
+#endif // RELU_H

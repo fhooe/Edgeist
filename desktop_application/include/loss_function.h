@@ -1,18 +1,20 @@
-﻿#pragma once
+﻿/**
+ * @author David Muttenthaler
+ * @brief Implements loss functions for neural networks.
+ **/
+
+#ifndef LOSS_FUNCTION_H
+#define LOSS_FUNCTION_H
 
 #include <cmath>
 
+namespace Edgeist {
 /**
- * @author David Muttenthaler
- * @date 23-06-2025
+ * @brief Linear loss function.
  *
- * @brief Abstrakte Basisklasse für Verlustfunktionen in neuronalen Netzwerken.
+ * Implements a generic linear loss function for neural networks.
  *
- * Diese Klasse definiert ein generisches Interface für Verlustfunktionen,
- * die zum Trainieren von Modellen verwendet werden. Die Methoden `compute` und `derivative`
- * müssen von abgeleiteten Klassen implementiert werden.
- *
- * @tparam T Der verwendete Datentyp (z. B. float oder double)
+ * @tparam T Datatype of the loss functions inputs.
  */
 template <typename T>
 class LossFunction {
@@ -20,22 +22,22 @@ public:
     virtual ~LossFunction() = default;
 
     /**
-     * @brief Berechnet den Verlustwert zwischen Vorhersage und Zielwert.
+     * @brief Calculates the loss between prediction and setpoint.
      *
-     * @param predicted Zeiger auf Array mit Vorhersagewerten (z. B. Ausgaben des Modells)
-     * @param target Zeiger auf Array mit Sollwerten (Ground Truth)
-     * @param size Anzahl der Elemente in den Arrays
-     * @return T Der berechnete Verlustwert (Loss)
+     * @param predicted Pointer to array of prediction values.
+     * @param target Pointer to array of setpoints (ground truth).
+     * @param size Length of input arrays.
+     * @return The calculated loss.
      */
     virtual T compute(const T* predicted, const T* target, std::size_t size) const = 0;
 
     /**
-     * @brief Berechnet den Gradienten des Verlusts bezüglich der Vorhersagewerte.
+     * @brief Calculates the loss gradient for given prediction values.
      *
-     * @param predicted Zeiger auf Array mit Vorhersagewerten
-     * @param target Zeiger auf Array mit Sollwerten
-     * @param output_grad Zeiger auf Array, in das die Gradienten geschrieben werden
-     * @param size Anzahl der Elemente in den Arrays
+     * @param predicted Pointer to array of prediction values.
+     * @param target Pointer to array of setpoints (ground truth).
+     * @param output_grad Pointer to array storing the result of this method.
+     * @param size Length of input arrays.
      */
     virtual void derivative(const T* predicted, const T* target, T* output_grad, std::size_t size) const = 0;
 };
@@ -53,7 +55,7 @@ public:
  * Cons:
  * - Sensitive to outliers due to squaring.
  *
- * @tparam T Numeric data type (e.g., float or double).
+ * @tparam T Datatype of the loss functions inputs.
  */
 template <typename T>
 class MSELoss : public LossFunction<T> {
@@ -84,7 +86,7 @@ public:
  *
  * Note: This version assumes inputs are already normalized to probabilities.
  *
- * @tparam T Numeric data type (e.g., float or double).
+ * @tparam T Datatype of the loss functions inputs.
  */
 template <typename T>
 class CrossEntropyLoss : public LossFunction<T> {
@@ -118,7 +120,7 @@ public:
  * Gradient simplification:
  *     ∂L/∂logits = softmax(logits) - target
  *
- * @tparam T Numeric data type (e.g., float or double).
+ * @tparam T Datatype of the loss functions inputs.
  */
 template <typename T>
 class SoftmaxCrossEntropyLoss : public LossFunction<T> {
@@ -173,7 +175,7 @@ public:
  * Gradient simplification:
  *     ∂L/∂logits = sigmoid(logits) - target
  *
- * @tparam T Numeric data type (e.g., float or double).
+ * @tparam T Datatype of the loss functions inputs.
  */
 template <typename T>
 class SigmoidBinaryCrossEntropyLoss : public LossFunction<T> {
@@ -205,3 +207,6 @@ public:
         }
     }
 };
+} // namespace Edgeist
+
+#endif // LOSS_FUNCTION_H

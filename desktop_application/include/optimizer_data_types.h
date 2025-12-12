@@ -1,35 +1,15 @@
-#ifndef OPTIMIZERDATATYPES
-#define OPTIMIZERDATATYPES
+/**
+ * @author David Muttenthaler
+ * @brief Defines base and derived classes for neural network optimizers.
+ **/
+
+#ifndef OPTIMIZER_DATA_TYPES
+#define OPTIMIZER_DATA_TYPES
 
 #include "nmcf_error_types.h"
 #include <cmath>
-#include <vector>
 
-/**
- * @author David Muttenthaler
- * @date 23-06-2025
- *
- * @file OptimizerDataTypes.h
- * @brief Defines base and derived classes for neural network optimizers.
- *
- * This header provides a polymorphic interface (`OptimizerBase`) for various optimization
- * algorithms used during neural network training. Each optimizer manages its own internal
- * state and weight update logic based on gradient descent methods.
- *
- * Supported optimizers include:
- *  - SGD (Stochastic Gradient Descent)
- *  - Momentum
- *  - Adam (Adaptive Moment Estimation)
- *
- * All optimizers are templated to support different numeric types (e.g., float, double).
- * Memory management is handled manually to ensure compatibility with embedded systems or
- * low-level runtime environments.
- *
- * The design allows for dynamic optimizer selection using the `OptimizerID` enum and runtime
- * polymorphism through the `OptimizerBase` interface.
- *
- */
-
+namespace Edgeist {
 enum OptimizerID {
     SGD = 0,
     Momentum = 1,
@@ -322,5 +302,6 @@ public:
         return ErrorType::ok;
     }
 };
+} // namespace Edgeist
 
-#endif // !OPTIMIZERDATATYPES
+#endif // OPTIMIZER_DATA_TYPES

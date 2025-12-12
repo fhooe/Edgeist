@@ -1,13 +1,15 @@
-#pragma once
-
 /**
  * @author David Muttenthaler
- * @date 25-06-2025
- *
- * @brief Error Types
- *
- */
+ * @brief Implements the NMCF error types.
+ **/
 
+#ifndef NMCF_ERROR_TYPES_H
+#define NMCF_ERROR_TYPES_H
+
+namespace Edgeist {
+/**
+ * @brief NMCF error types
+ */
 enum class ErrorType {
     ok = 0, // No error
     OutOfMemory, // Memory allocation failure
@@ -20,3 +22,6 @@ enum class ErrorType {
     MissingCachedInputs,
     DropoutMaskMissing
 };
+} // namespace Edgeist
+
+#endif // NMCF_ERROR_TYPES_H

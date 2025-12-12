@@ -1,22 +1,25 @@
-#pragma once
-#include "Modeltypes.h"
+/**
+ * @author David Muttenthaler
+ * @brief Implements the 2D adaptive average pooling layer.
+ **/
+
+#ifndef ADAPTIVE_AVG_POOL_2D_H
+#define ADAPTIVE_AVG_POOL_2D_H
+
 #include "layer.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
 #include <cmath>
-#include <limits>
-#include <vector>
 
+namespace Edgeist {
 /**
- * @author David Muttenthaler
- * @date 25-06-2025
- *
- * @brief 2D Adaptive Average Pooling Layer.
+ * @brief 2D adaptive average pooling layer.
  *
  * Performs average pooling on 2D input (e.g. images), adapting the pooling
  * regions to achieve a desired fixed output size regardless of input size.
  *
  * Useful for global or spatial pooling before fully connected layers.
+ * @tparam T Datatype of the layer inputs.
  */
 template <typename T>
 class AdaptiveAvgPool2d : public Layer<T> {
@@ -151,3 +154,5 @@ private:
     Neural_Network_AdaptiveAvgPool2d_t* mHeader;
     OptimizerID mOptimizerType;
 };
+} // namespace Edgeist
+#endif // ADAPTIVE_AVG_POOL_2D_H

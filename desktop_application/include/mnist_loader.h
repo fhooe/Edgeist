@@ -1,19 +1,25 @@
-#pragma once
+/**
+ * @author David Muttenthaler
+ * @brief Implements helper methods to load MNIST data.
+ **/
+
+#ifndef MNIST_LOADER_H
+#define MNIST_LOADER_H
+
 #include <cstdint>
 #include <string>
 #include <vector>
 
+namespace Edgeist {
 /**
- * @author David Muttenthaler
- * @date 25-06-2025
- *
- * @brief Helper methode to load Mnist Data
- *
+ * @brief Helper methods to load MNIST Data
  */
-
 struct MnistImage {
     float data[784];
     uint8_t label;
 };
 
 std::vector<MnistImage> load_mnist_batch(const std::string& filename);
+} // namespace Edgeist
+
+#endif // MNIST_LOADER_H

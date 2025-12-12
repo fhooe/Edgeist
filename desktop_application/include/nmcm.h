@@ -1,4 +1,11 @@
-#pragma once
+/**
+ * @author David Muttenthaler
+ * @brief Implements a template-based neural network model.
+ **/
+
+#ifndef NMCM_H
+#define NMCM_H
+
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -22,10 +29,10 @@
 #include "relu.h"
 #include "softmax.h"
 
+namespace Edgeist {
+typedef size_t com;
+
 /**
- * @author David Muttenthaler
- * @date 25-06-2025
- *
  * @brief Template-based implementation of a neural network model.
  *
  * This class encapsulates all key operations of a neural network, including:
@@ -38,45 +45,10 @@
  * The model architecture is defined in flash and initialized into SRAM at runtime.
  * Layers are dynamically instantiated based on their LayerID values.
  *
- * To generate a compatible network, use the python NMCF_Parser
+ * To generate a compatible network, use the python NMCF-parser
  * to convert a (pretrained) pytorch model into the right format.
+ * @tparam T Datatype of the neural network inputs.
  */
-
-//           ZZ         YNR
-//          YECT        MJGP
-//          XKNFX      TLZPH
-//          YMZNGZ    YLWVPK
-//           TSZIIY   LQVMPV
-//            PVMAMSSQHZHNMW
-//             LIAAAAAPWDQS
-//             OAAAAAAVIABPX
-//           ZOAAAAAAAAAAAAKY
-//          SDAAAAAAAAAAAAAAKX
-//          IAAAOEKJLFAAAAAAADQ
-//           AAACRHKLGAAAAAAAAAEV               UVVVW
-//          VAAAAJLKCAAAAAAAAAAABMWWXXXXXTPPKKGHPQNMECHMV
-//         XKMLFAAAAAAAAAAAAAAAAAAAFNLHKKOSUXXTPVSZDEYPLGAIZ
-//        XQU ZZSEAAAAAAAAAAAAAAAAAJVZZAKHAEMEPTOWUCLYZZYAAFX
-//        SKOISXU HHPPCGAAAAAAAA______________________EDAAAFY
-//        XJAABDBNY  ZNRWQDAAAAA__NMCF________________AAAAAAAO
-//          VNNNU     ZMWYYPCAAA__Embedded_System_Lab_AAEAAAJO
-//                      BS  ZOBA__FH_Hagenberg________AAAALQHO
-//                      RPW YZKA__Austria_____________AAAIPSGO
-//                       QAJTUDA______________________AAAGZSAS
-//                       XAAACHAAAISSRSSSSQSRSEAAAAR SCAH MAHZ
-//                       XAAAHUAAAS           XKAAABNZ LBTMAAT
-//                       ZMAAHUAAAS             SDAAAKVTAAMAAK
-//                        NAAHUDAAS              YFABZQIBASDBV
-//                        OAAQVEBDV               HAA  AAH WV
-//                         AAX JAH                FAD  FAQ
-//                         AAX JAH                FAQ  BAS
-//                        XAAX JAH               ZEAQ  AAT
-//                       ZJABXYIAJ               NABR KAAU
-//                       JAAO JAAQ              PAAI PAAJ
-//                       HHHP KJJP              MHHL OJIL
-
-typedef size_t com;
-
 template <typename T>
 class model : public object {
 public:
@@ -441,3 +413,6 @@ private:
         return static_cast<void*>(static_cast<uint8_t*>(mPtrModel) + *targetAddress);
     }
 };
+} // namespace Edgeist
+
+#endif // NMCM_H
