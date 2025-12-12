@@ -1,0 +1,15 @@
+on:
+  push:
+    branches:
+      - main
+      - feature/*
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Hello World
+        run: ./scripts/pipeline.sh
+        shell: bash
