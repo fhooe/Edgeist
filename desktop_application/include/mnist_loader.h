@@ -1,7 +1,7 @@
 #pragma once
-#include <vector>
-#include <string>
 #include <cstdint>
+#include <string>
+#include <vector>
 
 /**
  * @author David Muttenthaler
@@ -12,8 +12,8 @@
  */
 
 struct MnistImage {
-	float data[784];
-	uint8_t label;
+    float data[784];
+    uint8_t label;
 };
 
 std::vector<MnistImage> load_mnist_batch(const std::string& filename);

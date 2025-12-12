@@ -8,23 +8,26 @@ ARG USER_GID=$USER_UID
 # hadolint ignore=SC1091,DL3008
 RUN --mount=type=bind,source=requirements.txt,target=/requirements.txt apt-get update && \
     apt-get install -y --no-install-recommends \
-        sudo \
-        ca-certificates \
-        bash-completion \
-        curl \
-        build-essential \
-        cmake \
-        gdb \
-        git \
-        ssh \
-        locales \
-        vim \
-        python3 \
-        python3-venv \
-        python3-pip \
-        shellcheck \
-        clangd \
-        codespell && \
+    sudo \
+    ca-certificates \
+    bash-completion \
+    curl \
+    build-essential \
+    cmake \
+    gdb \
+    git \
+    ssh \
+    locales \
+    vim \
+    python3 \
+    python3-venv \
+    python3-pip \
+    shellcheck \
+    clangd \
+    clang-tidy \
+    cmake-format \
+    ninja-build \
+    codespell && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean && \
     # Install hadolint

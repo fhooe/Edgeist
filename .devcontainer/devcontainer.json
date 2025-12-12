@@ -19,7 +19,9 @@
                 "johnpapa.vscode-peacock",
                 "ms-vscode.cpptools-extension-pack",
                 "cheshirekow.cmake-format",
-                "ms-azuretools.vscode-docker"
+                "ms-azuretools.vscode-docker",
+                "cheshirekow.cmake-format",
+                "llvm-vs-code-extensions.vscode-clangd"
             ]
         }
     },
