@@ -1,24 +1,26 @@
-#pragma once
-#pragma once
+/**
+ * @author David Muttenthaler
+ * @brief Implements the 2D convolutional layer.
+ **/
+
+#ifndef CONV_2D_H
+#define CONV_2D_H
+
 #include "Modelstructs.h"
-#include "Modeltypes.h"
 #include "layer.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
-#include <vector>
 
+namespace Edgeist {
 /**
- * @author David Muttenthaler
- * @date 25-06-2025
- *
- * @brief 2D Convolutional Layer.
+ * @brief 2D convolutional layer.
  *
  * Applies a 2D convolution over an input image or feature map using learnable
  * filters (kernels), bias terms, and stride/padding configuration.
  *
  * Used for feature extraction in image processing and computer vision tasks.
+ * @tparam T Datatype of the layer inputs.
  */
-
 template <typename T>
 class Conv2d : public Layer<T> {
 public:
@@ -416,3 +418,6 @@ private:
 
     uint32_t mTimestep = 1;
 };
+} // namespace Edgeist
+
+#endif // CONV_2D_H

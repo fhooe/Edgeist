@@ -1,7 +1,13 @@
+/**
+ * @author David Muttenthaler
+ * @brief Implements helper methods to load MNIST data.
+ **/
+
 #include "mnist_loader.h"
 #include <fstream>
 #include <stdexcept>
 
+namespace Edgeist {
 std::vector<MnistImage> load_mnist_batch(const std::string& filename)
 {
     std::vector<MnistImage> batch;
@@ -24,3 +30,4 @@ std::vector<MnistImage> load_mnist_batch(const std::string& filename)
 
     return batch;
 }
+} // namespace Edgeist

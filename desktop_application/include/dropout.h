@@ -1,21 +1,26 @@
-#pragma once
-#include "Modeltypes.h"
+/**
+ * @author David Muttenthaler
+ * @brief Implements the dropout layer.
+ **/
+
+#ifndef DROPOUT_H
+#define DROPOUT_H
+
 #include "layer.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
 #include <random>
 #include <vector>
 
+namespace Edgeist {
 /**
- * @author David Muttenthaler
- * @date 25-06-2025
- *
- * @brief Dropout Layer.
+ * @brief Dropout layer.
  *
  * Randomly zeroes some of the elements of the input tensor during training
  * with a probability `p`, helping prevent overfitting.
  *
  * No effect during inference (pass-through).
+ * @tparam T Datatype of the layer inputs.
  */
 template <typename T>
 class Dropout : public Layer<T> {
@@ -129,3 +134,6 @@ private:
     std::vector<T> mDropoutMask;
     std::mt19937 mRng;
 };
+} // namespace Edgeist
+
+#endif // DROPOUT_H

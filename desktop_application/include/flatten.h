@@ -1,21 +1,27 @@
-#pragma once
+/**
+ * @author David Muttenthaler
+ * @brief Implements the flatten layer.
+ **/
+
+#ifndef FLATTEN_H
+#define FLATTEN_H
+
 #include "layer.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
 
-/**
- * @author David Muttenthaler
- * @date 25-06-2025
- *
- * @brief Flatten Layer.
- *
- * Flattens a multi-dimensional input tensor into a 1D tensor.
- * Commonly used to connect convolutional layers with fully connected layers.
- */
+namespace Edgeist {
 
 template <typename T>
 class model;
 
+/**
+ * @brief Flatten layer.
+ *
+ * Flattens a multi-dimensional input tensor into a 1D tensor.
+ * Commonly used to connect convolutional layers with fully connected layers.
+ * @tparam T Datatype of the layer inputs.
+ */
 template <typename T>
 class Flatten : public Layer<T> {
 public:
@@ -90,3 +96,6 @@ private:
     // chosen optimizer
     OptimizerID mOptimizerType;
 };
+} // namespace Edgeist
+
+#endif // FLATTEN_H

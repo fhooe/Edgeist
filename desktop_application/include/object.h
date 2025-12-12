@@ -1,8 +1,14 @@
+/**
+ * @brief Implements the base object for all classes.
+ **/
+
 #ifndef OBJECT_H
 #define OBJECT_H
 
-// common root class for all other classes.
-// If there is no base class, this class is to be selected
+namespace Edgeist {
+/**
+ * @brief Base object for all classes.
+ **/
 class object {
 public:
     virtual ~object() = default;
@@ -10,5 +16,6 @@ public:
 protected:
     object() = default;
 };
+} // namespace Edgeist
 
-#endif // !OBJECT_H
+#endif // OBJECT_H

@@ -1,18 +1,20 @@
-#pragma once
+/**
+ * @author David Muttenthaler
+ * @brief Implements the 1D adaptive average pooling layer.
+ **/
+
+#ifndef ADAPTIVE_AVG_POOL_1D_H
+#define ADAPTIVE_AVG_POOL_1D_H
+
 #include "Modelstructs.h"
-#include "Modeltypes.h"
 #include "layer.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
 #include <cmath>
-#include <limits>
-#include <vector>
 
+namespace Edgeist {
 /**
- * @author David Muttenthaler
- * @date 25-06-2025
- *
- * @brief 1D Adaptive Average Pooling Layer.
+ * @brief 1D adaptive average pooling layer.
  *
  * This layer applies average pooling over a 1D input signal, automatically
  * adjusting the kernel and stride size to produce the specified output size.
@@ -20,6 +22,7 @@
  * Commonly used to reduce variable-length input to a fixed-size representation.
  *
  * Example use: time series or sequence feature pooling.
+ * @tparam T Datatype of the layer inputs.
  */
 template <typename T>
 class AdaptiveAvgPool1d : public Layer<T> {
@@ -140,3 +143,6 @@ private:
     Neural_Network_AdaptiveAvgPool1d_t* mHeader;
     OptimizerID mOptimizerType;
 };
+} // namespace Edgeist
+
+#endif // ADAPTIVE_AVG_POOL_1D_H

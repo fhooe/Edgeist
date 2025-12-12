@@ -1,23 +1,28 @@
-#pragma once
-#include "layer.h"
+/**
+ * @author David Muttenthaler
+ * @brief Implements the 2D max pooling layer.
+ **/
+
+#ifndef MAX_POOL_2D_H
+#define MAX_POOL_2D_H
+
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
 #include <limits>
 
+namespace Edgeist {
+template <typename T>
+class model;
+
 /**
- * @author David Muttenthaler
- * @date 25-06-2025
- *
- * @brief 2D Max Pooling Layer.
+ * @brief 2D max pooling layer.
  *
  * Applies a 2D max pooling operation over the input, reducing spatial
  * dimensions by taking the maximum value in each kernel region.
  *
  * Helps with spatial invariance and downsampling.
+ * @tparam T Datatype of the layer inputs.
  */
-template <typename T>
-class model;
-
 template <typename T>
 class MaxPool2d : public Layer<T> {
 public:
@@ -158,3 +163,6 @@ private:
     OptimizerID mOptimizerType;
     uint32_t* mArgmax;
 };
+} // namespace Edgeist
+
+#endif // MAX_POOL_2D_H

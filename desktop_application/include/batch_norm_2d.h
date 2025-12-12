@@ -1,27 +1,28 @@
-#pragma once
-#include "Modeltypes.h"
+/**
+ * @author David Muttenthaler
+ * @brief Implements the 2D batch normalization layer.
+ **/
+
+#ifndef BATCH_NORM_2D_H
+#define BATCH_NORM_2D_H
+
 #include "layer.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
-#include <limits>
-#include <vector>
+
+namespace Edgeist {
+template <typename T>
+class model;
 
 /**
- * @author David Muttenthaler
- * @date 25-06-2025
- *
- * @brief 2D Batch Normalization Layer.
+ * @brief 2D batch normalization Layer.
  *
  * Applies batch normalization to 2D input (e.g., channels in a 2D image tensor).
  * Normalizes each channel separately across the batch.
  *
  * Commonly used after Conv2d layers.
+ * @tparam T Datatype of the layer inputs.
  */
-
-// Forward declaration of model
-template <typename T>
-class model;
-
 template <typename T>
 class BatchNorm2d : public Layer<T> {
 public:
@@ -43,9 +44,8 @@ public:
         loadFromFlash();
     }
 
-    ~BatchNorm2d()
+    ~BatchNorm2d() override
     {
-
         delete[] mWeightPtr;
         mWeightPtr = nullptr;
         delete[] mBiasPtr;
@@ -392,3 +392,6 @@ private:
 
     uint32_t mTimestep = 1;
 };
+} // namespace Edgeist
+
+#endif // BATCH_NORM_2D_H

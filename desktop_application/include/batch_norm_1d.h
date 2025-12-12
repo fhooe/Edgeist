@@ -1,28 +1,30 @@
-#pragma once
+/**
+ * @author David Muttenthaler
+ * @brief Implements the 1D batch normalization layer.
+ **/
+
+#ifndef BATCH_NORM_1D_H
+#define BATCH_NORM_1D_H
+
 #include "Modeltypes.h"
 #include "layer.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
-#include <limits>
-#include <vector>
+
+namespace Edgeist {
+template <typename T>
+class model;
 
 /**
- * @author David Muttenthaler
- * @date 25-06-2025
- *
- * @brief 1D Batch Normalization Layer.
+ * @brief 1D batch normalization layer.
  *
  * Applies batch normalization to 1D input (typically features across a batch).
  * Normalizes the input to zero mean and unit variance, followed by a learnable
  * scale and shift.
  *
  * Helps stabilize and accelerate training by reducing internal covariate shift.
+ * @tparam T Datatype of the layer inputs.
  */
-
-// Forward declaration of model
-template <typename T>
-class model;
-
 template <typename T>
 class BatchNorm1d : public Layer<T> {
 public:
@@ -356,3 +358,6 @@ private:
 
     uint32_t mTimestep = 1;
 };
+} // namespace Edgeist
+
+#endif // BATCH_NORM_1D_H

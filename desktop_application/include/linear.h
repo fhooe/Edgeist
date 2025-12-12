@@ -1,17 +1,22 @@
-#pragma once
+/**
+ * @author David Muttenthaler
+ * @brief Implements the fully connected (dense) linear layer.
+ **/
+
+#ifndef LINEAR_H
+#define LINEAR_H
+
 #include "Modelstructs.h"
-#include "layer.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
 
+namespace Edgeist {
 /**
- * @author David Muttenthaler
- * @date 25-06-2025
- *
- * @brief Fully Connected (Dense) Linear Layer.
+ * @brief Fully connected (dense) linear layer.
  *
  * Applies a linear transformation: `output = input * weight^T + bias`.
  * Commonly used for classification or regression tasks.
+ * @tparam T Datatype of the layer inputs.
  */
 template <typename T>
 class Linear : public Layer<T> {
@@ -327,3 +332,6 @@ private:
 
     uint32_t mTimestep = 1;
 };
+} // namespace Edgeist
+
+#endif // LINEAR_H

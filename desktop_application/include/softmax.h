@@ -1,25 +1,29 @@
-#pragma once
+/**
+ * @author David Muttenthaler
+ * @brief Implements the softmax activation layer.
+ **/
+
+#ifndef SOFTMAX_H
+#define SOFTMAX_H
+
 #include "layer.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
 #include <cmath>
-#include <iostream>
+
+namespace Edgeist {
+template <typename T>
+class model;
 
 /**
- * @author David Muttenthaler
- * @date 25-06-2025
- *
- * @brief Softmax Activation Layer.
+ * @brief Softmax activation layer.
  *
  * Converts raw logits into probabilities by exponentiating and normalizing.
  * Used as the final layer in multi-class classification tasks.
  *
  * Output is a probability distribution (sums to 1).
+ * @tparam T Datatype of the layer inputs.
  */
-
-template <typename T>
-class model;
-
 template <typename T>
 class Softmax : public Layer<T> {
 public:
@@ -165,3 +169,6 @@ private:
     // chosen optimizer
     OptimizerID mOptimizerType;
 };
+} // namespace Edgeist
+
+#endif // SOFTMAX_H
