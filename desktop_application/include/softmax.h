@@ -1,7 +1,7 @@
 #pragma once
-#include "Layer.h"
-#include "OptimizerDataTypes.h"
-#include "nmcf_ErrorTypes.h"
+#include "layer.h"
+#include "nmcf_error_types.h"
+#include "optimizer_data_types.h"
 #include <cmath>
 #include <iostream>
 

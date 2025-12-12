@@ -1,8 +1,8 @@
 #pragma once
-#include "Layer.h"
 #include "Modelstructs.h"
-#include "OptimizerDataTypes.h"
-#include "nmcf_ErrorTypes.h"
+#include "layer.h"
+#include "nmcf_error_types.h"
+#include "optimizer_data_types.h"
 
 /**
  * @author David Muttenthaler

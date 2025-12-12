@@ -7,10 +7,10 @@
 #include <string>
 #include <vector>
 
-#include "LossFunction.h"
-#include "OptimizerDataTypes.h"
+#include "loss_function.h"
 #include "mnist_loader.h"
 #include "nmcm.h"
+#include "optimizer_data_types.h"
 
 // === Konstanten ===
 constexpr int NUM_OUTPUTS = 10;
