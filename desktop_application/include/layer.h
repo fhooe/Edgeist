@@ -1,5 +1,5 @@
 #pragma once
-#include "nmcf_ErrorTypes.h"
+#include "nmcf_error_types.h"
 #include "object.h"
 
 /**

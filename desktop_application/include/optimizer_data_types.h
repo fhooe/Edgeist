@@ -1,7 +1,7 @@
 #ifndef OPTIMIZERDATATYPES
 #define OPTIMIZERDATATYPES
 
-#include "nmcf_ErrorTypes.h"
+#include "nmcf_error_types.h"
 #include <cmath>
 #include <vector>
 
