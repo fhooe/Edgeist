@@ -13,7 +13,7 @@
 
 namespace Edgeist {
 template <typename T>
-class model;
+class Model;
 
 /**
  * @brief 2D max pooling layer.
@@ -25,9 +25,9 @@ class model;
  * @tparam T Datatype of the layer inputs.
  */
 template <typename T>
-class MaxPool2d : public Layer<T> {
+class MaxPool2D : public Layer<T> {
 public:
-    MaxPool2d(model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
+    MaxPool2D(Model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
         : Layer<T>(m)
         , mPtrLayer(HeaderPointer)
         , mPtrData(DataPointer)
@@ -38,7 +38,7 @@ public:
         mArgmax = nullptr;
     }
 
-    ~MaxPool2d() override
+    ~MaxPool2D() override
     {
         if (mArgmax != nullptr) {
             delete[] mArgmax;

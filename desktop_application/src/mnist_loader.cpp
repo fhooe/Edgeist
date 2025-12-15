@@ -9,15 +9,15 @@
 #include <stdexcept>
 
 namespace Edgeist {
-std::vector<MnistImage> load_mnist_batch(const std::string& filename)
+auto loadMNISTBatch(const std::string& filename) -> std::vector<MNISTImage>
 {
-    std::vector<MnistImage> batch;
+    std::vector<MNISTImage> batch;
     std::ifstream file(filename, std::ios::binary);
     if (!file)
         throw std::runtime_error("Failed to open MNIST batch file");
 
     while (true) {
-        MnistImage img;
+        MNISTImage img;
         file.read(reinterpret_cast<char*>(img.data), sizeof(float) * 784);
         if (!file)
             break; // EOF or partial read

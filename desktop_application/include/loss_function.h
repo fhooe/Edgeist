@@ -30,7 +30,7 @@ public:
      * @param size Length of input arrays.
      * @return The calculated loss.
      */
-    virtual T compute(const T* predicted, const T* target, std::size_t size) const = 0;
+    virtual auto compute(const T* predicted, const T* target, std::size_t size) const -> T = 0;
 
     /**
      * @brief Calculates the loss gradient for given prediction values.
@@ -40,7 +40,7 @@ public:
      * @param output_grad Pointer to array storing the result of this method.
      * @param size Length of input arrays.
      */
-    virtual void derivative(const T* predicted, const T* target, T* output_grad, std::size_t size) const = 0;
+    virtual auto derivative(const T* predicted, const T* target, T* output_grad, std::size_t size) const -> void = 0;
 };
 
 /**
@@ -61,7 +61,7 @@ public:
 template <typename T>
 class MSELoss : public LossFunction<T> {
 public:
-    T compute(const T* predicted, const T* target, std::size_t size) const override
+    auto compute(const T* predicted, const T* target, std::size_t size) const -> T override
     {
         T sum = 0;
         for (std::size_t i = 0; i < size; ++i) {
@@ -71,7 +71,7 @@ public:
         return sum / static_cast<T>(size);
     }
 
-    void derivative(const T* predicted, const T* target, T* output_grad, std::size_t size) const override
+    auto derivative(const T* predicted, const T* target, T* output_grad, std::size_t size) const -> void override
     {
         for (std::size_t i = 0; i < size; ++i) {
             output_grad[i] = 2 * (predicted[i] - target[i]) / static_cast<T>(size);
@@ -92,7 +92,7 @@ public:
 template <typename T>
 class CrossEntropyLoss : public LossFunction<T> {
 public:
-    T compute(const T* predicted, const T* target, std::size_t size) const override
+    auto compute(const T* predicted, const T* target, std::size_t size) const -> T override
     {
         T loss = 0;
         for (std::size_t i = 0; i < size; ++i) {
@@ -103,7 +103,7 @@ public:
         return loss;
     }
 
-    void derivative(const T* predicted, const T* target, T* output_grad, std::size_t size) const override
+    auto derivative(const T* predicted, const T* target, T* output_grad, std::size_t size) const -> void override
     {
         for (std::size_t i = 0; i < size; ++i) {
             T p = std::max(predicted[i], static_cast<T>(1e-12));
@@ -126,7 +126,7 @@ public:
 template <typename T>
 class SoftmaxCrossEntropyLoss : public LossFunction<T> {
 public:
-    T compute(const T* logits, const T* target, std::size_t size) const override
+    auto compute(const T* logits, const T* target, std::size_t size) const -> T override
     {
 
         T max_logit = logits[0];
@@ -147,7 +147,7 @@ public:
         return loss;
     }
 
-    void derivative(const T* logits, const T* target, T* output_grad, std::size_t size) const override
+    auto derivative(const T* logits, const T* target, T* output_grad, std::size_t size) const -> void override
     {
 
         T max_logit = logits[0];

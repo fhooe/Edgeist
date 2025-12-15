@@ -47,7 +47,7 @@ char* loadFileToBuffer(const std::string& filename, std::streamsize& size)
 }
 
 // execute a forwardPass and calculate accuracy & loss
-void evaluateModel(model<float>& myModel, const std::vector<MnistImage>& images, SoftmaxCrossEntropyLoss<float>& lossFn, const std::string& label)
+void evaluateModel(Model<float>& myModel, const std::vector<MNISTImage>& images, SoftmaxCrossEntropyLoss<float>& lossFn, const std::string& label)
 {
     float output[NUM_OUTPUTS] = { 0.0f };
     float expected[NUM_OUTPUTS] = { 0.0f };
@@ -95,13 +95,14 @@ int main()
         return 1;
     }
 
-    model<float> myModel(modelFixed, modelTrainable, SGD, LEARNING_RATE);
+    Model<float> myModel(modelFixed, modelTrainable, OptimizerID::SGD, LEARNING_RATE);
     myModel.init();
 
-    std::vector<MnistImage> trainImages, testImages;
+    auto trainImages = std::vector<MNISTImage>();
+    auto testImages = std::vector<MNISTImage>();
     try {
-        trainImages = load_mnist_batch("mnist_train_all_random.bin");
-        testImages = load_mnist_batch("mnist_test_all_random.bin");
+        trainImages = loadMNISTBatch("mnist_train_all_random.bin");
+        testImages = loadMNISTBatch("mnist_test_all_random.bin");
     } catch (const std::exception& e) {
         std::cerr << "Failed to load MNIST-Data: " << e.what() << std::endl;
         return 1;
@@ -111,7 +112,7 @@ int main()
 
     evaluateModel(myModel, testImages, loss, "before training");
 
-    float expected[NUM_OUTPUTS] = { 0.0f };
+    float expected[NUM_OUTPUTS] = { 0.0F };
     std::cout << "=== Training started ===" << std::endl;
 
     auto start = std::chrono::steady_clock::now();
@@ -123,7 +124,7 @@ int main()
             myModel.initGradients();
 
             for (int i = 0; i < BATCH_SIZE; ++i) {
-                const MnistImage& img = trainImages[batch * BATCH_SIZE + i];
+                const MNISTImage& img = trainImages[batch * BATCH_SIZE + i];
                 const float* input = reinterpret_cast<const float*>(img.data);
 
                 expected[img.label] = 1.0f;

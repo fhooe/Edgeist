@@ -10,11 +10,12 @@
 #include "layer.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
+#include <Modelstructs.h>
 #include <cmath>
 
 namespace Edgeist {
 template <typename T>
-class model;
+class Model;
 
 /**
  * @brief Softmax activation layer.
@@ -29,7 +30,7 @@ template <typename T>
 class Softmax : public Layer<T> {
 public:
     // Konstruktor: Initialisiert die Softmax-Schicht mit Zeigern auf Konfigurationsdaten und gew�hltem Optimierer
-    Softmax(model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
+    Softmax(Model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
         : Layer<T>(m)
         , mPtrLayer(HeaderPointer)
         , mPtrData(DataPointer)

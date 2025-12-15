@@ -15,12 +15,12 @@ namespace Edgeist {
 /**
  * @brief Helper methods to load MNIST Data
  */
-struct MnistImage {
+struct MNISTImage {
     float data[784];
     uint8_t label;
 };
 
-std::vector<MnistImage> load_mnist_batch(const std::string& filename);
+auto loadMNISTBatch(const std::string& filename) -> std::vector<MNISTImage>;
 } // namespace Edgeist
 
 #endif // MNIST_LOADER_H

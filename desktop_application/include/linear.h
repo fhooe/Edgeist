@@ -26,7 +26,7 @@ public:
     using Linear_DataType_t = T;
 
     // CTor: Init the ReLU-Layer with pointers to config data and the chosen optimizer
-    Linear(model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
+    Linear(Model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
         : Layer<T>(m)
         , mPtrLayer(HeaderPointer)
         , mPtrData(DataPointer)
@@ -238,12 +238,12 @@ public:
         return ErrorType::ok;
     }
 
-    // Loads the trainable values ​​from Flash into SRAM
+    // Loads the trainable values from Flash into SRAM
     auto loadFromFlash() -> ErrorType override
     {
 
         switch (mOptimizerType) {
-        case SGD:
+        case OptimizerID::SGD:
             // init weights
             mWeightPtr = new OptimizerSGD<T>;
             mWeightPtr->init(mHeader->weights_amount_trainable);
@@ -252,7 +252,7 @@ public:
             mBiasPtr->init(mHeader->bias_amount_trainable);
             break;
 
-        case Momentum:
+        case OptimizerID::Momentum:
             // init weights
             mWeightPtr = new OptimizerMomentum<T>;
             mWeightPtr->init(mHeader->weights_amount_trainable);
@@ -261,7 +261,7 @@ public:
             mBiasPtr->init(mHeader->bias_amount_trainable);
             break;
 
-        case ADAM:
+        case OptimizerID::ADAM:
             // init weights
             mWeightPtr = new OptimizerAdam<T>;
             mWeightPtr->init(mHeader->weights_amount_trainable);

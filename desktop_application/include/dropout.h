@@ -26,7 +26,7 @@ namespace Edgeist {
 template <typename T>
 class Dropout : public Layer<T> {
 public:
-    Dropout(model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
+    Dropout(Model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
         : Layer<T>(m)
         , mPtrLayer(HeaderPointer)
         , mPtrData(DataPointer)

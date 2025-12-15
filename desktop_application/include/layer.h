@@ -7,12 +7,12 @@
 #ifndef LAYER_H
 #define LAYER_H
 
+#include "Object.h"
 #include "nmcf_error_types.h"
-#include "object.h"
 
 namespace Edgeist {
 template <typename T>
-class model;
+class Model;
 
 /**
  * @brief Base class for all neural network layers.
@@ -22,9 +22,9 @@ class model;
  * @tparam T Datatype of the layer inputs.
  */
 template <typename T>
-class Layer : public object {
+class Layer : public Object {
 public:
-    explicit Layer(model<T>* m)
+    explicit Layer(Model<T>* m)
         : mModel(m)
     {
     }
@@ -66,7 +66,7 @@ protected:
     bool mIsLoaded = false;
 
     // pointer to the model Object that
-    model<T>* mModel = nullptr;
+    Model<T>* mModel = nullptr;
 
     // pointer to Array with Input Data
     // Used for Layers like ReLU, softMax, Maxpool, ...

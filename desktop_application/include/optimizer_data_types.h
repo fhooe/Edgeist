@@ -11,7 +11,7 @@
 #include <cmath>
 
 namespace Edgeist {
-enum OptimizerID {
+enum class OptimizerID {
     SGD = 0,
     Momentum = 1,
     ADAM = 2
