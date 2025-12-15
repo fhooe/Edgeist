@@ -37,7 +37,7 @@ public:
         loadFromFlash();
     }
 
-    ErrorType forwardPass(const T* input_data, T* output_data, bool /* trainingflag */) override
+    auto forwardPass(const T* input_data, T* output_data, bool /* trainingflag */) -> ErrorType override
     {
         if (!input_data || !output_data)
             return ErrorType::UnknownError;
@@ -70,7 +70,7 @@ public:
         return ErrorType::ok;
     }
 
-    ErrorType backwardPass(const T* grad_output, T* grad_input) override
+    auto backwardPass(const T* grad_output, T* grad_input) -> ErrorType override
     {
         if (!grad_output || !grad_input)
             return ErrorType::UnknownError;
@@ -108,34 +108,34 @@ public:
     }
 
     // Initialisiere Dropout maske f�r mini batch
-    ErrorType initGradients() override
+    auto initGradients() -> ErrorType override
     {
         // TODO
         return ErrorType::ok;
     }
 
     // lösche erstellte dropout maske
-    ErrorType deleteGradients() override
+    auto deleteGradients() -> ErrorType override
     {
         // TODO
         return ErrorType::ok;
     }
 
-    ErrorType loadFromFlash() override
+    auto loadFromFlash() -> ErrorType override
     {
         this->mIsLoaded = true;
         return ErrorType::ok;
     }
 
-    ErrorType storeToFlash() override
+    auto storeToFlash() -> ErrorType override
     {
         // not implemented
         return ErrorType::ok;
     }
 
-    uint32_t getOutputSize() override { return this->mHeader->channelsin * this->mHeader->dimensionoutput_x; }
+    auto getOutputSize() -> uint32_t override { return this->mHeader->channelsin * this->mHeader->dimensionoutput_x; }
 
-    uint32_t getInputSize() override { return this->mHeader->channelsin * this->mHeader->dimensioninput_x; }
+    auto getInputSize() -> uint32_t override { return this->mHeader->channelsin * this->mHeader->dimensioninput_x; }
 
 private:
     void* mPtrLayer;

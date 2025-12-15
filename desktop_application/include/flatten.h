@@ -40,7 +40,7 @@ public:
     ~Flatten() override = default;
 
     // Führt die Vorwärtspassage durch und schreibt das Ergebnis in output.
-    virtual ErrorType forwardPass(const T* input_data, T* output_data, bool /* trainingflag */) override
+    auto forwardPass(const T* input_data, T* output_data, bool /* trainingflag */) -> ErrorType override
     {
         for (size_t i = 0; i < mHeader->dimensioninput_x; i++) {
             output_data[i] = input_data[i];
@@ -49,7 +49,7 @@ public:
     }
 
     // Führt die Rückwärtspassage durch und berechnet die Gradienten für den vorherigen Layer.
-    ErrorType backwardPass(const T* input_data, T* output_data) override
+    auto backwardPass(const T* input_data, T* output_data) -> ErrorType override
     {
         for (size_t i = 0; i < mHeader->dimensioninput_x; i++) {
             output_data[i] = input_data[i];
@@ -58,29 +58,29 @@ public:
     }
 
     // Lädt die trainierbaren werte vom Flash in den SRAM
-    ErrorType loadFromFlash() override
+    auto loadFromFlash() -> ErrorType override
     {
         ;
         return ErrorType::ok;
     }
 
     // Speichert die trainierbaren werte vom SRAM in den Flash
-    ErrorType storeToFlash() override
+    auto storeToFlash() -> ErrorType override
     {
         return ErrorType::ok;
     }
 
-    uint32_t getOutputSize() override
+    auto getOutputSize() -> uint32_t override
     {
         return uint32_t(mHeader->dimensionoutput_x);
     }
 
-    uint32_t getInputSize() override
+    auto getInputSize() -> uint32_t override
     {
         return uint32_t(mHeader->dimensioninput_x);
     }
 
-    const Neural_Network_Flatten_t& header()
+    [[nodiscard]] auto header() const -> const Neural_Network_Flatten_t&
     {
         return *mHeader;
     }

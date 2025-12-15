@@ -53,7 +53,7 @@ template <typename T>
 class model : public object {
 public:
     // init model
-    ErrorType Init()
+    auto init() -> ErrorType
     {
 
         // Generate Layers
@@ -118,13 +118,13 @@ public:
     }
 
     // Run Inference from Flash
-    ErrorType InferenceFlash(const T* input, T* output)
+    auto inferenceFlash(const T* input, T* output) -> ErrorType
     {
-        return InferenceSRAM(input, output, false);
+        return inferenceSram(input, output, false);
     }
 
     // Run Inference from Sram
-    ErrorType InferenceSRAM(const T* input, T* output, bool Trainingflag = true)
+    auto inferenceSram(const T* input, T* output, bool trainingFlag = true) -> ErrorType
     {
         mPtrInputData = input;
         mPtrOutputData = output;
@@ -150,12 +150,12 @@ public:
 
             // First Layer gets input from Methode argumet
             if (i == 0) {
-                layersInSRAM[i]->forwardPass(mPtrInputData, ptrLayerOutputData, Trainingflag);
+                layersInSRAM[i]->forwardPass(mPtrInputData, ptrLayerOutputData, trainingFlag);
             }
             // Other Layers get Input from Previous Layer
             else {
 
-                layersInSRAM[i]->forwardPass(ptrLayerInputData, ptrLayerOutputData, Trainingflag);
+                layersInSRAM[i]->forwardPass(ptrLayerInputData, ptrLayerOutputData, trainingFlag);
             }
 
             T* ptrswap = ptrLayerInputData;
@@ -176,13 +176,9 @@ public:
         return ErrorType::ok;
     }
 
-    // Run Inference from Sram
-    ErrorType InferenceSRAM(T* input, T* output, uint32_t Start, uint32_t Stop, com next);
-
     // Train Methode
-    ErrorType Train(const T* input, T* expectedOutput, const LossFunction<T>& lossFn)
+    auto train(const T* input, T* expectedOutput, const LossFunction<T>& lossFn) -> ErrorType
     {
-
         mPtrExpectedOutputData = expectedOutput;
 
         mPtrInputData = input;
@@ -255,10 +251,8 @@ public:
 
         return ErrorType::ok;
     }
-    // Train methode for distributed Learning
-    ErrorType Train(T* input, T* expectedOutput, uint32_t Start, uint32_t Stop, com next);
 
-    ErrorType initGradients()
+    auto initGradients() -> ErrorType
     {
         // Update all the Layers
         for (int i = 0; i < mHeader->layernrs; i++) {
@@ -267,7 +261,7 @@ public:
         return ErrorType::ok;
     }
 
-    ErrorType deleteGradients()
+    auto deleteGradients() -> ErrorType
     {
         // Update all the Layers
         for (int i = 0; i < mHeader->layernrs; i++) {
@@ -276,7 +270,7 @@ public:
         return ErrorType::ok;
     }
 
-    ErrorType Update(uint32_t batchsize)
+    auto update(uint32_t batchsize) -> ErrorType
     {
         // Update all the Layers
         for (int i = 0; i < mHeader->layernrs; i++) {
@@ -285,24 +279,14 @@ public:
         return ErrorType::ok;
     }
 
-    // Load Weights from Flash to SRAM
-    ErrorType loadWeights();
-    // Load Weights methode for distributed Learning
-    ErrorType loadWeights(uint32_t Start, uint32_t Stop);
-
-    // Save Weights back to Flash from SRAM
-    ErrorType saveWeights();
-    // Sava Weights methode for distributed Learning
-    ErrorType saveWeights(uint32_t Start, uint32_t Stop);
-
     // access methode vor model header
-    const Neural_Network_Header_t& header()
+    [[nodiscard]] auto header() const -> const Neural_Network_Header_t&
     {
         return *mHeader;
     }
 
     // access methode for Layer by index
-    Layer<T>* getLayer(uint32_t index)
+    auto getLayer(uint32_t index) -> Layer<T>*
     {
 
         if (index >= layersInSRAM.size()) {
@@ -312,9 +296,8 @@ public:
     }
 
     // access methode to Input data by index
-    T getInput(uint32_t index)
+    auto getInput(uint32_t index) -> T
     {
-
         if (mPtrInputData == nullptr || mHeader == nullptr) {
             // Error no Input data or no Header
             return T(0);
@@ -389,22 +372,8 @@ private:
     // Optimizer for the model
     OptimizerID mOptimizerType;
 
-    // Generate model, sets up the necessary Layer Data and copies the trainable values to Ram and initializes the Optimizer Variables
-    ErrorType GenerateModel(int** Layers);
-
-    // Generate model for distributed Learning, sets up the necessary Layer Data and copies the trainable values to Ram and initializes the Optimizer Variables
-    ErrorType GenerateModel(int** Layers, size_t Start, size_t Stop);
-
-    // Transfer Weights, for distributed Learning
-    ErrorType TransferWeights(size_t Start, size_t Stop, com next);
-
-    // Why do we need that methode?
-    ErrorType SelectClass(size_t id, int* layeraddress);
-
-    // Private functions
-
     // returns void Pointer to Layer by Index
-    void* getLayerPtr(size_t layerNr)
+    [[nodiscard]] auto getLayerPtr(size_t layerNr) const -> void*
     {
         // Add offset to the pointer address of header
         size_t offset = (sizeof(Neural_Network_Header_t) - mHeader->layernrs * 4) / sizeof(uint32_t) + layerNr;

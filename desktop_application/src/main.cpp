@@ -59,7 +59,7 @@ void evaluateModel(model<float>& myModel, const std::vector<MnistImage>& images,
 
     for (const auto& img : images) {
         const float* input = reinterpret_cast<const float*>(img.data);
-        myModel.InferenceSRAM(input, output);
+        myModel.inferenceSram(input, output);
 
         expected[img.label] = 1.0f;
 
@@ -100,7 +100,7 @@ int main()
     }
 
     model<float> myModel(modelFixed, modelTrainable, SGD, LEARNING_RATE);
-    myModel.Init();
+    myModel.init();
 
     // === MNIST Daten laden ===
     std::vector<MnistImage> trainImages, testImages;
@@ -136,11 +136,11 @@ int main()
                 const float* input = reinterpret_cast<const float*>(img.data);
 
                 expected[img.label] = 1.0f;
-                myModel.Train(input, expected, loss);
+                myModel.train(input, expected, loss);
                 expected[img.label] = 0.0f;
             }
 
-            myModel.Update(BATCH_SIZE);
+            myModel.update(BATCH_SIZE);
             myModel.deleteGradients();
         }
 
