@@ -10,12 +10,12 @@ namespace Edgeist {
 /**
  * @brief Base object for all classes.
  **/
-class object {
+class Object {
 public:
-    virtual ~object() = default;
+    virtual ~Object() = default;
 
 protected:
-    object() = default;
+    Object() = default;
 };
 } // namespace Edgeist
 

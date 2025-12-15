@@ -14,7 +14,7 @@
 namespace Edgeist {
 
 template <typename T>
-class model;
+class Model;
 
 /**
  * @brief Rectified Linear Unit (ReLU) Activation Layer.
@@ -27,7 +27,7 @@ template <typename T>
 class Relu : public Layer<T> {
 public:
     // CTor: Init the ReLU-Layer with pointers to config data and the chosen optimizer
-    Relu(model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
+    Relu(Model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
         : Layer<T>(m)
         , mPtrLayer(HeaderPointer)
         , mPtrData(DataPointer)

@@ -13,6 +13,8 @@
 
 #include "Modelenums.h"
 #include "Modeltypes.h"
+#include "Object.h"
+#include "Softmax.h"
 #include "adaptive_avg_pool_1d.h"
 #include "adaptive_avg_pool_2d.h"
 #include "batch_norm_1d.h"
@@ -25,10 +27,8 @@
 #include "loss_function.h"
 #include "max_pool_2d.h"
 #include "nmcf_error_types.h"
-#include "object.h"
 #include "optimizer_data_types.h"
 #include "relu.h"
-#include "softmax.h"
 
 namespace Edgeist {
 typedef size_t com;
@@ -51,7 +51,7 @@ typedef size_t com;
  * @tparam T Datatype of the neural network inputs.
  */
 template <typename T>
-class model : public object {
+class Model : public Object {
 public:
     // init model
     auto init() -> ErrorType
@@ -79,7 +79,7 @@ public:
                 break;
 
             case int(LayerIDs::Conv2d_ID):
-                layersInSRAM.push_back(std::make_shared<Conv2d<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+                layersInSRAM.push_back(std::make_shared<Conv2D<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
                 break;
 
             case int(LayerIDs::Flatten_ID):
@@ -87,23 +87,23 @@ public:
                 break;
 
             case int(LayerIDs::MaxPool2d_ID):
-                layersInSRAM.push_back(std::make_shared<MaxPool2d<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+                layersInSRAM.push_back(std::make_shared<MaxPool2D<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
                 break;
 
             case int(LayerIDs::BatchNorm1d_ID):
-                layersInSRAM.push_back(std::make_shared<BatchNorm1d<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+                layersInSRAM.push_back(std::make_shared<BatchNorm1D<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
                 break;
 
             case int(LayerIDs::BatchNorm2d_ID):
-                layersInSRAM.push_back(std::make_shared<BatchNorm2d<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+                layersInSRAM.push_back(std::make_shared<BatchNorm2D<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
                 break;
 
             case int(LayerIDs::AdaptiveAvgPool1d_ID):
-                layersInSRAM.push_back(std::make_shared<AdaptiveAvgPool1d<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+                layersInSRAM.push_back(std::make_shared<AdaptiveAvgPool1D<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
                 break;
 
             case int(LayerIDs::AdaptiveAvgPool2d_ID):
-                layersInSRAM.push_back(std::make_shared<AdaptiveAvgPool2d<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+                layersInSRAM.push_back(std::make_shared<AdaptiveAvgPool2D<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
                 break;
 
             case int(LayerIDs::Dropout_ID):
@@ -314,7 +314,7 @@ public:
     }
 
     // Constructor
-    model(void* ModelPointer, void* DataPointer, OptimizerID OptimizerType, float LearningRate)
+    Model(void* ModelPointer, void* DataPointer, OptimizerID OptimizerType, float LearningRate)
         : mLearningRate(LearningRate)
         , mPtrModel(ModelPointer)
         , mPtrData(DataPointer)

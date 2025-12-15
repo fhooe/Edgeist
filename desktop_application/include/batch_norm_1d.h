@@ -14,7 +14,7 @@
 
 namespace Edgeist {
 template <typename T>
-class model;
+class Model;
 
 /**
  * @brief 1D batch normalization layer.
@@ -27,10 +27,10 @@ class model;
  * @tparam T Datatype of the layer inputs.
  */
 template <typename T>
-class BatchNorm1d : public Layer<T> {
+class BatchNorm1D : public Layer<T> {
 public:
     typedef T BatchNorm1d_DataType_t;
-    BatchNorm1d(model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
+    BatchNorm1D(Model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
         : Layer<T>(m)
         , mPtrLayer(HeaderPointer)
         , mPtrData(DataPointer)
@@ -48,7 +48,7 @@ public:
         loadFromFlash();
     }
 
-    ~BatchNorm1d() override
+    ~BatchNorm1D() override
     {
 
         delete[] mWeightPtr;
@@ -274,7 +274,7 @@ public:
     {
 
         switch (mOptimizerType) {
-        case SGD:
+        case OptimizerID::SGD:
             // init weights
             mWeightPtr = new OptimizerSGD<T>;
             mWeightPtr->init(mHeader->weights_amount_trainable);
@@ -283,7 +283,7 @@ public:
             mBiasPtr->init(mHeader->bias_amount_trainable);
             break;
 
-        case Momentum:
+        case OptimizerID::Momentum:
             // init weights
             mWeightPtr = new OptimizerMomentum<T>;
             mWeightPtr->init(mHeader->weights_amount_trainable);
@@ -292,7 +292,7 @@ public:
             mBiasPtr->init(mHeader->bias_amount_trainable);
             break;
 
-        case ADAM:
+        case OptimizerID::ADAM:
             // init weights
             mWeightPtr = new OptimizerAdam<T>;
             mWeightPtr->init(mHeader->weights_amount_trainable);

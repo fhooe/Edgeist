@@ -14,7 +14,7 @@
 namespace Edgeist {
 
 template <typename T>
-class model;
+class Model;
 
 /**
  * @brief Flatten layer.
@@ -27,7 +27,7 @@ template <typename T>
 class Flatten : public Layer<T> {
 public:
     // CTor: Init the ReLU-Layer with pointers to config data and the chosen optimizer
-    Flatten(model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
+    Flatten(Model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
         : Layer<T>(m)
         , mPtrLayer(HeaderPointer)
         , mPtrData(DataPointer)

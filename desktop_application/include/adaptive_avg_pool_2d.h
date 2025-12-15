@@ -23,9 +23,9 @@ namespace Edgeist {
  * @tparam T Datatype of the layer inputs.
  */
 template <typename T>
-class AdaptiveAvgPool2d : public Layer<T> {
+class AdaptiveAvgPool2D : public Layer<T> {
 public:
-    AdaptiveAvgPool2d(model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
+    AdaptiveAvgPool2D(Model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
         : Layer<T>(m)
         , mPtrLayer(HeaderPointer)
         , mPtrData(DataPointer)
