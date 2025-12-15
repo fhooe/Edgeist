@@ -49,13 +49,13 @@ public:
     }
 
     // Führt die Vorwärtspassage durch und schreibt das Ergebnis in output.
-    ErrorType forwardPass(const T* input_data, T* output_data, bool trainingflag) override
+    auto forwardPass(const T* input_data, T* output_data, bool trainingFlag) -> ErrorType override
     {
         if (input_data == nullptr || output_data == nullptr) {
             return ErrorType::UnknownError;
         }
 
-        if (trainingflag) {
+        if (trainingFlag) {
 
             if (this->mIsLoaded != true) {
                 return ErrorType::LayerNotInitialized;
@@ -80,7 +80,7 @@ public:
     }
 
     // Führt die Rückwärtspassage durch und berechnet die Gradienten für den vorherigen Layer.
-    ErrorType backwardPass(const T* input_data, T* output_data) override
+    auto backwardPass(const T* input_data, T* output_data) -> ErrorType override
     {
 
         if (input_data == nullptr || output_data == nullptr) {
@@ -108,7 +108,7 @@ public:
     }
 
     // Lädt die trainierbaren werte vom Flash in den SRAM
-    ErrorType loadFromFlash() override
+    auto loadFromFlash() -> ErrorType override
     {
 
         this->mIsLoaded = true;
@@ -116,24 +116,24 @@ public:
     }
 
     // Speichert die trainierbaren werte vom SRAM in den Flash
-    ErrorType storeToFlash() override
+    auto storeToFlash() -> ErrorType override
     {
         this->mIsLoaded = false;
         // nicht implementier in dieser Version, wird erst am µController relevant
         return ErrorType::UnknownError;
     }
 
-    uint32_t getOutputSize() override
+    auto getOutputSize() -> uint32_t override
     {
         return uint32_t(mHeader->dimensionoutput_x);
     }
 
-    uint32_t getInputSize() override
+    auto getInputSize() -> uint32_t override
     {
         return uint32_t(mHeader->dimensioninput_x);
     }
 
-    const Neural_Network_ReLU_t& header()
+    [[nodiscard]] auto header() const -> const Neural_Network_ReLU_t&
     {
         return *mHeader;
     }

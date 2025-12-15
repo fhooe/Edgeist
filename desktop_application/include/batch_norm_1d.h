@@ -61,7 +61,7 @@ public:
         mRunningVar = nullptr;
     }
 
-    ErrorType forwardPass(const T* input_data, T* output_data, bool trainingflag) override
+    auto forwardPass(const T* input_data, T* output_data, bool trainingflag) -> ErrorType override
     {
 
         // Use ether data from flash or SRAM based on trainingflag
@@ -148,7 +148,7 @@ public:
         return ErrorType::ok;
     }
 
-    ErrorType backwardPass(const T* input_data, T* output_data) override
+    auto backwardPass(const T* input_data, T* output_data) -> ErrorType override
     {
         if (input_data == nullptr || output_data == nullptr)
             return ErrorType::InvalidPointer;
@@ -213,7 +213,7 @@ public:
     }
 
     // Initialisiert Mittelwert und varianz vor einem mini Batch
-    ErrorType initGradients() override
+    auto initGradients() -> ErrorType override
     {
         if (mPtrWeightGradient != nullptr || mPtrBiasGradient != nullptr) {
             return ErrorType::UnknownError;
@@ -238,7 +238,7 @@ public:
     }
 
     // Lösche Mittlwert und varianz nach minibatch
-    ErrorType deleteGradients() override
+    auto deleteGradients() -> ErrorType override
     {
         if (mPtrWeightGradient != nullptr) {
             delete[] mPtrWeightGradient;
@@ -252,7 +252,7 @@ public:
         return ErrorType::ok;
     }
 
-    ErrorType update(uint32_t batchsize) override
+    auto update(uint32_t batchsize) -> ErrorType override
     {
 
         if (mPtrWeightGradient == nullptr || mPtrBiasGradient == nullptr) {
@@ -271,7 +271,7 @@ public:
         return ErrorType::ok;
     }
 
-    ErrorType loadFromFlash() override
+    auto loadFromFlash() -> ErrorType override
     {
 
         switch (mOptimizerType) {
@@ -315,18 +315,18 @@ public:
         return ErrorType::ok;
     }
 
-    ErrorType storeToFlash() override
+    auto storeToFlash() -> ErrorType override
     {
         // not implemented for this version
         return ErrorType::ok;
     }
 
-    uint32_t getOutputSize() override
+    auto getOutputSize() -> uint32_t override
     {
         return this->mHeader->dimensionoutput_x;
     }
 
-    uint32_t getInputSize() override
+    auto getInputSize() -> uint32_t override
     {
         return this->mHeader->dimensioninput_x;
     }

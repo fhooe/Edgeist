@@ -180,7 +180,7 @@ public:
 template <typename T>
 class SigmoidBinaryCrossEntropyLoss : public LossFunction<T> {
 public:
-    T compute(const T* logits, const T* targets, std::size_t size) const override
+    auto compute(const T* logits, const T* targets, std::size_t size) const -> T override
     {
         T loss = 0;
         for (std::size_t i = 0; i < size; ++i) {
@@ -196,7 +196,7 @@ public:
         return loss / static_cast<T>(size);
     }
 
-    void derivative(const T* logits, const T* targets, T* output_grad, std::size_t size) const override
+    auto derivative(const T* logits, const T* targets, T* output_grad, std::size_t size) const -> void override
     {
         for (std::size_t i = 0; i < size; ++i) {
             T z = logits[i];

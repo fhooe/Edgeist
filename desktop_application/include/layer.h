@@ -28,37 +28,37 @@ public:
     {
     }
 
-    virtual ~Layer() = default;
+    ~Layer() override = default;
 
     // Führt die Vorwärtspassage durch und schreibt das Ergebnis in output.
-    virtual ErrorType forwardPass(const T* input_data, T* output_data, bool trainingflag) = 0;
+    virtual auto forwardPass(const T* input_data, T* output_data, bool trainingflag) -> ErrorType = 0;
 
     // Führt die Räckwärtspassage durch und berechnet die Gradienten für den vorherigen Layer.
-    virtual ErrorType backwardPass(const T* input_data, T* output_data) = 0;
+    virtual auto backwardPass(const T* input_data, T* output_data) -> ErrorType = 0;
 
-    virtual ErrorType initGradients()
+    virtual auto initGradients() -> ErrorType
     {
         return ErrorType::ok;
     }
 
-    virtual ErrorType deleteGradients()
+    virtual auto deleteGradients() -> ErrorType
     {
         return ErrorType::ok;
     }
 
     // Update Weights and biases
-    virtual ErrorType update(uint32_t /* batchsize */)
+    virtual auto update(uint32_t /* batchsize */) -> ErrorType
     {
         return ErrorType::ok;
     }
 
-    virtual ErrorType loadFromFlash() = 0;
+    virtual auto loadFromFlash() -> ErrorType = 0;
 
-    virtual ErrorType storeToFlash() = 0;
+    virtual auto storeToFlash() -> ErrorType = 0;
 
-    virtual uint32_t getOutputSize() = 0;
+    virtual auto getOutputSize() -> uint32_t = 0;
 
-    virtual uint32_t getInputSize() = 0;
+    virtual auto getInputSize() -> uint32_t = 0;
 
 protected:
     // Flag that represents if the Layer has been loaded

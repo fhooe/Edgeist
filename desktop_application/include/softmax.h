@@ -54,7 +54,7 @@ public:
     // Führt die Vorwärtspassage (Forward Pass) durch; berechnet Softmax-Ausgabe aus Eingabedaten
     // input_data: output der Vorherigen Layer
     // output_Data: output dieses Layers
-    ErrorType forwardPass(const T* input_data, T* output_data, bool trainingflag) override
+    auto forwardPass(const T* input_data, T* output_data, bool trainingflag) -> ErrorType override
     {
         if (input_data == nullptr || output_data == nullptr) {
             return ErrorType::UnknownError;
@@ -108,7 +108,7 @@ public:
     // Führt die Rückwärtspassage (Backward Pass) durch; berechnet den Fehlergradienten der Softmax-Schicht
     // input_data: output vom forwardPass
     // output_Data: ist Gradient
-    ErrorType backwardPass(const T* input_data, T* output_data) override
+    auto backwardPass(const T* input_data, T* output_data) -> ErrorType override
     {
         if (input_data == nullptr || output_data == nullptr) {
             return ErrorType::UnknownError;
@@ -127,7 +127,7 @@ public:
     }
 
     // Lädt die trainierbaren werte vom Flash in den SRAM
-    ErrorType loadFromFlash() override
+    auto loadFromFlash() -> ErrorType override
     {
 
         this->mIsLoaded = true;
@@ -136,24 +136,24 @@ public:
     }
 
     // Speichert die trainierbaren werte vom SRAM in den Flash
-    ErrorType storeToFlash() override
+    auto storeToFlash() -> ErrorType override
     {
         this->mIsLoaded = false;
         // nicht implementier in dieser Version, wird erst am �Controller relevant
         return ErrorType::UnknownError;
     }
 
-    uint32_t getOutputSize() override
+    auto getOutputSize() -> uint32_t override
     {
         return uint32_t(mHeader->dimensionoutput_x);
     }
 
-    uint32_t getInputSize() override
+    auto getInputSize() -> uint32_t override
     {
         return uint32_t(mHeader->dimensioninput_x);
     }
 
-    const Neural_Network_Softmax_t& header()
+    [[nodiscard]] auto header() const -> const Neural_Network_Softmax_t&
     {
         return *mHeader;
     }

@@ -19,17 +19,17 @@ enum OptimizerID {
 template <typename T>
 class OptimizerBase {
 public:
-    virtual T getData(uint32_t index) const = 0;
-    virtual T getM(uint32_t index) const = 0;
-    virtual T getV(uint32_t index) const = 0;
+    virtual auto getData(uint32_t index) const -> T = 0;
+    virtual auto getM(uint32_t index) const -> T = 0;
+    virtual auto getV(uint32_t index) const -> T = 0;
 
-    virtual ErrorType setData(uint32_t index, T value) = 0;
-    virtual ErrorType setM(uint32_t index, T value) = 0;
-    virtual ErrorType setV(uint32_t index, T value) = 0;
+    virtual auto setData(uint32_t index, T value) -> ErrorType = 0;
+    virtual auto setM(uint32_t index, T value) -> ErrorType = 0;
+    virtual auto setV(uint32_t index, T value) -> ErrorType = 0;
 
-    virtual ErrorType init(uint32_t size) = 0;
+    virtual auto init(uint32_t size) -> ErrorType = 0;
 
-    virtual ErrorType update(uint32_t index, T gradient, T learningRate, uint32_t timestep = 1) = 0;
+    virtual auto update(uint32_t index, T gradient, T learningRate, uint32_t timestep = 1) -> ErrorType = 0;
 
     virtual ~OptimizerBase() = default;
 
@@ -50,7 +50,7 @@ public:
         }
     }
 
-    T getData(uint32_t index) const
+    auto getData(uint32_t index) const -> T override
     {
         if (index >= mData_size) {
             return T(0);
@@ -58,17 +58,17 @@ public:
         return this->mData[index];
     }
 
-    T getM(uint32_t /* index */) const
+    auto getM(uint32_t /* index */) const -> T override
     {
         return T(0);
     }
 
-    T getV(uint32_t /* index */) const
+    auto getV(uint32_t /* index */) const -> T override
     {
         return T(0);
     }
 
-    ErrorType setData(uint32_t index, T value)
+    auto setData(uint32_t index, T value) -> ErrorType override
     {
         if (index >= mData_size) {
             return ErrorType::IndexOutOfBounds;
@@ -77,17 +77,17 @@ public:
         return ErrorType::ok;
     }
 
-    ErrorType setM(uint32_t /* index */, T /* value */)
+    auto setM(uint32_t /* index */, T /* value */) -> ErrorType override
     {
         return ErrorType::ok;
     }
 
-    ErrorType setV(uint32_t /* index */, T /* value */)
+    auto setV(uint32_t /* index */, T /* value */) -> ErrorType override
     {
         return ErrorType::ok;
     }
 
-    virtual ErrorType init(uint32_t size)
+    auto init(uint32_t size) -> ErrorType override
     {
 
         this->mData = new T[size];
@@ -99,7 +99,7 @@ public:
         return ErrorType::ok;
     }
 
-    ErrorType update(uint32_t index, T gradient, T learningRate, uint32_t /* timestep = 1 */) override
+    auto update(uint32_t index, T gradient, T learningRate, uint32_t /* timestep = 1 */) -> ErrorType override
     {
         if (index >= mData_size)
             return ErrorType::IndexOutOfBounds;
@@ -133,7 +133,7 @@ public:
         }
     }
 
-    T getData(uint32_t index) const
+    auto getData(uint32_t index) const -> T override
     {
         if (index >= mData_size) {
             return T(0);
@@ -141,7 +141,7 @@ public:
         return this->mData[index];
     }
 
-    T getM(uint32_t index) const
+    auto getM(uint32_t index) const -> T override
     {
         if (index >= mData_size) {
             return T(0);
@@ -149,12 +149,12 @@ public:
         return mM[index];
     }
 
-    T getV(uint32_t /* index */) const
+    auto getV(uint32_t /* index */) const -> T override
     {
         return T(0);
     }
 
-    ErrorType setData(uint32_t index, T value)
+    auto setData(uint32_t index, T value) -> ErrorType override
     {
         if (index >= mData_size) {
             return ErrorType::IndexOutOfBounds;
@@ -163,7 +163,7 @@ public:
         return ErrorType::ok;
     }
 
-    ErrorType setM(uint32_t index, T value)
+    auto setM(uint32_t index, T value) -> ErrorType override
     {
         if (index >= mData_size) {
             return ErrorType::IndexOutOfBounds;
@@ -172,14 +172,13 @@ public:
         return ErrorType::ok;
     }
 
-    ErrorType setV(uint32_t /* index */, T /* value */)
+    auto setV(uint32_t /* index */, T /* value */) -> ErrorType override
     {
         return ErrorType::ok;
     }
 
-    virtual ErrorType init(uint32_t size)
+    auto init(uint32_t size) -> ErrorType override
     {
-
         this->mData = new T[size];
         mM = new T[size];
 
@@ -192,7 +191,7 @@ public:
         return ErrorType::ok;
     }
 
-    ErrorType update(uint32_t index, T gradient, T learningRate, uint32_t /* timestep = 1 */) override
+    auto update(uint32_t index, T gradient, T learningRate, uint32_t /* timestep = 1 */) -> ErrorType override
     {
         if (index >= mData_size)
             return ErrorType::IndexOutOfBounds;
@@ -218,12 +217,12 @@ public:
     OptimizerAdam() = default;
     ~OptimizerAdam() override = default;
 
-    T getData(uint32_t index) const
+    auto getData(uint32_t index) const -> T override
     {
         return this->mData[index];
     }
 
-    T getM(uint32_t index) const
+    auto getM(uint32_t index) const -> T override
     {
         if (index >= mData_size) {
             return T(0);
@@ -231,7 +230,7 @@ public:
         return mM[index];
     }
 
-    T getV(uint32_t index) const
+    auto getV(uint32_t index) const -> T override
     {
         if (index >= mData_size) {
             return T(0);
@@ -239,7 +238,7 @@ public:
         return mV[index];
     }
 
-    ErrorType setData(uint32_t index, T value)
+    auto setData(uint32_t index, T value) -> ErrorType override
     {
         if (index >= mData_size) {
             return ErrorType::IndexOutOfBounds;
@@ -248,7 +247,7 @@ public:
         return ErrorType::ok;
     }
 
-    ErrorType setM(uint32_t index, T value)
+    auto setM(uint32_t index, T value) -> ErrorType override
     {
         if (index >= mData_size) {
             return ErrorType::IndexOutOfBounds;
@@ -257,7 +256,7 @@ public:
         return ErrorType::ok;
     }
 
-    ErrorType setV(uint32_t index, T value)
+    auto setV(uint32_t index, T value) -> ErrorType override
     {
         if (index >= mData_size) {
             return ErrorType::IndexOutOfBounds;
@@ -266,9 +265,8 @@ public:
         return ErrorType::ok;
     }
 
-    virtual ErrorType init(uint32_t size)
+    auto init(uint32_t size) -> ErrorType override
     {
-
         this->mData = new T[size];
         mM = new T[size];
         mV = new T[size];
@@ -284,7 +282,7 @@ public:
         return ErrorType::ok;
     }
 
-    ErrorType update(uint32_t index, T gradient, T learningRate, uint32_t timestep) override
+    auto update(uint32_t index, T gradient, T learningRate, uint32_t timestep) -> ErrorType override
     {
         if (index >= mData_size)
             return ErrorType::IndexOutOfBounds;

@@ -75,7 +75,7 @@ public:
     }
 
     // Führt die Vorwärtspassage durch und schreibt das Ergebnis in output.
-    ErrorType forwardPass(const T* input_data, T* output_data, bool trainingflag) override
+    auto forwardPass(const T* input_data, T* output_data, bool trainingflag) -> ErrorType override
     {
         if (input_data == nullptr || output_data == nullptr) {
             return ErrorType::UnknownError;
@@ -123,7 +123,7 @@ public:
     }
 
     // Führt die Rückwärtspassage durch und berechnet die Gradienten für den vorherigen Layer.
-    ErrorType backwardPass(const T* input_data, T* output_data) override
+    auto backwardPass(const T* input_data, T* output_data) -> ErrorType override
     {
         if (input_data == nullptr || output_data == nullptr) {
             return ErrorType::UnknownError;
@@ -177,7 +177,7 @@ public:
     }
 
     // Initialisiere Gradienten, Speicher reservieren und initialisieren
-    ErrorType initGradients() override
+    auto initGradients() -> ErrorType override
     {
 
         if (mPtrWeightGradient != nullptr || mPtrBiasGradient != nullptr) {
@@ -204,7 +204,7 @@ public:
     }
 
     // Lösche Gradienten, Speicher freigeben
-    ErrorType deleteGradients() override
+    auto deleteGradients() -> ErrorType override
     {
         if (mPtrWeightGradient != nullptr) {
             delete[] mPtrWeightGradient;
@@ -220,7 +220,7 @@ public:
     }
 
     // Update Weights and biases
-    ErrorType update(uint32_t batchsize) override
+    auto update(uint32_t batchsize) -> ErrorType override
     {
 
         if (mPtrWeightGradient == nullptr || mPtrBiasGradient == nullptr) {
@@ -239,7 +239,7 @@ public:
     }
 
     // Lädt die trainierbaren werte vom Flash in den SRAM
-    ErrorType loadFromFlash() override
+    auto loadFromFlash() -> ErrorType override
     {
 
         switch (mOptimizerType) {
@@ -284,24 +284,24 @@ public:
     }
 
     // Speichert die trainierbaren werte vom SRAM in den Flash
-    ErrorType storeToFlash() override
+    auto storeToFlash() -> ErrorType override
     {
         this->mIsLoaded = false;
         // nicht implementier in dieser Version, wird erst am µController relevant
         return ErrorType::UnknownError;
     }
 
-    uint32_t getOutputSize() override
+    auto getOutputSize() -> uint32_t override
     {
         return uint32_t(mHeader->dimensionoutput_x);
     }
 
-    uint32_t getInputSize() override
+    auto getInputSize() -> uint32_t override
     {
         return uint32_t(mHeader->dimensioninput_x);
     }
 
-    const Neural_Network_Linear_t& header()
+    [[nodiscard]] auto header() const -> const Neural_Network_Linear_t&
     {
         return *mHeader;
     }
