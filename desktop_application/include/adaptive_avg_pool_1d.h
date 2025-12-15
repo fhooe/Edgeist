@@ -1,7 +1,8 @@
 /**
+ * @file
  * @author David Muttenthaler
  * @brief Implements the 1D adaptive average pooling layer.
- **/
+ */
 
 #ifndef ADAPTIVE_AVG_POOL_1D_H
 #define ADAPTIVE_AVG_POOL_1D_H
@@ -107,14 +108,14 @@ public:
         return ErrorType::ok;
     }
 
-    // Initialisiere Dropout maske f�r mini batch
+    // init dropout mask for mini batch
     auto initGradients() -> ErrorType override
     {
         // TODO
         return ErrorType::ok;
     }
 
-    // lösche erstellte dropout maske
+    // delete dropout mask
     auto deleteGradients() -> ErrorType override
     {
         // TODO

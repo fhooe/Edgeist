@@ -1,7 +1,8 @@
 /**
+ * @file
  * @author David Muttenthaler
  * @brief Implements the 2D convolutional layer.
- **/
+ */
 
 #ifndef CONV_2D_H
 #define CONV_2D_H
@@ -80,7 +81,7 @@ public:
         }
     }
 
-    // Führt die Vorwärtspassage durch und schreibt das Ergebnis in output.
+    // executes forward pass and writes the result to the output
     auto forwardPass(const T* input_data, T* output_data, bool trainingflag) -> ErrorType override
     {
         if (input_data == nullptr || output_data == nullptr) {
@@ -121,14 +122,14 @@ public:
         // Zero-initialize output
         // std::fill(output_data, output_data + Cout * H * W, 0);
 
-        // Schleife über alle Positionen im Output-Bild
+        // Loop through all positions in the output image
         for (int oc = 0; oc < Cout; ++oc) {
             for (int oy = 0; oy < H; ++oy) {
                 for (int ox = 0; ox < W; ++ox) {
 
                     T sum = 0;
 
-                    // Schleife über alle Eingangskanäle und Kernelpositionen
+                    // Loop through all input channels and kernel positions
                     for (int ic = 0; ic < Cin; ++ic) {
                         for (int ky = 0; ky < K[0]; ++ky) {
                             for (int kx = 0; kx < K[1]; ++kx) {
@@ -137,7 +138,7 @@ public:
 
                                 // Boundary check (zero padding)
                                 if (iy >= 0 && iy < H && ix >= 0 && ix < W) {
-                                    // Indices f�r Input, Gewicht, Output
+                                    // indices for input, weight, output
                                     int input_idx = ((ic * H + iy) * W) + ix;
                                     int weight_idx = (((oc * Cin + ic) * K[0] + ky) * K[1] + kx);
 
@@ -147,10 +148,10 @@ public:
                         }
                     }
 
-                    // Bias hinzuf�gen
+                    // add bias
                     sum += ptrBias[oc];
 
-                    // Output schreiben
+                    // write output
                     int output_idx = ((oc * H + oy) * W) + ox;
                     output_data[output_idx] = sum;
                 }
@@ -159,7 +160,7 @@ public:
         return ErrorType::ok;
     }
 
-    // Führt die Rückwärtspassage durch und berechnet die Gradienten für den vorherigen Layer.
+    // Performs the backwardpass and calculates the gradients for the previous layer
     ErrorType backwardPass(const T* input_data, T* output_data) override
     {
 
@@ -176,7 +177,7 @@ public:
         }
         T* ptrWeight = mWeightPtr->mData;
 
-        // dL/dW und dL/db berechnen
+        // calc dL/dW and dL/db
         for (int oc = 0; oc < Cout; ++oc) {
             for (int oy = 0; oy < H; ++oy) {
                 for (int ox = 0; ox < W; ++ox) {
@@ -206,7 +207,7 @@ public:
             }
         }
 
-        // dL/dinput berechnen (weiterreichen an vorherigen Layer)
+        // calculate dL/dinput (pass to previous layer)
         for (int ic = 0; ic < Cin; ++ic) {
             for (int iy = 0; iy < H; ++iy) {
                 for (int ix = 0; ix < W; ++ix) {
@@ -243,7 +244,7 @@ public:
         return ErrorType::ok;
     }
 
-    // Initialisiere Gradienten, Speicher reservieren und initialisieren
+    // init gradient, reserve and init memory
     auto initGradients() -> ErrorType override
     {
 
@@ -251,8 +252,7 @@ public:
             return ErrorType::UnknownError;
         }
 
-        // arrays dynamisch anlegen und mit 0.0 initialisieren
-
+        // create arrays dynamically and initialize them with 0.0
         uint32_t sizeWeights = mHeader->kernelsize[0] * mHeader->kernelsize[1] * mHeader->channelsin * mHeader->channelsout;
         uint32_t sizeBias = mHeader->channelsout;
 
@@ -270,7 +270,7 @@ public:
         return ErrorType::ok;
     }
 
-    // Lösche Gradienten, Speicher freigeben
+    // delete gradient and free memory
     auto deleteGradients() -> ErrorType override
     {
         if (mPtrWeightGradient != nullptr) {
@@ -286,7 +286,7 @@ public:
         return ErrorType::ok;
     }
 
-    // Update Weights and biases
+    // update weights and biases
     auto update(uint32_t batchsize) -> ErrorType override
     {
 
@@ -294,14 +294,14 @@ public:
             return ErrorType::UnknownError;
         }
 
-        // Schleife �ber alle Filter (output channels)
+        // Loop through all filters (output channels)
         for (int oc = 0; oc < mHeader->channelsout; ++oc) {
-            // Schleife �ber alle Eingangskan�le
+            // Loop through all input channels
             for (int ic = 0; ic < mHeader->channelsin; ++ic) {
                 for (int ky = 0; ky < mHeader->kernelsize[0]; ++ky) {
                     for (int kx = 0; kx < mHeader->kernelsize[1]; ++kx) {
 
-                        // Lineare Indexberechnung f�r 4D-Tensor flach gespeichert
+                        // Linear index calculation for 4D tensor stored flat
                         int index = (((oc * mHeader->channelsin + ic) * mHeader->kernelsize[0] + ky) * mHeader->kernelsize[1] + kx);
 
                         mWeightPtr->update(index,
@@ -311,7 +311,7 @@ public:
                     }
                 }
             }
-            // Bias-Update: 1 Wert pro Filter
+            // Bias-Update: 1 value per filter
             mBiasPtr->update(oc,
                 mPtrBiasGradient[oc] / batchsize,
                 this->mModel->mLearningRate,
@@ -321,40 +321,40 @@ public:
         return ErrorType::ok;
     }
 
-    // Lädt die trainierbaren werte vom Flash in den SRAM
+    // Loads the trainable values ​​from Flash into SRAM
     ErrorType loadFromFlash() override
     {
 
         switch (mOptimizerType) {
         case SGD:
-            // initailisiere Weights
+            // init weights
             mWeightPtr = new OptimizerSGD<T>;
             mWeightPtr->init(mHeader->weights_amount_trainable);
-            // initailisiere Bias
+            // init bias
             mBiasPtr = new OptimizerSGD<T>;
             mBiasPtr->init(mHeader->bias_amount_trainable);
             break;
 
         case Momentum:
-            // initailisiere Weights
+            // init weights
             mWeightPtr = new OptimizerMomentum<T>;
             mWeightPtr->init(mHeader->weights_amount_trainable);
-            // initailisiere Bias
+            // init bias
             mBiasPtr = new OptimizerMomentum<T>;
             mBiasPtr->init(mHeader->bias_amount_trainable);
             break;
 
         case ADAM:
-            // initailisiere Weights
+            // init weights
             mWeightPtr = new OptimizerAdam<T>;
             mWeightPtr->init(mHeader->weights_amount_trainable);
-            // initailisiere Bias
+            // init bias
             mBiasPtr = new OptimizerAdam<T>;
             mBiasPtr->init(mHeader->bias_amount_trainable);
             break;
         }
 
-        // Initialize Weights und Biases
+        // init weights and biases
         for (size_t i = 0; i < mHeader->weights_amount_trainable; i++) {
             mWeightPtr->setData(i, *(static_cast<Conv2d_DataType_t*>(mPtrData) + (mHeader->weights_trainable_offset / sizeof(Conv2d_DataType_t)) + i));
         }
@@ -366,11 +366,11 @@ public:
         return ErrorType::ok;
     }
 
-    // Speichert die trainierbaren werte vom SRAM in den Flash
+    // Stores the trainable values ​​from SRAM to Flash
     auto storeToFlash() -> ErrorType override
     {
         this->mIsLoaded = false;
-        // nicht implementier in dieser Version, wird erst am �Controller relevant
+        // Not implemented in this version, will only become relevant on the uController
         return ErrorType::UnknownError;
     }
 

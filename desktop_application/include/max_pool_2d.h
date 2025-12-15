@@ -1,7 +1,8 @@
 /**
+ * @file
  * @author David Muttenthaler
  * @brief Implements the 2D max pooling layer.
- **/
+ */
 
 #ifndef MAX_POOL_2D_H
 #define MAX_POOL_2D_H

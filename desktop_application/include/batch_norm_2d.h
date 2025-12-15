@@ -1,7 +1,8 @@
 /**
+ * @file
  * @author David Muttenthaler
  * @brief Implements the 2D batch normalization layer.
- **/
+ */
 
 #ifndef BATCH_NORM_2D_H
 #define BATCH_NORM_2D_H
@@ -88,7 +89,7 @@ public:
             var[i] = double(1.0);
         }
 
-        // Mittelwert berechnen
+        // calc average
         for (int c = 0; c < NrOfChannels; c++) {
             for (int i = 0; i < ElemsPerChannel; i++) {
                 mean[c] += static_cast<double>(input_data[c * ElemsPerChannel + i]);
@@ -96,7 +97,7 @@ public:
             mean[c] = mean[c] / ElemsPerChannel;
         }
 
-        // Varianz berechnen
+        // calc variance
         for (int c = 0; c < NrOfChannels; c++) {
             for (int i = 0; i < ElemsPerChannel; i++) {
                 double diff = static_cast<double>(input_data[c * ElemsPerChannel + i]) - mean[c];
@@ -106,7 +107,7 @@ public:
             var[c] = var[c] / ElemsPerChannel;
         }
 
-        // Running_Mean
+        // running_Mean
         if (!mInitRunningStats) {
             // initialize with the values from buffer
             for (int c = 0; c < NrOfChannels; c++) {
@@ -116,7 +117,7 @@ public:
             mInitRunningStats = true;
         }
 
-        if (trainingflag) { // forward pass mit training
+        if (trainingflag) { // forward pass with training
 
             float momentum = 0.1f;
             for (int c = 0; c < NrOfChannels; c++) {
@@ -126,7 +127,7 @@ public:
 
             mNormalizedInput = new T[NrOfInputs];
             mInput = new T[NrOfInputs];
-            // Normalisieren + Skalieren + Verschieben
+            // normalize + scale + move
             for (int i = 0; i < NrOfChannels; i++) {
 
                 T gamma = ptrWeight[i];
@@ -137,7 +138,7 @@ public:
 
                     double norm = (double(input_data[index]) - mRunningMean[i]) / std::sqrt(mRunningVar[i] + eps);
 
-                    // input und normaliced input speichern
+                    // save input and normaliced input
                     mNormalizedInput[index] = norm;
                     mInput[index] = input_data[index];
 
@@ -146,7 +147,7 @@ public:
             }
 
         } else {
-            // Normalisieren + Skalieren + Verschieben
+            // normalize + scale + move
             for (int c = 0; c < NrOfChannels; c++) {
                 T gamma = ptrWeight[c];
                 T beta = ptrBias[c];
@@ -179,7 +180,7 @@ public:
         int ElemsPerChannel = NrOfInputs / NrOfChannels; // ElemsPerChannel
         float eps = 1e-5f;
 
-        // Speicher allokieren
+        // alloc memory
         T* dL_dgamma = new T[NrOfChannels];
         T* dL_dbeta = new T[NrOfChannels];
         double* sum_dnorm = new double[NrOfChannels];
@@ -192,7 +193,7 @@ public:
             sum_dnorm_norm[c] = 0.0;
         }
 
-        // 1. Berechne dL/dy, dL/db, dL/dx pro Channel
+        // 1. calc dL/dy, dL/db, dL/dx per channel
         for (int c = 0; c < NrOfChannels; ++c) {
             for (int i = 0; i < ElemsPerChannel; ++i) {
                 int idx = c * ElemsPerChannel + i;
@@ -208,7 +209,7 @@ public:
             }
         }
 
-        // 2. Berechne dL/dx pro Element
+        // 2. calc dL/dx per element
         for (int c = 0; c < NrOfChannels; ++c) {
             double std_inv = 1.0 / std::sqrt(mRunningVar[c] + eps);
 
@@ -224,13 +225,13 @@ public:
             }
         }
 
-        // 3. Gradienten in Puffer schreiben
+        // 3. save gradient in puffer
         for (int c = 0; c < NrOfChannels; ++c) {
             mPtrWeightGradient[c] += dL_dgamma[c];
             mPtrBiasGradient[c] += dL_dbeta[c];
         }
 
-        // Aufräumen
+        // cleanup
         delete[] dL_dgamma;
         delete[] dL_dbeta;
         delete[] sum_dnorm;
@@ -244,15 +245,14 @@ public:
         return ErrorType::ok;
     }
 
-    // Initialisiert Mittelwert und varianz vor einem mini Batch
+    // initializes mean and variance before a mini batch
     auto initGradients() -> ErrorType override
     {
         if (mPtrWeightGradient != nullptr || mPtrBiasGradient != nullptr) {
             return ErrorType::UnknownError;
         }
 
-        // arrays dynamisch anlegen und mit 0.0 initialisieren
-
+        // create arrays dynamically and initialize them with 0.0
         uint32_t sizeWeights = this->mHeader->dimensioninput_x;
         uint32_t sizeBias = this->mHeader->dimensioninput_x;
 
@@ -269,7 +269,7 @@ public:
         return ErrorType::ok;
     }
 
-    // Lösche Mittlwert und varianz nach minibatch
+    // delete mean and variance after minibatch
     auto deleteGradients() -> ErrorType override
     {
         if (mPtrWeightGradient != nullptr) {
@@ -291,7 +291,7 @@ public:
             return ErrorType::UnknownError;
         }
 
-        // SGD-Update von W und b
+        // SGD-Update of W and b
         for (size_t i = 0; i < this->mHeader->dimensioninput_x; ++i) {
 
             mWeightPtr->update(i, mPtrWeightGradient[i] / batchsize, this->mModel->mLearningRate, mTimestep);
@@ -308,19 +308,19 @@ public:
 
         switch (mOptimizerType) {
         case SGD:
-            // initailisiere Weights
+            // init weights
             mWeightPtr = new OptimizerSGD<T>;
             mWeightPtr->init(mHeader->weights_amount_trainable);
-            // initailisiere Bias
+            // init bias
             mBiasPtr = new OptimizerSGD<T>;
             mBiasPtr->init(mHeader->bias_amount_trainable);
             break;
 
         case Momentum:
-            // initailisiere Weights
+            // init weights
             mWeightPtr = new OptimizerMomentum<T>;
             mWeightPtr->init(mHeader->weights_amount_trainable);
-            // initailisiere Bias
+            // init bias
             mBiasPtr = new OptimizerMomentum<T>;
             mBiasPtr->init(mHeader->bias_amount_trainable);
             break;
@@ -335,7 +335,7 @@ public:
             break;
         }
 
-        // Initialize Weights und Biases
+        // init weights and biases
         for (size_t i = 0; i < mHeader->weights_amount_trainable; i++) {
             mWeightPtr->setData(i, *(static_cast<BatchNorm2d_DataType_t*>(mPtrData) + (mHeader->weights_trainable_offset / sizeof(BatchNorm2d_DataType_t)) + i));
         }
@@ -374,11 +374,11 @@ private:
 
     int mBatchIndex = 0;
 
-    // TODO richtige Datentypen
+    // TODO fix datatypes
     T* mNormalizedInput = nullptr;
     T* mInput = nullptr;
 
-    // flag vor first runn, to init Running mean/var
+    // flag for first run, to init running mean/var
     bool mInitRunningStats = false;
 
     BatchNorm2d_DataType_t* mPtrFlashWeight = nullptr;

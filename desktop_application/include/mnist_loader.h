@@ -1,7 +1,8 @@
 /**
+ * @file
  * @author David Muttenthaler
  * @brief Implements helper methods to load MNIST data.
- **/
+ */
 
 #ifndef MNIST_LOADER_H
 #define MNIST_LOADER_H

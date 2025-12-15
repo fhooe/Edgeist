@@ -1,6 +1,7 @@
 /**
+ * @file
  * @brief Implements the base object for all classes.
- **/
+ */
 
 #ifndef OBJECT_H
 #define OBJECT_H

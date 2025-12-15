@@ -1,7 +1,8 @@
 /**
+ * @file
  * @author David Muttenthaler
  * @brief Implements the 2D adaptive average pooling layer.
- **/
+ */
 
 #ifndef ADAPTIVE_AVG_POOL_2D_H
 #define ADAPTIVE_AVG_POOL_2D_H
@@ -50,12 +51,12 @@ public:
 
         for (int c = 0; c < C; ++c) {
             for (int oy = 0; oy < H_out; ++oy) {
-                // Adaptive Start/End f�r y
+                // adaptive start/end for y
                 int y_start = std::floor(oy * H_in / static_cast<float>(H_out));
                 int y_end = std::ceil((oy + 1) * H_in / static_cast<float>(H_out));
 
                 for (int ox = 0; ox < W_out; ++ox) {
-                    // Adaptive Start/End f�r x
+                    // adaptive start/end for x
                     int x_start = std::floor(ox * W_in / static_cast<float>(W_out));
                     int x_end = std::ceil((ox + 1) * W_in / static_cast<float>(W_out));
 
@@ -92,13 +93,13 @@ public:
         const int H_out = H.dimensionoutput_y;
         const int W_out = H.dimensionoutput_x;
 
-        // Initialisiere grad_input mit 0
+        // init grad_input with 0
         size_t inSize = size_t(C) * H_in * W_in;
         for (size_t i = 0; i < inSize; ++i) {
             grad_input[i] = T(0);
         }
 
-        // Gradienten verteilen
+        // distribute gradient
         for (int c = 0; c < C; ++c) {
             for (int oy = 0; oy < H_out; ++oy) {
                 int y_start = std::floor(oy * H_in / static_cast<float>(H_out));

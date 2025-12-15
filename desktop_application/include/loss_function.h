@@ -1,7 +1,8 @@
 ﻿/**
+ * @file
  * @author David Muttenthaler
  * @brief Implements loss functions for neural networks.
- **/
+ */
 
 #ifndef LOSS_FUNCTION_H
 #define LOSS_FUNCTION_H

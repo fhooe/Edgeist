@@ -1,7 +1,8 @@
 /**
+ * @file
  * @author David Muttenthaler
  * @brief Implements the dropout layer.
- **/
+ */
 
 #ifndef DROPOUT_H
 #define DROPOUT_H
@@ -54,7 +55,7 @@ public:
             }
         } else {
             for (size_t i = 0; i < size; ++i) {
-                output_data[i] = input_data[i]; // Keine Änderung im Inferenzmodus
+                output_data[i] = input_data[i]; // do not change in inference mode
             }
         }
 
