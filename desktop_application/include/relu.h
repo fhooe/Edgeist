@@ -1,4 +1,5 @@
 /**
+ * @file
  * @author David Muttenthaler
  * @brief Implements the rectified linear unit (ReLU) activation layer.
  */
@@ -25,7 +26,7 @@ class model;
 template <typename T>
 class Relu : public Layer<T> {
 public:
-    // Konstruktor: Initialisiert die ReLU-Schicht mit Zeigern auf Konfigurationsdaten und gewähltem Optimierer
+    // CTor: Init the ReLU-Layer with pointers to config data and the chosen optimizer
     Relu(model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
         : Layer<T>(m)
         , mPtrLayer(HeaderPointer)
@@ -39,7 +40,7 @@ public:
         loadFromFlash();
     }
 
-    // Destruktor: Gibt dynamisch allokierten Speicher frei
+    // DTor: Frees dynamically allocated memory
     ~Relu() override
     {
         if (this->mInputData != nullptr) {
@@ -48,7 +49,7 @@ public:
         }
     }
 
-    // Führt die Vorwärtspassage durch und schreibt das Ergebnis in output.
+    // executes forward pass and writes the result to the output
     auto forwardPass(const T* input_data, T* output_data, bool trainingFlag) -> ErrorType override
     {
         if (input_data == nullptr || output_data == nullptr) {
@@ -79,7 +80,7 @@ public:
         return ErrorType::ok;
     }
 
-    // Führt die Rückwärtspassage durch und berechnet die Gradienten für den vorherigen Layer.
+    // executes the backward pass and calculates the gradient for the layer before
     auto backwardPass(const T* input_data, T* output_data) -> ErrorType override
     {
 
@@ -107,7 +108,7 @@ public:
         return ErrorType::UnknownError;
     }
 
-    // Lädt die trainierbaren werte vom Flash in den SRAM
+    // loads the training data from flash to SRAM
     auto loadFromFlash() -> ErrorType override
     {
 
@@ -115,11 +116,11 @@ public:
         return ErrorType::ok;
     }
 
-    // Speichert die trainierbaren werte vom SRAM in den Flash
+    // saves the trained values from SRAM to flash
     auto storeToFlash() -> ErrorType override
     {
         this->mIsLoaded = false;
-        // nicht implementier in dieser Version, wird erst am µController relevant
+        // Not implemented in this version, will only become relevant on the uController
         return ErrorType::UnknownError;
     }
 
@@ -143,7 +144,7 @@ private:
 
     void* mPtrData;
 
-    // Pointer to the Layer in Flash
+    // pointer to the layer in flash
     Neural_Network_ReLU_t* mHeader;
 
     // chosen optimizer

@@ -1,7 +1,8 @@
 /**
+ * @file
  * @author David Muttenthaler
  * @brief Implements a template-based neural network model.
- **/
+ */
 
 #ifndef NMCM_H
 #define NMCM_H
@@ -132,7 +133,7 @@ public:
         T* ptrLayerOutputData = nullptr;
         T* ptrLayerInputData = nullptr;
 
-        // Find lagest needed Buffer
+        // Find largest needed Buffer
         size_t buffersize = 0;
         for (int i = 0; i < mHeader->layernrs; i++) {
             size_t size = layersInSRAM[i]->getOutputSize();
@@ -186,7 +187,7 @@ public:
         T* ptrLayerOutputData = nullptr;
         T* ptrLayerInputData = nullptr;
 
-        // Find lagest needed Buffer
+        // Find largest needed Buffer
         size_t buffersize = 0;
         for (int i = 0; i < mHeader->layernrs; i++) {
             size_t size = layersInSRAM[i]->getOutputSize();
@@ -285,7 +286,7 @@ public:
         return *mHeader;
     }
 
-    // access methode for Layer by index
+    // access method for Layer by index
     auto getLayer(uint32_t index) -> Layer<T>*
     {
 
@@ -295,7 +296,7 @@ public:
         return layersInSRAM.at(index);
     }
 
-    // access methode to Input data by index
+    // access method to Input data by index
     auto getInput(uint32_t index) -> T
     {
         if (mPtrInputData == nullptr || mHeader == nullptr) {
@@ -328,7 +329,6 @@ public:
         // populate the layer Pointer array
         for (int i = 0; i < mHeader->layernrs; i++) {
             // Add offset to the pointer address of header
-
             size_t offset = (sizeof(Neural_Network_Header_t) - mHeader->layernrs * 4) / sizeof(uint32_t) + i;
             uint32_t* targetAddressOffset = static_cast<uint32_t*>(mPtrModel) + offset;
 

@@ -1,7 +1,8 @@
 /**
+ * @file
  * @author David Muttenthaler
  * @brief Implements helper methods to load MNIST data.
- **/
+ */
 
 #include "mnist_loader.h"
 #include <fstream>

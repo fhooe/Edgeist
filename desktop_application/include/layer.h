@@ -1,7 +1,8 @@
 /**
+ * @file
  * @author David Muttenthaler
  * @brief Implements the base class for all neural network layers.
- **/
+ */
 
 #ifndef LAYER_H
 #define LAYER_H
@@ -30,10 +31,10 @@ public:
 
     ~Layer() override = default;
 
-    // Führt die Vorwärtspassage durch und schreibt das Ergebnis in output.
+    // executes forward pass and writes the result to the output
     virtual auto forwardPass(const T* input_data, T* output_data, bool trainingflag) -> ErrorType = 0;
 
-    // Führt die Räckwärtspassage durch und berechnet die Gradienten für den vorherigen Layer.
+    // executes the backward pass and calculates the gradient for the layer before
     virtual auto backwardPass(const T* input_data, T* output_data) -> ErrorType = 0;
 
     virtual auto initGradients() -> ErrorType
@@ -46,7 +47,7 @@ public:
         return ErrorType::ok;
     }
 
-    // Update Weights and biases
+    // Update weights and biases
     virtual auto update(uint32_t /* batchsize */) -> ErrorType
     {
         return ErrorType::ok;

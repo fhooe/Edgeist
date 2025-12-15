@@ -1,7 +1,8 @@
 /**
+ * @file
  * @author David Muttenthaler
  * @brief Implements the softmax activation layer.
- **/
+ */
 
 #ifndef SOFTMAX_H
 #define SOFTMAX_H

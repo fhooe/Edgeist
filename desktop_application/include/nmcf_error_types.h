@@ -1,7 +1,8 @@
 /**
+ * @file
  * @author David Muttenthaler
  * @brief Implements the NMCF error types.
- **/
+ */
 
 #ifndef NMCF_ERROR_TYPES_H
 #define NMCF_ERROR_TYPES_H

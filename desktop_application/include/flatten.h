@@ -1,7 +1,8 @@
 /**
+ * @file
  * @author David Muttenthaler
  * @brief Implements the flatten layer.
- **/
+ */
 
 #ifndef FLATTEN_H
 #define FLATTEN_H
@@ -25,7 +26,7 @@ class model;
 template <typename T>
 class Flatten : public Layer<T> {
 public:
-    // Konstruktor: Initialisiert die ReLU-Schicht mit Zeigern auf Konfigurationsdaten und gew�hltem Optimierer
+    // CTor: Init the ReLU-Layer with pointers to config data and the chosen optimizer
     Flatten(model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
         : Layer<T>(m)
         , mPtrLayer(HeaderPointer)
@@ -36,10 +37,10 @@ public:
         this->mHeader = static_cast<Neural_Network_Flatten_t*>(mPtrLayer);
     }
 
-    // Destruktor: Gibt dynamisch allokierten Speicher frei
+    // DTor: frees dynamically allocated memory
     ~Flatten() override = default;
 
-    // Führt die Vorwärtspassage durch und schreibt das Ergebnis in output.
+    // executes forward pass and writes the result to the output
     auto forwardPass(const T* input_data, T* output_data, bool /* trainingflag */) -> ErrorType override
     {
         for (size_t i = 0; i < mHeader->dimensioninput_x; i++) {
@@ -48,7 +49,7 @@ public:
         return ErrorType::ok;
     }
 
-    // Führt die Rückwärtspassage durch und berechnet die Gradienten für den vorherigen Layer.
+    // executes the backward pass and calculates the gradient for the layer before
     auto backwardPass(const T* input_data, T* output_data) -> ErrorType override
     {
         for (size_t i = 0; i < mHeader->dimensioninput_x; i++) {
@@ -57,14 +58,14 @@ public:
         return ErrorType::ok;
     }
 
-    // Lädt die trainierbaren werte vom Flash in den SRAM
+    // loads the training data from flash to SRAM
     auto loadFromFlash() -> ErrorType override
     {
         ;
         return ErrorType::ok;
     }
 
-    // Speichert die trainierbaren werte vom SRAM in den Flash
+    // saves the trained values from SRAM to flash
     auto storeToFlash() -> ErrorType override
     {
         return ErrorType::ok;

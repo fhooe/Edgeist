@@ -1,7 +1,8 @@
 /**
+ * @file
  * @author David Muttenthaler
  * @brief Defines base and derived classes for neural network optimizers.
- **/
+ */
 
 #ifndef OPTIMIZER_DATA_TYPES
 #define OPTIMIZER_DATA_TYPES
@@ -287,15 +288,15 @@ public:
         if (index >= mData_size)
             return ErrorType::IndexOutOfBounds;
 
-        // m und v berechnen
+        // calculate m and v
         mM[index] = beta1 * mM[index] + (1 - beta1) * gradient;
         mV[index] = beta2 * mV[index] + (1 - beta2) * gradient * gradient;
 
-        // Bias-Korrektur
+        // bias correction
         T m_hat = mM[index] / (1 - std::pow(beta1, timestep));
         T v_hat = mV[index] / (1 - std::pow(beta2, timestep));
 
-        // Update
+        // update
         this->mData[index] -= learningRate * m_hat / (std::sqrt(v_hat) + epsilon);
         return ErrorType::ok;
     }

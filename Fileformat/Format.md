@@ -1,47 +1,47 @@
-# File Format für Model übersetzung
+# File format for model translation
 
-## Idee
+## Idea
 
-Um ein neurales Netz mit einem µC sowohl im Forward pass als auch im Backward pass verwenden zu könne, soll das (mit pytorch) generierte Modell in einem Format gespeichert werden, das eine effiziente verarbeitung auf einem µC ermöglicht.
+In order to use a neural network with a µC in both the forward pass and the backward pass, the model generated (with pytorch) should be saved in a format that enables efficient processing on a µC.
 
-## Data Format
+## Data format
 
 - Endianness
 - Alignment
 
 ## Format
 
-Das Format besteht aus folgenden Elementen:
+The format consists of the following elements:
 
 1. Header
-   1. Header Size
+   1. Header size
    2. Magic number
       1. 0x4E4D434D (NMCF) (Neural Micro Controller Framework)
-   3. Grundinformationen über das Netzwerk
-      1. Version (nicht alle Schichttypen und Aktivierungsfunktionen werden in Version 1 unterstützt)
-      2. Featuremap: was wurde in diesem Netz Verwendet(Datentypen, Unterstützte Layer, Aktivierungsfunktionen, ...)
-      3. Filesize
-      4. Anzahl der Schichten (Layer und Aktivierungsfunktione sind jeweils eigene Schichten)
-      5. Input Format
+   3. Basic information about the network
+      1. Version (not all layer types and activation functions are supported in version 1)
+      2. Feature map: what was used in this network (data types, supported layers, activation functions, etc.)
+      3. File size
+      4. Number of layers (layers and activation functions are separate layers)
+      5. Input format
          1. Size
-      6. Output Format
+6. Output format
          1. Size
-   4. Offset Tabelle
-      1. Offset um die jeweiligen Schichten effizient addressiern zu können
-2. Schichten (Detail zu Schichttyp siehe einen Punkt weiter unten)
-3. Sicherung
+4. Offset table
+      1. Offset for efficient addressing of the respective layers
+2. Layers (for details on layer types, see the section below)
+3. Backup
    1. Checksum
 
-## Schichten
+## Layers
 
 ### Fully Connected
 
-1. Schicht Nr: int
+1. Layer No.: int
 2. ID: 1
-3. predecessorNr: int
-4. predecessors[predecessorNr]: int
+3. predecessorNo.: int
+4. predecessors[predecessorNo.]: int
 5. Structure
-   1. DimensionImput_x: int
+   1. DimensionInput_x: int
    2. DimensionOutput_x: int
    3. Data encoding: Datatype
    4. pruned: bool
@@ -56,25 +56,25 @@ Das Format besteht aus folgenden Elementen:
       5. Offset Bias_mask
       6. Offset Bias_trainable
       7. Offset Bias_frozen
-   2. if (pruned) Prune_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
+2. if (pruned) Prune_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
    3. if (trainableWeights>0) Weights_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
-   4. Weights_trainable[ trainableWeights ]: Datatype //wird in den Sram geladen, ist leer wenn alle frozen sind
-   5. Weights_frozen[size * size * ChannelsOut - trainableWeignts]: Datatype //bleibt im flash, ist leer, wenn alles trainable sind
+   4. Weights_trainable[ trainableWeights ]: Datatype //loaded into Sram, empty if all are frozen
+   5. Weights_frozen[size * size * ChannelsOut - trainableWeignts]: Datatype //remains in flash, is empty if all are trainable
    6. if (trainableWeights>0) Bias_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
-   7. Bias_trainable[ trainableBias]: Datatype //wird in den Sram geladen, ist leer wenn alle frozen sind
-   8. Bias_frozen[ChannelsOut - trainableBias]: Datatype //bleibt im flash, ist leer, wenn alles trainable sind
+   7. Bias_trainable[ trainableBias]: Datatype //loaded into Sram, empty if all are frozen
+   8. Bias_frozen[ChannelsOut - trainableBias]: Datatype //remains in flash, empty if all are trainable
 
-#### Erklärung
+#### Explanation
 
-Je nach bitmasken eintrag von trainableMask und pruneMask werden die jeweiligen pointer in Weights_trainable oder Weigts_frozen erhöht, oder nicht
-+ Testcase
+Depending on the bitmask entry of trainableMask and pruneMask, the respective pointers in Weights_trainable or Weights_frozen are increased or not.
++ Test case
 
 ### Conv1D
 
-1. Schicht Nr: int
+1. Layer No.: int
 2. ID: 2
-3. predecessorNr: int
-4. predecessors[predecessorNr]: int
+3. predecessorNo.: int
+4. predecessors[predecessorNo.]: int
 5. Dimension
    1. DimensionInput_x: int
    2. DimensionOutput_x: int
@@ -93,23 +93,23 @@ Je nach bitmasken eintrag von trainableMask und pruneMask werden die jeweiligen 
    1. Data Header
       1. Offset trainableMask
       2. Offset pruneMask
-      3. Offset Kernel_trainable
-      4. Offset Kernel_frozen
-      5. Offset Bias_trainable
-      6. Offset Bias_frozen
-   2. if (trainableWeights>0 || trainableBias >0) trainableMask [(KernelSize + DimensionOutput_x]: bool
+3. Offset Kernel_trainable
+4. Offset Kernel_frozen
+5. Offset Bias_trainable
+6. Offset Bias_frozen
+2. if (trainableWeights>0 || trainableBias >0) trainableMask [(KernelSize + DimensionOutput_x]: bool
    3. if (pruned) pruneMask [(KernelSize + DimensionOutput_x]: bool
-   4. Weights_trainable[ trainableWeights ]: Datatype //wird in den Sram geladen, ist leer wenn alle frozen sind
-   5. Weights_frozen[KernelSize * ChannelsOut - trainableWeights]: Datatype //bleibt im flash, ist leer, wenn alles trainable sind
-   6. Bias_trainable[ trainableBias]: Datatype //wird in den Sram geladen, ist leer wenn alle frozen sind
-   7. Bias_frozen[ChannelsOut - trainableBias]: Datatype //bleibt im flash, ist leer, wenn alles trainable sind
+4. Weights_trainable[ trainableWeights ]: Datatype //loaded into Sram, empty if all are frozen
+5. Weights_frozen[KernelSize * ChannelsOut - trainableWeights]: Datatype //remains in flash, is empty if all are trainable
+   6. Bias_trainable[ trainableBias]: Datatype //loaded into Sram, is empty if all are frozen
+   7. Bias_frozen[ChannelsOut - trainableBias]: Datatype //remains in flash, is empty if all are trainable
 
 ### Conv2D
 
-1. Schicht Nr: int
+1. Layer No.: int
 2. ID: 3
-3. predecessorNr: int
-4. predecessors[predecessorNr]: int
+3. predecessorNo.: int
+4. predecessors[predecessorNo.]: int
 5. Dimension
    1. DimensionInput_x: int
    2. DimensionInput_y: int
@@ -134,24 +134,24 @@ Je nach bitmasken eintrag von trainableMask und pruneMask werden die jeweiligen 
       4. Offset Kernel_frozen
       5. Offset Bias_trainable
       6. Offset Bias_frozen
-   2. if (pruned) Prune_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
+2. if (pruned) Prune_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
    3. if (trainableWeights>0) Weights_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
-   4. Weights_trainable[ trainableWeights ]: Datatype //wird in den Sram geladen, ist leer wenn alle frozen sind
-   5. Weights_frozen[size * size * ChannelsOut - trainableWeignts]: Datatype //bleibt im flash, ist leer, wenn alles trainable sind
+   4. Weights_trainable[ trainableWeights ]: Datatype //loaded into Sram, empty if all are frozen
+   5. Weights_frozen[size * size * ChannelsOut - trainableWeignts]: Datatype //remains in flash, is empty if all are trainable
    6. if (trainableWeights>0) Bias_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
-   7. Bias_trainable[ trainableBias]: Datatype //wird in den Sram geladen, ist leer wenn alle frozen sind
-   8. Bias_frozen[ChannelsOut - trainableBias]: Datatype //bleibt im flash, ist leer, wenn alles trainable sind
+   7. Bias_trainable[ trainableBias]: Datatype //loaded into Sram, empty when all are frozen
+   8. Bias_frozen[ChannelsOut - trainableBias]: Datatype //remains in flash, empty when all are trainable
 
 ### Depth-wise Convolution
 
-= conv2D mit groups = ChannelsIn
+= conv2D with groups = ChannelsIn
 
 ### MaxPool2d
 
-1. Schicht Nr: int
+1. Layer No.: int
 2. ID: 5
-3. predecessorNr: int
-4. predecessors[predecessorNr]: int
+3. predecessorNo.: int
+4. predecessors[predecessorNo.]: int
 5. Dimension
    1. DimensionInput_x: int
    2. DimensionInput_y: int
@@ -168,37 +168,37 @@ Je nach bitmasken eintrag von trainableMask und pruneMask werden die jeweiligen 
 
 ### ReLU
 
-1. Schicht Nr: int
+1. Layer No.: int
 2. ID: 6
-3. predecessorNr: int
-4. predecessors[predecessorNr]: int
+3. predecessorNo.: int
+4. predecessors[predecessorNo.]: int
 5. Dimension
    1. DimensionInput_x: int
    2. DimensionOutput_x: int
 6. Data
    1. none
 
-### Andere schichten werden in laufe der arbeit noch hinzugefügt
+### Other layers will be added during the course of the work.
 
-## offene Punkte/Fragen
+## Open issues/questions
 
-- Parameter für optimizer in den Layers?
-- packen
-- und
-- entpacken
-- predecessor zusätzlich von SchichtNr
-- wenn mehrere predecessor wie sind diese angeordnet (wenn pytorch des ned mocht, scheiß ma drauf)
-  - Weights werden einfach elementweiße addiert
-- trainable weights (Bitmaske für frozen_weights in pytorch) + Layerweise
+- Parameters for optimizer in the layers?
+- Packing
+- and
+- unpacking
+- Predecessor in addition to layer number
+- If there are multiple predecessors, how are they arranged (if PyTorch doesn't like it, screw it)
+  - Weights are simply added element by element
+- Trainable weights (bit mask for frozen_weights in pytorch) + layer by layer
 
 ## Next Steps
 
-1. Klassendiagramm
-2. Sequenzdiagramm für Retrainigs Durchlauf
-3. Erste Implementierung
-4. Nächstes Klassendiagramm
+1. Class diagram
+2. Sequence diagram for retraining run
+3. Initial implementation
+4. Next class diagram
 
-## V1 known and accepted Limitations
+## V1 known and accepted limitations
 
 - 2DConvolutions
-  - Kernel_size, stride, padding and dilation only supported with x = y, The Dataformat supports Parameters with different Hight to Weight Ratio, but he implemantation not
+  - Kernel_size, stride, padding, and dilation only supported with x = y. The data format supports parameters with different height-to-weight ratios, but the implementation does not.

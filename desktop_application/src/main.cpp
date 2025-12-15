@@ -1,6 +1,7 @@
 /**
+ * @file
  * @brief Entrypoint
- **/
+ */
 
 #include "loss_function.h"
 #include "mnist_loader.h"
@@ -22,16 +23,13 @@ constexpr int TRAINING_SIZE = 60000;
 constexpr int BATCH_SIZE = 64;
 constexpr int TRAINING_EPOCHS = 1;
 constexpr float LEARNING_RATE = 0.001F;
-// === Konstanten ===
 
-// === Hilfsfunktionen ===
-
-// Lädt den Inhalt einer Datei in einen Puffer
+// Loads file into a buffer
 char* loadFileToBuffer(const std::string& filename, std::streamsize& size)
 {
     std::ifstream file(filename, std::ios::binary);
     if (!file) {
-        std::cerr << "Fehler beim öffnen der Datei: " << filename << std::endl;
+        std::cerr << "Failed to open file: " << filename << std::endl;
         return nullptr;
     }
 
@@ -41,14 +39,14 @@ char* loadFileToBuffer(const std::string& filename, std::streamsize& size)
 
     char* buffer = new char[size];
     if (!file.read(buffer, size)) {
-        std::cerr << "Fehler beim Lesen der Datei: " << filename << std::endl;
+        std::cerr << "Failed to read file: " << filename << std::endl;
         delete[] buffer;
         return nullptr;
     }
     return buffer;
 }
 
-// F�hrt eine Forwardpass durch und berechnet Accuracy und Loss
+// execute a forwardPass and calculate accuracy & loss
 void evaluateModel(model<float>& myModel, const std::vector<MnistImage>& images, SoftmaxCrossEntropyLoss<float>& lossFn, const std::string& label)
 {
     float output[NUM_OUTPUTS] = { 0.0f };
@@ -63,7 +61,7 @@ void evaluateModel(model<float>& myModel, const std::vector<MnistImage>& images,
 
         expected[img.label] = 1.0f;
 
-        // Prediction & Loss
+        // prediction & loss
         int maxIdx = 0;
         float maxVal = output[0];
         for (int i = 0; i < NUM_OUTPUTS; ++i) {
@@ -89,44 +87,37 @@ void evaluateModel(model<float>& myModel, const std::vector<MnistImage>& images,
 
 int main()
 {
-    // === Modell laden ===
     std::streamsize sizeFixed = 0, sizeTrainable = 0;
     char* modelFixed = loadFileToBuffer("model.hex", sizeFixed);
     char* modelTrainable = loadFileToBuffer("model_trainable.hex", sizeTrainable);
 
     if (!modelFixed || !modelTrainable) {
-        // Modell konte nicht geladen werden
         return 1;
     }
 
     model<float> myModel(modelFixed, modelTrainable, SGD, LEARNING_RATE);
     myModel.init();
 
-    // === MNIST Daten laden ===
     std::vector<MnistImage> trainImages, testImages;
     try {
         trainImages = load_mnist_batch("mnist_train_all_random.bin");
         testImages = load_mnist_batch("mnist_test_all_random.bin");
     } catch (const std::exception& e) {
-        std::cerr << "Fehler beim Laden der MNIST-Daten: " << e.what() << std::endl;
+        std::cerr << "Failed to load MNIST-Data: " << e.what() << std::endl;
         return 1;
     }
 
-    // Loss Funktion definieren
     SoftmaxCrossEntropyLoss<float> loss;
 
-    // === Test vor dem Training ===
-    evaluateModel(myModel, testImages, loss, "vor training");
+    evaluateModel(myModel, testImages, loss, "before training");
 
-    // === Training ===
     float expected[NUM_OUTPUTS] = { 0.0f };
-    std::cout << "=== Training gestartet ===" << std::endl;
-    // Startzeitpunkt erfassen
+    std::cout << "=== Training started ===" << std::endl;
 
     auto start = std::chrono::steady_clock::now();
 
     for (int epoch = 0; epoch < TRAINING_EPOCHS; ++epoch) {
-        std::cout << "Epoche " << epoch + 1 << " gestartet..." << std::endl;
+        std::cout << "Epoch " << epoch + 1 << " started..." << std::endl;
 
         for (int batch = 0; batch < TRAINING_SIZE / BATCH_SIZE; ++batch) {
             myModel.initGradients();
@@ -144,23 +135,17 @@ int main()
             myModel.deleteGradients();
         }
 
-        std::cout << "Epoche " << epoch + 1 << " abgeschlossen." << std::endl;
-        evaluateModel(myModel, testImages, loss, "nach Epoche: " + std::to_string(epoch + 1));
+        std::cout << "Epoch " << epoch + 1 << " finished." << std::endl;
+        evaluateModel(myModel, testImages, loss, "after epoch: " + std::to_string(epoch + 1));
     }
-    // Endzeitpunkt erfassen
     auto end = std::chrono::steady_clock::now();
 
-    // Dauer berechnen
     std::chrono::duration<double> duration = end - start;
+    std::cout << "Program runtime: " << duration.count() << " seconds for " << TRAINING_EPOCHS << "epochs";
 
-    // Dauer in Sekunden ausgeben
-    std::cout << "Programmlaufzeit: " << duration.count() << " Sekunden for " << TRAINING_EPOCHS << "Epochen";
-
-    // === Aufräumen ===
     if (modelFixed) {
         delete[] modelFixed;
     }
-
     if (modelTrainable) {
         delete[] modelTrainable;
     }
