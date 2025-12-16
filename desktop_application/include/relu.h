@@ -34,7 +34,7 @@ public:
         , mHeader(static_cast<Neural_Network_ReLU_t*>(mPtrLayer))
         , mOptimizerType(optimizerType)
     {
-        this->mInputData = nullptr;
+        this->m_inputData = nullptr;
 
         Relu::loadFromFlash();
     }
@@ -42,9 +42,9 @@ public:
     // DTor: Frees dynamically allocated memory
     ~Relu() override
     {
-        if (this->mInputData != nullptr) {
-            delete[] this->mInputData;
-            this->mInputData = nullptr;
+        if (this->m_inputData != nullptr) {
+            delete[] this->m_inputData;
+            this->m_inputData = nullptr;
         }
     }
 
@@ -57,17 +57,17 @@ public:
 
         if (trainingFlag) {
 
-            if (!this->mIsLoaded) {
+            if (!this->m_isLoaded) {
                 return ErrorType::LayerNotInitialized;
             }
             // get memory for training
-            if (this->mInputData == nullptr) {
-                this->mInputData = new T[this->mHeader->dimensioninput_x];
+            if (this->m_inputData == nullptr) {
+                this->m_inputData = new T[this->mHeader->dimensioninput_x];
             }
 
-            if (this->mInputData != nullptr) {
+            if (this->m_inputData != nullptr) {
                 for (size_t i = 0; i < this->mHeader->dimensionoutput_x; i++) {
-                    this->mInputData[i] = inputData[i];
+                    this->m_inputData[i] = inputData[i];
                 }
             }
         }
@@ -76,7 +76,7 @@ public:
             outputData[i] = (inputData[i] > T(0)) ? inputData[i] : T(0);
         }
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     // executes the backward pass and calculates the gradient for the layer before
@@ -86,21 +86,21 @@ public:
             return ErrorType::UnknownError;
         }
 
-        if (!this->mIsLoaded) {
+        if (!this->m_isLoaded) {
             return ErrorType::LayerNotInitialized;
         }
 
-        if (this->mInputData == nullptr) {
+        if (this->m_inputData == nullptr) {
             return ErrorType::UnknownError;
         }
 
         for (uint32_t i = 0; i < this->mHeader->dimensioninput_x; i++) {
-            outputData[i] = (this->mInputData[i] > T(0)) ? inputData[i] : T(0);
+            outputData[i] = (this->m_inputData[i] > T(0)) ? inputData[i] : T(0);
         }
 
-        if (this->mInputData != nullptr) {
-            delete[] this->mInputData;
-            this->mInputData = nullptr;
+        if (this->m_inputData != nullptr) {
+            delete[] this->m_inputData;
+            this->m_inputData = nullptr;
         }
 
         return ErrorType::UnknownError;
@@ -109,14 +109,14 @@ public:
     // loads the training data from flash to SRAM
     auto loadFromFlash() -> ErrorType override
     {
-        this->mIsLoaded = true;
-        return ErrorType::ok;
+        this->m_isLoaded = true;
+        return ErrorType::OK;
     }
 
     // saves the trained values from SRAM to flash
     auto storeToFlash() -> ErrorType override
     {
-        this->mIsLoaded = false;
+        this->m_isLoaded = false;
         // Not implemented in this version, will only become relevant on the uController
         return ErrorType::UnknownError;
     }

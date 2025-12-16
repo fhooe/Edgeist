@@ -25,7 +25,7 @@ template <typename T>
 class Layer : public Object {
 public:
     explicit Layer(Model<T>* model)
-        : mModel(model)
+        : m_model(model)
     {
     }
 
@@ -39,18 +39,18 @@ public:
 
     virtual auto initGradients() -> ErrorType
     {
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     virtual auto deleteGradients() -> ErrorType
     {
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     // Update weights and biases
     virtual auto update(uint32_t /* batchsize */) -> ErrorType
     {
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     virtual auto loadFromFlash() -> ErrorType = 0;
@@ -63,15 +63,15 @@ public:
 
 protected:
     // Flag that represents if the Layer has been loaded
-    bool mIsLoaded = false;
+    bool m_isLoaded = false;
 
     // pointer to the model Object that
-    Model<T>* mModel = nullptr;
+    Model<T>* m_model = nullptr;
 
     // pointer to Array with Input Data
     // Used for Layers like ReLU, softMax, Maxpool, ...
     // To have the Data for Backwardspass available
-    T* mInputData;
+    T* m_inputData;
 };
 } // namespace Edgeist
 

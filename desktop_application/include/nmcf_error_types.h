@@ -12,7 +12,7 @@ namespace Edgeist {
  * @brief NMCF error types
  */
 enum class ErrorType {
-    ok = 0, // No error
+    OK = 0, // No error
     OutOfMemory, // Memory allocation failure
     FileNotFound, // File could not be found
     ModelNotInitialized, // Model not initialized

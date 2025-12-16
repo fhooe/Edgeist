@@ -37,7 +37,7 @@ public:
         , mHeader(static_cast<Neural_Network_Softmax_t*>(mPtrLayer))
         , mOptimizerType(optimizerType)
     {
-        this->mInputData = nullptr;
+        this->m_inputData = nullptr;
 
         Softmax::loadFromFlash();
     }
@@ -45,9 +45,9 @@ public:
     // DTor: Frees dynamically allocated memory
     ~Softmax() override
     {
-        if (this->mInputData != nullptr) {
-            delete[] this->mInputData;
-            this->mInputData = nullptr;
+        if (this->m_inputData != nullptr) {
+            delete[] this->m_inputData;
+            this->m_inputData = nullptr;
         }
     }
 
@@ -60,7 +60,7 @@ public:
             return ErrorType::UnknownError;
         }
 
-        if (!this->mIsLoaded) {
+        if (!this->m_isLoaded) {
             return ErrorType::LayerNotInitialized;
         }
 
@@ -83,15 +83,15 @@ public:
 
         if (trainingFlag) {
             // Allocate memory for temporary storage of input (for backpropagation)
-            if (this->mInputData != nullptr) {
-                delete[] this->mInputData;
+            if (this->m_inputData != nullptr) {
+                delete[] this->m_inputData;
             }
-            this->mInputData = new T[this->mHeader->dimensioninput_x];
+            this->m_inputData = new T[this->mHeader->dimensioninput_x];
 
             // Normalize exponential values for Softmax output
-            if (this->mInputData != nullptr) {
+            if (this->m_inputData != nullptr) {
                 for (size_t i = 0; i < this->mHeader->dimensionoutput_x; i++) {
-                    this->mInputData[i] = inputData[i];
+                    this->m_inputData[i] = inputData[i];
                 }
             }
         }
@@ -102,7 +102,7 @@ public:
         delete[] mPtrExponents;
         mPtrExponents = nullptr;
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     // Performs the backward pass; calculates the error gradient of the softmax layer
@@ -114,30 +114,30 @@ public:
             return ErrorType::UnknownError;
         }
 
-        if (!this->mIsLoaded) {
+        if (!this->m_isLoaded) {
             return ErrorType::LayerNotInitialized;
         }
 
         // Softmax + cross-entropy derivative: p - y
         for (size_t i = 0; i < this->mHeader->dimensioninput_x; i++) {
-            outputData[i] = inputData[i] - this->mModel->mPtrExpectedOutputData[i];
+            outputData[i] = inputData[i] - this->m_model->mPtrExpectedOutputData[i];
         }
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     // Loads the trainable values from Flash into SRAM
     auto loadFromFlash() -> ErrorType override
     {
-        this->mIsLoaded = true;
+        this->m_isLoaded = true;
         // Not relevant for ReLU, as there are no weights and biases
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     // Stores the trainable values from SRAM in flash memory
     auto storeToFlash() -> ErrorType override
     {
-        this->mIsLoaded = false;
+        this->m_isLoaded = false;
         // Not implemented in this version, will only become relevant on the uController
         return ErrorType::UnknownError;
     }

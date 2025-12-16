@@ -28,11 +28,11 @@ class Dropout : public Layer<T> {
 public:
     Dropout(Model<T>* model, void* headerPointer, void* dataPointer, const OptimizerID optimizerType)
         : Layer<T>(model)
-        , mPtrLayer(headerPointer)
-        , mPtrData(dataPointer)
-        , mHeader(static_cast<Neural_Network_Dropout_t*>(mPtrLayer))
-        , mOptimizerType(optimizerType)
-        , mRng(std::random_device {}())
+        , m_ptrLayer(headerPointer)
+        , m_ptrData(dataPointer)
+        , m_header(static_cast<Neural_Network_Dropout_t*>(m_ptrLayer))
+        , m_optimizerType(optimizerType)
+        , m_rng(std::random_device {}())
     {
         Dropout::loadFromFlash();
     }
@@ -42,19 +42,19 @@ public:
         if (inputData == nullptr || outputData == nullptr) {
             return ErrorType::UnknownError;
         }
-        if (!this->mIsLoaded) {
+        if (!this->m_isLoaded) {
             return ErrorType::LayerNotInitialized;
         }
 
-        const size_t size = mHeader->dimensioninput_x;
+        const size_t size = m_header->dimensioninput_x;
 
         if (trainingFlag) {
-            if (mDropoutMask.size() != size) {
+            if (m_dropoutMask.size() != size) {
                 return ErrorType::DropoutMaskMissing;
             }
 
             for (size_t i = 0; i < size; ++i) {
-                outputData[i] = inputData[i] * mDropoutMask[i];
+                outputData[i] = inputData[i] * m_dropoutMask[i];
             }
         } else {
             for (size_t i = 0; i < size; ++i) {
@@ -62,7 +62,7 @@ public:
             }
         }
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto backwardPass(const T* gradOutput, T* gradInput) -> ErrorType override
@@ -70,76 +70,75 @@ public:
         if (gradOutput == nullptr || gradInput == nullptr) {
             return ErrorType::UnknownError;
         }
-        if (!this->mIsLoaded) {
+        if (!this->m_isLoaded) {
             return ErrorType::LayerNotInitialized;
         }
 
-        const size_t size = mHeader->dimensioninput_x;
+        const size_t size = m_header->dimensioninput_x;
 
-        if (mDropoutMask.size() != size) {
+        if (m_dropoutMask.size() != size) {
             return ErrorType::DropoutMaskMissing;
         }
 
         for (size_t i = 0; i < size; ++i) {
-            gradInput[i] = gradOutput[i] * mDropoutMask[i];
+            gradInput[i] = gradOutput[i] * m_dropoutMask[i];
         }
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto initGradients() -> ErrorType override
     {
-        const auto& H = *this->mHeader;
-        const size_t size = size_t(H.dimensioninput_x);
-        const float rate = H.dropoutrate;
+        const auto size = static_cast<size_t>(m_header->dimensioninput_x);
+        const float rate = m_header->dropoutrate;
 
-        std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-        mDropoutMask.resize(size);
+        std::uniform_real_distribution<float> dist(0.0F, 1.0F);
+        m_dropoutMask.resize(size);
 
         for (size_t i = 0; i < size; ++i) {
-            bool keep = dist(mRng) >= rate;
-            mDropoutMask[i] = keep ? T(1.0f) / (1.0f - rate) : T(0);
+            bool keep = dist(m_rng) >= rate;
+            m_dropoutMask[i] = keep ? T(1.0F) / (1.0F - rate) : T(0);
         }
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto deleteGradients() -> ErrorType override
     {
-        mDropoutMask.clear();
-        return ErrorType::ok;
+        m_dropoutMask.clear();
+        return ErrorType::OK;
     }
 
     auto loadFromFlash() -> ErrorType override
     {
-        this->mIsLoaded = true;
-        return ErrorType::ok;
+        this->m_isLoaded = true;
+        return ErrorType::OK;
     }
 
     auto storeToFlash() -> ErrorType override
     {
         // Not implemented
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto getOutputSize() -> uint32_t override
     {
-        return mHeader->dimensionoutput_x;
+        return m_header->dimensionoutput_x;
     }
 
     auto getInputSize() -> uint32_t override
     {
-        return mHeader->dimensioninput_x;
+        return m_header->dimensioninput_x;
     }
 
 private:
-    void* mPtrLayer;
-    void* mPtrData;
-    Neural_Network_Dropout_t* mHeader;
-    OptimizerID mOptimizerType;
+    void* m_ptrLayer;
+    void* m_ptrData;
+    Neural_Network_Dropout_t* m_header;
+    OptimizerID m_optimizerType;
 
-    std::vector<T> mDropoutMask;
-    std::mt19937 mRng;
+    std::vector<T> m_dropoutMask;
+    std::mt19937 m_rng;
 };
 } // namespace Edgeist
 
