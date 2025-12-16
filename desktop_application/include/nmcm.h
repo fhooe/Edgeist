@@ -57,56 +57,56 @@ public:
     auto init() -> ErrorType
     {
         // Generate Layers
-        for (int i = 0; i < mHeader->layernrs; i++) {
+        for (int i = 0; i < m_header->layernrs; i++) {
             // GenerateLayer(layerPointers[i], )
-            auto layerId = *mPtrLayerPointers[i];
+            auto layerId = *m_ptrLayerPointers[i];
 
             // Print Layers with IDs
             std::cout << "Layer: " << i << "; LayerID: " << std::to_string(layerId) << std::endl;
 
             switch (static_cast<LayerIDs>(layerId)) {
             case LayerIDs::Linear_ID:
-                layersInSRAM.push_back(std::make_shared<Linear<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+                m_layersInSRAM.push_back(std::make_shared<Linear<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
             case LayerIDs::ReLU_ID:
-                layersInSRAM.push_back(std::make_shared<Relu<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+                m_layersInSRAM.push_back(std::make_shared<Relu<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
             case LayerIDs::Softmax_ID:
-                layersInSRAM.push_back(std::make_shared<Softmax<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+                m_layersInSRAM.push_back(std::make_shared<Softmax<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
             case LayerIDs::Conv2d_ID:
-                layersInSRAM.push_back(std::make_shared<Conv2D<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+                m_layersInSRAM.push_back(std::make_shared<Conv2D<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
             case LayerIDs::Flatten_ID:
-                layersInSRAM.push_back(std::make_shared<Flatten<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+                m_layersInSRAM.push_back(std::make_shared<Flatten<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
             case LayerIDs::MaxPool2d_ID:
-                layersInSRAM.push_back(std::make_shared<MaxPool2D<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+                m_layersInSRAM.push_back(std::make_shared<MaxPool2D<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
             case LayerIDs::BatchNorm1d_ID:
-                layersInSRAM.push_back(std::make_shared<BatchNorm1D<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+                m_layersInSRAM.push_back(std::make_shared<BatchNorm1D<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
             case LayerIDs::BatchNorm2d_ID:
-                layersInSRAM.push_back(std::make_shared<BatchNorm2D<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+                m_layersInSRAM.push_back(std::make_shared<BatchNorm2D<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
             case LayerIDs::AdaptiveAvgPool1d_ID:
-                layersInSRAM.push_back(std::make_shared<AdaptiveAvgPool1D<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+                m_layersInSRAM.push_back(std::make_shared<AdaptiveAvgPool1D<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
             case LayerIDs::AdaptiveAvgPool2d_ID:
-                layersInSRAM.push_back(std::make_shared<AdaptiveAvgPool2D<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+                m_layersInSRAM.push_back(std::make_shared<AdaptiveAvgPool2D<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
             case LayerIDs::Dropout_ID:
-                layersInSRAM.push_back(std::make_shared<Dropout<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
+                m_layersInSRAM.push_back(std::make_shared<Dropout<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
             default:
@@ -114,7 +114,7 @@ public:
             }
         }
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     // Run Inference from Flash
@@ -126,16 +126,16 @@ public:
     // Run Inference from Sram
     auto inferenceSram(const T* input, T* output, bool trainingFlag = true) -> ErrorType
     {
-        mPtrInputData = input;
-        mPtrOutputData = output;
+        m_ptrInputData = input;
+        m_ptrOutputData = output;
 
         T* ptrLayerOutputData = nullptr;
         T* ptrLayerInputData = nullptr;
 
         // Find largest needed Buffer
         size_t buffersize = 0;
-        for (int i = 0; i < mHeader->layernrs; i++) {
-            size_t size = layersInSRAM[i]->getOutputSize();
+        for (int i = 0; i < m_header->layernrs; i++) {
+            size_t size = m_layersInSRAM[i]->getOutputSize();
             if (size > buffersize) {
                 buffersize = size;
             }
@@ -146,15 +146,15 @@ public:
         ptrLayerInputData = new T[buffersize];
 
         // Make a forward Pass throu all the Layers
-        for (int i = 0; i < mHeader->layernrs; i++) {
+        for (int i = 0; i < m_header->layernrs; i++) {
             // First Layer gets input from Method argument
             if (i == 0) {
-                layersInSRAM[i]->forwardPass(mPtrInputData, ptrLayerOutputData, trainingFlag);
+                m_layersInSRAM[i]->forwardPass(m_ptrInputData, ptrLayerOutputData, trainingFlag);
             }
             // Other Layers get Input from Previous Layer
             else {
 
-                layersInSRAM[i]->forwardPass(ptrLayerInputData, ptrLayerOutputData, trainingFlag);
+                m_layersInSRAM[i]->forwardPass(ptrLayerInputData, ptrLayerOutputData, trainingFlag);
             }
 
             T* ptrswap = ptrLayerInputData;
@@ -162,9 +162,9 @@ public:
             ptrLayerOutputData = ptrswap;
         }
 
-        for (size_t i = 0; i < mHeader->dimensionoutput_x; i++) {
+        for (size_t i = 0; i < m_header->dimensionoutput_x; i++) {
             // the last output was moved to the input ptr, copy the values to the output registers
-            mPtrOutputData[i] = ptrLayerInputData[i];
+            m_ptrOutputData[i] = ptrLayerInputData[i];
         }
 
         delete[] ptrLayerInputData;
@@ -172,7 +172,7 @@ public:
         delete[] ptrLayerOutputData;
         ptrLayerOutputData = nullptr;
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     // Train Method
@@ -180,15 +180,15 @@ public:
     {
         mPtrExpectedOutputData = expectedOutput;
 
-        mPtrInputData = input;
+        m_ptrInputData = input;
 
         T* ptrLayerOutputData = nullptr;
         T* ptrLayerInputData = nullptr;
 
         // Find largest needed Buffer
         size_t buffersize = 0;
-        for (int i = 0; i < mHeader->layernrs; i++) {
-            size_t size = layersInSRAM[i]->getOutputSize();
+        for (int i = 0; i < m_header->layernrs; i++) {
+            size_t size = m_layersInSRAM[i]->getOutputSize();
             if (size > buffersize) {
                 buffersize = size;
             }
@@ -199,13 +199,13 @@ public:
         ptrLayerInputData = new T[buffersize];
 
         // Make a forward Pass through all the Layers
-        for (int i = 0; i < mHeader->layernrs; i++) {
+        for (int i = 0; i < m_header->layernrs; i++) {
             // First Layer gets input as argument
             if (i == 0) {
-                layersInSRAM[i]->forwardPass(mPtrInputData, ptrLayerOutputData, true);
+                m_layersInSRAM[i]->forwardPass(m_ptrInputData, ptrLayerOutputData, true);
             } else {
                 // Other Layers get Input from Previous Layer
-                layersInSRAM[i]->forwardPass(ptrLayerInputData, ptrLayerOutputData, true);
+                m_layersInSRAM[i]->forwardPass(ptrLayerInputData, ptrLayerOutputData, true);
             }
 
             T* ptrswap = ptrLayerInputData;
@@ -213,19 +213,20 @@ public:
             ptrLayerOutputData = ptrswap;
         }
 
-        T* ptrGradient = new T[(mHeader->dimensionoutput_x)];
+        T* ptrGradient = new T[(m_header->dimensionoutput_x)];
 
-        lossFn.derivative(ptrLayerInputData, mPtrExpectedOutputData, ptrGradient, mHeader->dimensionoutput_x);
+        lossFn.derivative(ptrLayerInputData, mPtrExpectedOutputData, ptrGradient, m_header->dimensionoutput_x);
 
         // Make a backward Pass through all the Layers
-        for (int i = mHeader->layernrs - 1; i >= 0; i--) {
+        for (int i = m_header->layernrs - 1; i >= 0; i--) {
+
             // Last Layer gets expected Output as argument
-            if (i == mHeader->layernrs - 1) {
-                layersInSRAM[i]->backwardPass(ptrGradient, ptrLayerOutputData);
+            if (i == m_header->layernrs - 1) {
+                m_layersInSRAM[i]->backwardPass(ptrGradient, ptrLayerOutputData);
             }
             // Other Layers get Input from Previous Layer
             else {
-                layersInSRAM[i]->backwardPass(ptrLayerInputData, ptrLayerOutputData);
+                m_layersInSRAM[i]->backwardPass(ptrLayerInputData, ptrLayerOutputData);
             }
 
             T* ptrswap = ptrLayerInputData;
@@ -233,9 +234,9 @@ public:
             ptrLayerOutputData = ptrswap;
         }
 
-        for (size_t i = 0; i < mHeader->dimensionoutput_x; i++) {
+        for (size_t i = 0; i < m_header->dimensionoutput_x; i++) {
             // the last output was moved to the input ptr, copy the values to the output registers
-            mPtrOutputData[i] = ptrLayerInputData[i];
+            m_ptrOutputData[i] = ptrLayerInputData[i];
         }
 
         delete[] ptrGradient;
@@ -245,135 +246,135 @@ public:
         delete[] ptrLayerOutputData;
         ptrLayerOutputData = nullptr;
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto initGradients() -> ErrorType
     {
         // Update all the Layers
-        for (int i = 0; i < mHeader->layernrs; i++) {
-            layersInSRAM[i]->initGradients();
+        for (int i = 0; i < m_header->layernrs; i++) {
+            m_layersInSRAM[i]->initGradients();
         }
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto deleteGradients() -> ErrorType
     {
         // Update all the Layers
-        for (int i = 0; i < mHeader->layernrs; i++) {
-            layersInSRAM[i]->deleteGradients();
+        for (int i = 0; i < m_header->layernrs; i++) {
+            m_layersInSRAM[i]->deleteGradients();
         }
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto update(uint32_t batchsize) -> ErrorType
     {
         // Update all the Layers
-        for (int i = 0; i < mHeader->layernrs; i++) {
-            layersInSRAM[i]->update(batchsize);
+        for (int i = 0; i < m_header->layernrs; i++) {
+            m_layersInSRAM[i]->update(batchsize);
         }
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     // access method for model header
     [[nodiscard]] auto header() const -> const Neural_Network_Header_t&
     {
-        return *mHeader;
+        return *m_header;
     }
 
     // access method for Layer by index
     auto getLayer(uint32_t index) -> Layer<T>*
     {
-        if (index >= layersInSRAM.size()) {
+        if (index >= m_layersInSRAM.size()) {
             return nullptr;
         }
-        return layersInSRAM.at(index);
+        return m_layersInSRAM.at(index);
     }
 
     // access method to Input data by index
     auto getInput(uint32_t index) -> T
     {
-        if (mPtrInputData == nullptr || mHeader == nullptr) {
+        if (m_ptrInputData == nullptr || m_header == nullptr) {
             // Error no Input data or no Header
             return T(0);
         }
 
-        uint32_t maxIndex = mHeader->dimensioninput_x * mHeader->dimensioninput_y * mHeader->channelsin;
+        uint32_t maxIndex = m_header->dimensioninput_x * m_header->dimensioninput_y * m_header->channelsin;
         if (index >= maxIndex) {
             // Error index out of bound
             return T(0);
         }
 
-        return *(mPtrInputData + index);
+        return *(m_ptrInputData + index);
     }
 
     // Constructor
     Model(void* modelPointer, void* dataPointer, const OptimizerID optimizerType, const float learningRate)
-        : mLearningRate(learningRate)
-        , mPtrModel(modelPointer)
-        , mPtrData(dataPointer)
-        , mOptimizerType(optimizerType)
+        : m_learningRate(learningRate)
+        , m_ptrModel(modelPointer)
+        , m_ptrData(dataPointer)
+        , m_optimizerType(optimizerType)
     {
         // populate the Header
-        mHeader = static_cast<Neural_Network_Header_t*>(mPtrModel);
+        m_header = static_cast<Neural_Network_Header_t*>(m_ptrModel);
 
         // Initialize the layer pointer array with correct size
-        mPtrLayerPointers.resize(mHeader->layernrs, nullptr);
+        m_ptrLayerPointers.resize(m_header->layernrs, nullptr);
 
         // populate the layer Pointer array
-        for (int i = 0; i < mHeader->layernrs; i++) {
+        for (int i = 0; i < m_header->layernrs; i++) {
             // Add offset to the pointer address of header
-            size_t offset = (sizeof(Neural_Network_Header_t) - mHeader->layernrs * 4) / sizeof(uint32_t) + i;
-            uint32_t* targetAddressOffset = static_cast<uint32_t*>(mPtrModel) + offset;
+            size_t offset = (sizeof(Neural_Network_Header_t) - m_header->layernrs * 4) / sizeof(uint32_t) + i;
+            uint32_t* targetAddressOffset = static_cast<uint32_t*>(m_ptrModel) + offset;
 
-            mPtrLayerPointers[i] = std::shared_ptr<uint8_t>(static_cast<uint8_t*>(mPtrModel) + *targetAddressOffset);
+            m_ptrLayerPointers[i] = std::shared_ptr<uint8_t>(static_cast<uint8_t*>(m_ptrModel) + *targetAddressOffset);
         }
     };
 
-    float mLearningRate;
+    float m_learningRate;
 
     // Pointer to expected Output Data
     T* mPtrExpectedOutputData = nullptr;
 
 private:
     // Base Information from file
-    Neural_Network_Header_t* mHeader = nullptr;
+    Neural_Network_Header_t* m_header = nullptr;
 
     // pointer to the model in Flash
-    void* mPtrModel = nullptr;
+    void* m_ptrModel = nullptr;
 
     // pointer to the trainable data in Flash
-    void* mPtrData = nullptr;
+    void* m_ptrData = nullptr;
 
     // Pointer to the Layers in Flash
-    std::vector<std::shared_ptr<uint8_t>> mPtrLayerPointers;
+    std::vector<std::shared_ptr<uint8_t>> m_ptrLayerPointers;
 
     // vector with the Layers in SRAM
-    std::vector<std::shared_ptr<Layer<T>>> layersInSRAM;
+    std::vector<std::shared_ptr<Layer<T>>> m_layersInSRAM;
 
     // Pointer to Input Data
-    const T* mPtrInputData = nullptr;
+    const T* m_ptrInputData = nullptr;
 
     // Pointer to Output Data
-    T* mPtrOutputData = nullptr;
+    T* m_ptrOutputData = nullptr;
 
     // init Flag, set when model.init is called and returns successfully.
-    bool isInit = 0;
+    bool m_isInit = false;
 
     // Model generated Flag
-    bool mIsLoaded = 0;
+    bool m_isLoaded = false;
 
     // Optimizer for the model
-    OptimizerID mOptimizerType;
+    OptimizerID m_optimizerType;
 
     // returns void Pointer to Layer by Index
     [[nodiscard]] auto getLayerPtr(const size_t layerNr) const -> void*
     {
         // Add offset to the pointer address of header
-        size_t offset = (sizeof(Neural_Network_Header_t) - mHeader->layernrs * 4) / sizeof(uint32_t) + layerNr;
-        uint32_t* targetAddress = static_cast<uint32_t*>(mPtrModel) + offset;
+        size_t offset = (sizeof(Neural_Network_Header_t) - m_header->layernrs * 4) / sizeof(uint32_t) + layerNr;
+        uint32_t* targetAddress = static_cast<uint32_t*>(m_ptrModel) + offset;
 
-        return static_cast<void*>(static_cast<uint8_t*>(mPtrModel) + *targetAddress);
+        return static_cast<void*>(static_cast<uint8_t*>(m_ptrModel) + *targetAddress);
     }
 };
 } // namespace Edgeist

@@ -25,16 +25,16 @@ public:
     // CTor: Init the ReLU-Layer with pointers to config data and the chosen optimizer
     Linear(Model<T>* model, void* headerPointer, void* dataPointer, const OptimizerID optimizerType)
         : Layer<T>(model)
-        , mPtrLayer(headerPointer)
-        , mPtrData(dataPointer)
-        , mHeader(static_cast<Neural_Network_Linear_t*>(mPtrLayer))
-        , mOptimizerType(optimizerType)
+        , m_ptrLayer(headerPointer)
+        , m_ptrData(dataPointer)
+        , m_header(static_cast<Neural_Network_Linear_t*>(m_ptrLayer))
+        , m_optimizerType(optimizerType)
     {
-        mPtrWeightFrozen = static_cast<T*>(mPtrLayer) + mHeader->weights_frozen_offset * sizeof(T);
-        mPtrBiasFrozen = static_cast<T*>(mPtrLayer) + mHeader->bias_frozen_offset * sizeof(T);
+        m_ptrWeightFrozen = static_cast<T*>(m_ptrLayer) + m_header->weights_frozen_offset * sizeof(T);
+        m_ptrBiasFrozen = static_cast<T*>(m_ptrLayer) + m_header->bias_frozen_offset * sizeof(T);
 
-        mPtrFlashWeight = (static_cast<T*>(mPtrData) + (mHeader->weights_trainable_offset / sizeof(T)));
-        mPtrFlashBias = (static_cast<T*>(mPtrData) + (mHeader->bias_trainable_offset / sizeof(T)));
+        m_ptrFlashWeight = (static_cast<T*>(m_ptrData) + (m_header->weights_trainable_offset / sizeof(T)));
+        m_ptrFlashBias = (static_cast<T*>(m_ptrData) + (m_header->bias_trainable_offset / sizeof(T)));
 
         Linear::loadFromFlash();
     }
@@ -43,29 +43,29 @@ public:
     ~Linear() override
     {
         // free memory
-        if (mWeightPtr != nullptr) {
-            delete[] mWeightPtr;
-            mWeightPtr = nullptr;
+        if (m_ptrWeight != nullptr) {
+            delete[] m_ptrWeight;
+            m_ptrWeight = nullptr;
         }
 
-        if (mBiasPtr != nullptr) {
-            delete[] mBiasPtr;
-            mBiasPtr = nullptr;
+        if (m_ptrBias != nullptr) {
+            delete[] m_ptrBias;
+            m_ptrBias = nullptr;
         }
 
-        if (this->mInputData != nullptr) {
-            delete[] this->mInputData;
-            this->mInputData = nullptr;
+        if (this->m_inputData != nullptr) {
+            delete[] this->m_inputData;
+            this->m_inputData = nullptr;
         }
 
-        if (mPtrWeightGradient != nullptr) {
-            delete[] mPtrWeightGradient;
-            mPtrWeightGradient = nullptr;
+        if (m_ptrWeightGradient != nullptr) {
+            delete[] m_ptrWeightGradient;
+            m_ptrWeightGradient = nullptr;
         }
 
-        if (mPtrBiasGradient != nullptr) {
-            delete[] mPtrBiasGradient;
-            mPtrBiasGradient = nullptr;
+        if (m_ptrBiasGradient != nullptr) {
+            delete[] m_ptrBiasGradient;
+            m_ptrBiasGradient = nullptr;
         }
     }
 
@@ -81,39 +81,39 @@ public:
         T* ptrBias = nullptr;
         if (trainingFlag) {
             // check if layer is loaded
-            if (!this->mIsLoaded) {
+            if (!this->m_isLoaded) {
                 return ErrorType::LayerNotInitialized;
             }
-            ptrWeight = mWeightPtr->mData;
-            ptrBias = mBiasPtr->mData;
+            ptrWeight = m_ptrWeight->m_data;
+            ptrBias = m_ptrBias->m_data;
         } else {
-            ptrWeight = mPtrFlashWeight;
-            ptrBias = mPtrFlashBias;
+            ptrWeight = m_ptrFlashWeight;
+            ptrBias = m_ptrFlashBias;
         }
 
         if (trainingFlag) {
             // get memory for training
-            if (this->mInputData == nullptr) {
-                this->mInputData = new T[this->mHeader->dimensioninput_x];
+            if (this->m_inputData == nullptr) {
+                this->m_inputData = new T[m_header->dimensioninput_x];
             }
-            for (uint32_t i = 0; i < mHeader->dimensioninput_x; i++) {
-                this->mInputData[i] = inputData[i];
+            for (uint32_t i = 0; i < m_header->dimensioninput_x; i++) {
+                this->m_inputData[i] = inputData[i];
             }
         }
 
         // calc result
         // step through outputs
-        for (uint32_t b = 0; b < mHeader->dimensionoutput_x; b++) {
+        for (uint32_t b = 0; b < m_header->dimensionoutput_x; b++) {
             auto temp = T(0);
-            for (uint32_t i = 0; i < mHeader->dimensioninput_x; i++) {
-                temp += inputData[i] * ptrWeight[(b * (mHeader->dimensioninput_x)) + i];
+            for (uint32_t i = 0; i < m_header->dimensioninput_x; i++) {
+                temp += inputData[i] * ptrWeight[(b * (m_header->dimensioninput_x)) + i];
             }
 
             temp = ptrBias[b] + temp;
             outputData[b] = temp;
         }
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     // executes the backward pass and calculates the gradient for the layer before
@@ -123,43 +123,43 @@ public:
             return ErrorType::UnknownError;
         }
 
-        if (this->mInputData == nullptr) {
+        if (this->m_inputData == nullptr) {
             return ErrorType::UnknownError;
         }
 
         // do backward pass
-        T* dL_dW = new T[this->mHeader->dimensionoutput_x * this->mHeader->dimensioninput_x];
-        for (size_t i = 0; i < this->mHeader->dimensionoutput_x; ++i) {
-            for (size_t j = 0; j < this->mHeader->dimensioninput_x; ++j) {
-                dL_dW[i * this->mHeader->dimensioninput_x + j] = inputData[i] * this->mInputData[j];
+        T* dL_dW = new T[m_header->dimensionoutput_x * m_header->dimensioninput_x];
+        for (size_t i = 0; i < m_header->dimensionoutput_x; ++i) {
+            for (size_t j = 0; j < m_header->dimensioninput_x; ++j) {
+                dL_dW[i * m_header->dimensioninput_x + j] = inputData[i] * this->m_inputData[j];
             }
         }
 
         // 2. gradient for bias
-        T* dL_db = new T[this->mHeader->dimensionoutput_x];
-        for (size_t i = 0; i < this->mHeader->dimensionoutput_x; ++i) {
+        T* dL_db = new T[m_header->dimensionoutput_x];
+        for (size_t i = 0; i < m_header->dimensionoutput_x; ++i) {
             dL_db[i] = inputData[i];
         }
 
         // 3. gradient for input x (backprop through layer)
-        for (size_t j = 0; j < this->mHeader->dimensioninput_x; ++j) {
+        for (size_t j = 0; j < m_header->dimensioninput_x; ++j) {
             outputData[j] = 0.0f;
-            for (size_t i = 0; i < this->mHeader->dimensionoutput_x; ++i) {
-                outputData[j] += mWeightPtr->getData((i * (mHeader->dimensioninput_x)) + j) * inputData[i];
+            for (size_t i = 0; i < m_header->dimensionoutput_x; ++i) {
+                outputData[j] += m_ptrWeight->getData((i * (m_header->dimensioninput_x)) + j) * inputData[i];
             }
         }
 
         // update gradients
-        for (size_t i = 0; i < this->mHeader->dimensionoutput_x; ++i) {
-            for (size_t j = 0; j < this->mHeader->dimensioninput_x; ++j) {
-                mPtrWeightGradient[i * this->mHeader->dimensioninput_x + j] += dL_dW[i * this->mHeader->dimensioninput_x + j];
+        for (size_t i = 0; i < m_header->dimensionoutput_x; ++i) {
+            for (size_t j = 0; j < m_header->dimensioninput_x; ++j) {
+                m_ptrWeightGradient[i * m_header->dimensioninput_x + j] += dL_dW[i * m_header->dimensioninput_x + j];
             }
-            mPtrBiasGradient[i] += dL_db[i];
+            m_ptrBiasGradient[i] += dL_db[i];
         }
 
-        if (this->mInputData != nullptr) {
-            delete[] this->mInputData;
-            this->mInputData = nullptr;
+        if (this->m_inputData != nullptr) {
+            delete[] this->m_inputData;
+            this->m_inputData = nullptr;
         }
 
         delete[] dL_dW;
@@ -167,160 +167,158 @@ public:
         delete[] dL_db;
         dL_db = nullptr;
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     // init gradient, reserve and init memory
     auto initGradients() -> ErrorType override
     {
-        if (mPtrWeightGradient != nullptr || mPtrBiasGradient != nullptr) {
+        if (m_ptrWeightGradient != nullptr || m_ptrBiasGradient != nullptr) {
             return ErrorType::UnknownError;
         }
 
         // create arrays dynamically and initialize them with 0.0
-        uint32_t sizeWeights = this->mHeader->dimensionoutput_x * this->mHeader->dimensioninput_x;
-        uint32_t sizeBias = this->mHeader->dimensionoutput_x;
+        uint32_t sizeWeights = m_header->dimensionoutput_x * m_header->dimensioninput_x;
+        uint32_t sizeBias = m_header->dimensionoutput_x;
 
-        mPtrWeightGradient = new T[sizeWeights];
-        mPtrBiasGradient = new T[sizeBias];
+        m_ptrWeightGradient = new T[sizeWeights];
+        m_ptrBiasGradient = new T[sizeBias];
 
         for (uint32_t i = 0; i < sizeWeights; ++i) {
-            mPtrWeightGradient[i] = T(0.0);
+            m_ptrWeightGradient[i] = T(0.0);
         }
 
         for (uint32_t i = 0; i < sizeBias; ++i) {
-            mPtrBiasGradient[i] = T(0.0);
+            m_ptrBiasGradient[i] = T(0.0);
         }
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     // delete gradient and free memory
     auto deleteGradients() -> ErrorType override
     {
-        if (mPtrWeightGradient != nullptr) {
-            delete[] mPtrWeightGradient;
-            mPtrWeightGradient = nullptr;
+        if (m_ptrWeightGradient != nullptr) {
+            delete[] m_ptrWeightGradient;
+            m_ptrWeightGradient = nullptr;
         }
 
-        if (mPtrBiasGradient != nullptr) {
-            delete[] mPtrBiasGradient;
-            mPtrBiasGradient = nullptr;
+        if (m_ptrBiasGradient != nullptr) {
+            delete[] m_ptrBiasGradient;
+            m_ptrBiasGradient = nullptr;
         }
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     // update weights and biases
     auto update(uint32_t batchsize) -> ErrorType override
     {
-        if (mPtrWeightGradient == nullptr || mPtrBiasGradient == nullptr) {
+        if (m_ptrWeightGradient == nullptr || m_ptrBiasGradient == nullptr) {
             return ErrorType::UnknownError;
         }
 
         // SGD-Update of W and b
-        for (size_t i = 0; i < this->mHeader->dimensionoutput_x; ++i) {
-            for (size_t j = 0; j < this->mHeader->dimensioninput_x; ++j) {
-                mWeightPtr->update((i * (mHeader->dimensioninput_x)) + j, mPtrWeightGradient[i * this->mHeader->dimensioninput_x + j] / batchsize, this->mModel->mLearningRate, mTimestep);
+        for (size_t i = 0; i < m_header->dimensionoutput_x; ++i) {
+            for (size_t j = 0; j < m_header->dimensioninput_x; ++j) {
+                m_ptrWeight->update((i * (m_header->dimensioninput_x)) + j, m_ptrWeightGradient[i * m_header->dimensioninput_x + j] / batchsize, this->m_model->m_learningRate, m_timestep);
             }
-            mBiasPtr->update(i, mPtrBiasGradient[i] / batchsize, this->mModel->mLearningRate, mTimestep);
+            m_ptrBias->update(i, m_ptrBiasGradient[i] / batchsize, this->m_model->m_learningRate, m_timestep);
         }
-        mTimestep++;
-        return ErrorType::ok;
+        m_timestep++;
+        return ErrorType::OK;
     }
 
     // Loads the trainable values from Flash into SRAM
     auto loadFromFlash() -> ErrorType override
     {
-        switch (mOptimizerType) {
+        switch (m_optimizerType) {
         case OptimizerID::SGD:
             // init weights
-            mWeightPtr = new OptimizerSGD<T>;
-            mWeightPtr->init(mHeader->weights_amount_trainable);
+            m_ptrWeight = new OptimizerSGD<T>;
+            m_ptrWeight->init(m_header->weights_amount_trainable);
             // init bias
-            mBiasPtr = new OptimizerSGD<T>;
-            mBiasPtr->init(mHeader->bias_amount_trainable);
+            m_ptrBias = new OptimizerSGD<T>;
+            m_ptrBias->init(m_header->bias_amount_trainable);
             break;
 
         case OptimizerID::Momentum:
             // init weights
-            mWeightPtr = new OptimizerMomentum<T>;
-            mWeightPtr->init(mHeader->weights_amount_trainable);
+            m_ptrWeight = new OptimizerMomentum<T>;
+            m_ptrWeight->init(m_header->weights_amount_trainable);
             // init bias
-            mBiasPtr = new OptimizerMomentum<T>;
-            mBiasPtr->init(mHeader->bias_amount_trainable);
+            m_ptrBias = new OptimizerMomentum<T>;
+            m_ptrBias->init(m_header->bias_amount_trainable);
             break;
 
         case OptimizerID::ADAM:
             // init weights
-            mWeightPtr = new OptimizerAdam<T>;
-            mWeightPtr->init(mHeader->weights_amount_trainable);
+            m_ptrWeight = new OptimizerAdam<T>;
+            m_ptrWeight->init(m_header->weights_amount_trainable);
             // init bias
-            mBiasPtr = new OptimizerAdam<T>;
-            mBiasPtr->init(mHeader->bias_amount_trainable);
+            m_ptrBias = new OptimizerAdam<T>;
+            m_ptrBias->init(m_header->bias_amount_trainable);
             break;
         }
 
         // init weights and biases
-        for (size_t i = 0; i < mHeader->weights_amount_trainable; i++) {
-            mWeightPtr->setData(i, *(static_cast<T*>(mPtrData) + (mHeader->weights_trainable_offset / sizeof(T)) + i));
+        for (size_t i = 0; i < m_header->weights_amount_trainable; i++) {
+            m_ptrWeight->setData(i, *(static_cast<T*>(m_ptrData) + (m_header->weights_trainable_offset / sizeof(T)) + i));
         }
-        for (size_t i = 0; i < mHeader->bias_amount_trainable; i++) {
-            mBiasPtr->setData(i, *(static_cast<T*>(mPtrData) + (mHeader->bias_trainable_offset / sizeof(T)) + i));
+        for (size_t i = 0; i < m_header->bias_amount_trainable; i++) {
+            m_ptrBias->setData(i, *(static_cast<T*>(m_ptrData) + (m_header->bias_trainable_offset / sizeof(T)) + i));
         }
 
-        this->mIsLoaded = true;
-        return ErrorType::ok;
+        this->m_isLoaded = true;
+        return ErrorType::OK;
     }
 
     // Stores the trainable values from SRAM to Flash
     auto storeToFlash() -> ErrorType override
     {
-        this->mIsLoaded = false;
+        this->m_isLoaded = false;
         // Not implemented in this version, will only become relevant on the uController
         return ErrorType::UnknownError;
     }
 
     auto getOutputSize() -> uint32_t override
     {
-        return uint32_t(mHeader->dimensionoutput_x);
+        return uint32_t(m_header->dimensionoutput_x);
     }
 
     auto getInputSize() -> uint32_t override
     {
-        return uint32_t(mHeader->dimensioninput_x);
+        return uint32_t(m_header->dimensioninput_x);
     }
 
     [[nodiscard]] auto header() const -> const Neural_Network_Linear_t&
     {
-        return *mHeader;
+        return *m_header;
     }
 
 private:
-    void* mPtrLayer;
+    void* m_ptrLayer;
+    void* m_ptrData;
 
-    void* mPtrData;
-
-    Neural_Network_Linear_t* mHeader;
+    Neural_Network_Linear_t* m_header;
 
     // chosen optimizer
-    OptimizerID mOptimizerType;
+    OptimizerID m_optimizerType;
 
-    T* mPtrWeightFrozen = nullptr;
-    T* mPtrBiasFrozen = nullptr;
+    T* m_ptrWeightFrozen = nullptr;
+    T* m_ptrBiasFrozen = nullptr;
 
-    T* mPtrFlashWeight = nullptr;
-    T* mPtrFlashBias = nullptr;
+    T* m_ptrFlashWeight = nullptr;
+    T* m_ptrFlashBias = nullptr;
 
-    T* mPtrWeightGradient = nullptr;
-    T* mPtrBiasGradient = nullptr;
+    T* m_ptrWeightGradient = nullptr;
+    T* m_ptrBiasGradient = nullptr;
 
     // vector with the trainable weights in SRAM
-    OptimizerBase<T>* mWeightPtr;
+    OptimizerBase<T>* m_ptrWeight;
+    OptimizerBase<T>* m_ptrBias;
 
-    OptimizerBase<T>* mBiasPtr;
-
-    uint32_t mTimestep = 1;
+    uint32_t m_timestep = 1;
 };
 } // namespace Edgeist
 

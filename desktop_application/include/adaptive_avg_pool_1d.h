@@ -30,27 +30,26 @@ class AdaptiveAvgPool1D : public Layer<T> {
 public:
     AdaptiveAvgPool1D(Model<T>* model, void* headerPointer, void* dataPointer, const OptimizerID optimizerType)
         : Layer<T>(model)
-        , mPtrLayer(headerPointer)
-        , mPtrData(dataPointer)
-        , mHeader(static_cast<Neural_Network_AdaptiveAvgPool1d_t*>(mPtrLayer))
-        , mOptimizerType(optimizerType)
+        , m_ptrLayer(headerPointer)
+        , m_ptrData(dataPointer)
+        , m_header(static_cast<Neural_Network_AdaptiveAvgPool1d_t*>(m_ptrLayer))
+        , m_optimizerType(optimizerType)
     {
         AdaptiveAvgPool1D::loadFromFlash();
     }
 
-    auto forwardPass(const T* input_data, T* output_data, bool /* trainingflag */) -> ErrorType override
+    auto forwardPass(const T* inputData, T* outputData, bool /* trainingflag */) -> ErrorType override
     {
-        if (input_data == nullptr || output_data == nullptr) {
+        if (inputData == nullptr || outputData == nullptr) {
             return ErrorType::UnknownError;
         }
-        if (!this->mIsLoaded) {
+        if (!this->m_isLoaded) {
             return ErrorType::LayerNotInitialized;
         }
 
-        const auto& H = *this->mHeader;
-        const int C = H.channelsin;
-        const int W_in = H.dimensioninput_x;
-        const int W_out = H.dimensionoutput_x;
+        const int C = m_header->channelsin;
+        const int W_in = m_header->dimensioninput_x;
+        const int W_out = m_header->dimensionoutput_x;
 
         for (int c = 0; c < C; ++c) {
             for (int ox = 0; ox < W_out; ++ox) {
@@ -61,16 +60,16 @@ public:
                 int count = 0;
                 for (int ix = x_start; ix < x_end; ++ix) {
                     size_t in_idx = size_t(c) * W_in + ix;
-                    sum += input_data[in_idx];
+                    sum += inputData[in_idx];
                     ++count;
                 }
 
                 size_t out_idx = size_t(c) * W_out + ox;
-                output_data[out_idx] = count > 0 ? sum / static_cast<T>(count) : T(0);
+                outputData[out_idx] = count > 0 ? sum / static_cast<T>(count) : T(0);
             }
         }
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto backwardPass(const T* gradOutput, T* gradInput) -> ErrorType override
@@ -78,14 +77,13 @@ public:
         if (gradOutput == nullptr || gradInput == nullptr) {
             return ErrorType::UnknownError;
         }
-        if (!this->mIsLoaded) {
+        if (!this->m_isLoaded) {
             return ErrorType::LayerNotInitialized;
         }
 
-        const auto& H = *this->mHeader;
-        const int C = H.channelsin;
-        const int W_in = H.dimensioninput_x;
-        const int W_out = H.dimensionoutput_x;
+        const int C = m_header->channelsin;
+        const int W_in = m_header->dimensioninput_x;
+        const int W_out = m_header->dimensionoutput_x;
 
         size_t inSize = size_t(C) * W_in;
         for (size_t i = 0; i < inSize; ++i) {
@@ -109,44 +107,44 @@ public:
             }
         }
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     // init dropout mask for mini batch
     auto initGradients() -> ErrorType override
     {
         // TODO
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     // delete dropout mask
     auto deleteGradients() -> ErrorType override
     {
         // TODO
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto loadFromFlash() -> ErrorType override
     {
-        this->mIsLoaded = true;
-        return ErrorType::ok;
+        this->m_isLoaded = true;
+        return ErrorType::OK;
     }
 
     auto storeToFlash() -> ErrorType override
     {
         // not implemented
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
-    auto getOutputSize() -> uint32_t override { return this->mHeader->channelsin * this->mHeader->dimensionoutput_x; }
+    auto getOutputSize() -> uint32_t override { return m_header->channelsin * m_header->dimensionoutput_x; }
 
-    auto getInputSize() -> uint32_t override { return this->mHeader->channelsin * this->mHeader->dimensioninput_x; }
+    auto getInputSize() -> uint32_t override { return m_header->channelsin * m_header->dimensioninput_x; }
 
 private:
-    void* mPtrLayer;
-    void* mPtrData;
-    Neural_Network_AdaptiveAvgPool1d_t* mHeader;
-    OptimizerID mOptimizerType;
+    void* m_ptrLayer;
+    void* m_ptrData;
+    Neural_Network_AdaptiveAvgPool1d_t* m_header;
+    OptimizerID m_optimizerType;
 };
 } // namespace Edgeist
 

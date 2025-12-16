@@ -27,10 +27,10 @@ class AdaptiveAvgPool2D : public Layer<T> {
 public:
     AdaptiveAvgPool2D(Model<T>* model, void* headerPointer, void* dataPointer, const OptimizerID optimizerType)
         : Layer<T>(model)
-        , mPtrLayer(headerPointer)
-        , mPtrData(dataPointer)
-        , mHeader(static_cast<Neural_Network_AdaptiveAvgPool2d_t*>(mPtrLayer))
-        , mOptimizerType(optimizerType)
+        , m_ptrLayer(headerPointer)
+        , m_ptrData(dataPointer)
+        , m_header(static_cast<Neural_Network_AdaptiveAvgPool2d_t*>(m_ptrLayer))
+        , m_optimizerType(optimizerType)
     {
         AdaptiveAvgPool2D::loadFromFlash();
     }
@@ -40,16 +40,15 @@ public:
         if (inputData == nullptr || outputData == nullptr) {
             return ErrorType::UnknownError;
         }
-        if (!this->mIsLoaded) {
+        if (!this->m_isLoaded) {
             return ErrorType::LayerNotInitialized;
         }
 
-        const auto& H = *this->mHeader;
-        const int C = H.channelsin;
-        const int H_in = H.dimensioninput_y;
-        const int W_in = H.dimensioninput_x;
-        const int H_out = H.dimensionoutput_y;
-        const int W_out = H.dimensionoutput_x;
+        const int C = m_header->channelsin;
+        const int H_in = m_header->dimensioninput_y;
+        const int W_in = m_header->dimensioninput_x;
+        const int H_out = m_header->dimensionoutput_y;
+        const int W_out = m_header->dimensionoutput_x;
 
         for (int c = 0; c < C; ++c) {
             for (int oy = 0; oy < H_out; ++oy) {
@@ -78,7 +77,7 @@ public:
             }
         }
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto backwardPass(const T* gradOutput, T* gradInput) -> ErrorType override
@@ -86,16 +85,15 @@ public:
         if ((gradOutput == nullptr) || (gradInput == nullptr)) {
             return ErrorType::UnknownError;
         }
-        if (!this->mIsLoaded) {
+        if (!this->m_isLoaded) {
             return ErrorType::LayerNotInitialized;
         }
 
-        const auto& H = *this->mHeader;
-        const int C = H.channelsin;
-        const int H_in = H.dimensioninput_y;
-        const int W_in = H.dimensioninput_x;
-        const int H_out = H.dimensionoutput_y;
-        const int W_out = H.dimensionoutput_x;
+        const int C = m_header->channelsin;
+        const int H_in = m_header->dimensioninput_y;
+        const int W_in = m_header->dimensioninput_x;
+        const int H_out = m_header->dimensionoutput_y;
+        const int W_out = m_header->dimensionoutput_x;
 
         // init grad_input with 0
         size_t inSize = size_t(C) * H_in * W_in;
@@ -128,36 +126,36 @@ public:
             }
         }
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto loadFromFlash() -> ErrorType override
     {
-        this->mIsLoaded = true;
-        return ErrorType::ok;
+        this->m_isLoaded = true;
+        return ErrorType::OK;
     }
 
     auto storeToFlash() -> ErrorType override
     {
         // not implemented
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto getOutputSize() -> uint32_t override
     {
-        return this->mHeader->channelsin * this->mHeader->dimensionoutput_x * this->mHeader->dimensionoutput_y;
+        return m_header->channelsin * m_header->dimensionoutput_x * m_header->dimensionoutput_y;
     }
 
     auto getInputSize() -> uint32_t override
     {
-        return this->mHeader->channelsin * this->mHeader->dimensioninput_x * this->mHeader->dimensioninput_y;
+        return m_header->channelsin * m_header->dimensioninput_x * m_header->dimensioninput_y;
     }
 
 private:
-    void* mPtrLayer;
-    void* mPtrData;
-    Neural_Network_AdaptiveAvgPool2d_t* mHeader;
-    OptimizerID mOptimizerType;
+    void* m_ptrLayer;
+    void* m_ptrData;
+    Neural_Network_AdaptiveAvgPool2d_t* m_header;
+    OptimizerID m_optimizerType;
 };
 } // namespace Edgeist
 #endif // ADAPTIVE_AVG_POOL_2D_H

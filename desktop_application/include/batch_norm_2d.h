@@ -29,31 +29,31 @@ class BatchNorm2D : public Layer<T> {
 public:
     BatchNorm2D(Model<T>* model, void* headerPointer, void* dataPointer, const OptimizerID optimizerType)
         : Layer<T>(model)
-        , mPtrLayer(headerPointer)
-        , mPtrData(dataPointer)
-        , mHeader(static_cast<Neural_Network_BatchNorm2d_t*>(mPtrLayer))
-        , mOptimizerType(optimizerType)
+        , m_ptrLayer(headerPointer)
+        , m_ptrData(dataPointer)
+        , m_header(static_cast<Neural_Network_BatchNorm2d_t*>(m_ptrLayer))
+        , m_optimizerType(optimizerType)
     {
-        mRunningMean = new double[this->mHeader->channelsin];
-        mRunningVar = new double[this->mHeader->channelsin];
+        m_runningMean = new double[m_header->channelsin];
+        m_runningVar = new double[m_header->channelsin];
 
-        mPtrFlashWeight = (static_cast<T*>(mPtrData) + (mHeader->weights_trainable_offset / sizeof(T)));
-        mPtrFlashBias = (static_cast<T*>(mPtrData) + (mHeader->bias_trainable_offset / sizeof(T)));
+        m_ptrFlashWeight = (static_cast<T*>(m_ptrData) + (m_header->weights_trainable_offset / sizeof(T)));
+        m_ptrFlashBias = (static_cast<T*>(m_ptrData) + (m_header->bias_trainable_offset / sizeof(T)));
 
         BatchNorm2D::loadFromFlash();
     }
 
     ~BatchNorm2D() override
     {
-        delete[] mWeightPtr;
-        mWeightPtr = nullptr;
-        delete[] mBiasPtr;
-        mBiasPtr = nullptr;
+        delete[] m_ptrWeight;
+        m_ptrWeight = nullptr;
+        delete[] m_ptrBias;
+        m_ptrBias = nullptr;
 
-        delete[] mRunningMean;
-        mRunningMean = nullptr;
-        delete[] mRunningVar;
-        mRunningVar = nullptr;
+        delete[] m_runningMean;
+        m_runningMean = nullptr;
+        delete[] m_runningVar;
+        m_runningVar = nullptr;
     }
 
     auto forwardPass(const T* inputData, T* outputData, const bool trainingFlag) -> ErrorType override
@@ -63,81 +63,81 @@ public:
         T* ptrBias = nullptr;
         if (trainingFlag) {
             // check if layer is loaded
-            if (!this->mIsLoaded) {
+            if (!this->m_isLoaded) {
                 return ErrorType::LayerNotInitialized;
             }
-            ptrWeight = mWeightPtr->mData;
-            ptrBias = mBiasPtr->mData;
+            ptrWeight = m_ptrWeight->m_data;
+            ptrBias = m_ptrBias->m_data;
         } else {
-            ptrWeight = mPtrFlashWeight;
-            ptrBias = mPtrFlashBias;
-            mInitRunningStats = false;
+            ptrWeight = m_ptrFlashWeight;
+            ptrBias = m_ptrFlashBias;
+            m_initRunningStats = false;
         }
 
-        int NrOfInputs = this->mHeader->dimensioninput_x;
-        int NrOfChannels = this->mHeader->channelsin;
-        int ElemsPerChannel = NrOfInputs / NrOfChannels;
+        const int nrOfInputs = m_header->dimensioninput_x;
+        const int nrOfChannels = m_header->channelsin;
+        const int elemsPerChannel = nrOfInputs / nrOfChannels;
         float const eps = 1e-5f;
 
-        double* mean = new double[NrOfChannels];
-        double* var = new double[NrOfChannels];
-        for (int i = 0; i < NrOfChannels; i++) {
+        double* mean = new double[nrOfChannels];
+        double* var = new double[nrOfChannels];
+        for (int i = 0; i < nrOfChannels; i++) {
             mean[i] = double(0.0);
             var[i] = double(1.0);
         }
 
         // calc average
-        for (int c = 0; c < NrOfChannels; c++) {
-            for (int i = 0; i < ElemsPerChannel; i++) {
-                mean[c] += static_cast<double>(inputData[c * ElemsPerChannel + i]);
+        for (int c = 0; c < nrOfChannels; c++) {
+            for (int i = 0; i < elemsPerChannel; i++) {
+                mean[c] += static_cast<double>(inputData[c * elemsPerChannel + i]);
             }
-            mean[c] = mean[c] / ElemsPerChannel;
+            mean[c] = mean[c] / elemsPerChannel;
         }
 
         // calc variance
-        for (int c = 0; c < NrOfChannels; c++) {
-            for (int i = 0; i < ElemsPerChannel; i++) {
-                double diff = static_cast<double>(inputData[c * ElemsPerChannel + i]) - mean[c];
+        for (int c = 0; c < nrOfChannels; c++) {
+            for (int i = 0; i < elemsPerChannel; i++) {
+                double diff = static_cast<double>(inputData[c * elemsPerChannel + i]) - mean[c];
                 var[c] += diff * diff;
             }
 
-            var[c] = var[c] / ElemsPerChannel;
+            var[c] = var[c] / elemsPerChannel;
         }
 
         // running_Mean
-        if (!mInitRunningStats) {
+        if (!m_initRunningStats) {
             // initialize with the values from buffer
-            for (int c = 0; c < NrOfChannels; c++) {
-                mRunningMean[c] = ptrWeight[c + this->mHeader->channelsin];
-                mRunningVar[c] = ptrBias[c + this->mHeader->channelsin];
+            for (int c = 0; c < nrOfChannels; c++) {
+                m_runningMean[c] = ptrWeight[c + m_header->channelsin];
+                m_runningVar[c] = ptrBias[c + m_header->channelsin];
             }
-            mInitRunningStats = true;
+            m_initRunningStats = true;
         }
 
         if (trainingFlag) { // forward pass with training
 
             float momentum = 0.1f;
-            for (int c = 0; c < NrOfChannels; c++) {
-                mRunningMean[c] = (1 - momentum) * mRunningMean[c] + momentum * mean[c];
-                mRunningVar[c] = (1 - momentum) * mRunningVar[c] + momentum * var[c];
+            for (int c = 0; c < nrOfChannels; c++) {
+                m_runningMean[c] = (1 - momentum) * m_runningMean[c] + momentum * mean[c];
+                m_runningVar[c] = (1 - momentum) * m_runningVar[c] + momentum * var[c];
             }
 
-            mNormalizedInput = new T[NrOfInputs];
-            mInput = new T[NrOfInputs];
+            m_normalizedInput = new T[nrOfInputs];
+            m_input = new T[nrOfInputs];
             // normalize + scale + move
-            for (int i = 0; i < NrOfChannels; i++) {
+            for (int i = 0; i < nrOfChannels; i++) {
 
                 T gamma = ptrWeight[i];
                 T beta = ptrBias[i];
 
-                for (int x = 0; x < NrOfInputs / NrOfChannels; x++) {
-                    int index = i * (NrOfInputs / NrOfChannels) + x;
+                for (int x = 0; x < nrOfInputs / nrOfChannels; x++) {
+                    int index = i * (nrOfInputs / nrOfChannels) + x;
 
-                    double norm = (double(inputData[index]) - mRunningMean[i]) / std::sqrt(mRunningVar[i] + eps);
+                    double norm = (double(inputData[index]) - m_runningMean[i]) / std::sqrt(m_runningVar[i] + eps);
 
                     // save input and normaliced input
-                    mNormalizedInput[index] = norm;
-                    mInput[index] = inputData[index];
+                    m_normalizedInput[index] = norm;
+                    m_input[index] = inputData[index];
 
                     outputData[index] = gamma * norm + beta;
                 }
@@ -145,13 +145,13 @@ public:
 
         } else {
             // normalize + scale + move
-            for (int c = 0; c < NrOfChannels; c++) {
+            for (int c = 0; c < nrOfChannels; c++) {
                 T gamma = ptrWeight[c];
                 T beta = ptrBias[c];
 
-                for (int x = 0; x < ElemsPerChannel; x++) {
-                    int index = c * ElemsPerChannel + x;
-                    double norm = (double(inputData[index]) - mRunningMean[c]) / std::sqrt(mRunningVar[c] + eps);
+                for (int x = 0; x < elemsPerChannel; x++) {
+                    int index = c * elemsPerChannel + x;
+                    double norm = (double(inputData[index]) - m_runningMean[c]) / std::sqrt(m_runningVar[c] + eps);
                     outputData[index] = gamma * norm + beta;
                 }
             }
@@ -161,7 +161,7 @@ public:
         mean = nullptr;
         delete[] var;
         var = nullptr;
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto backwardPass(const T* inputData, T* outputData) -> ErrorType override
@@ -170,22 +170,22 @@ public:
             return ErrorType::InvalidPointer;
         }
 
-        if (mInput == nullptr || mNormalizedInput == nullptr) {
+        if (m_input == nullptr || m_normalizedInput == nullptr) {
             return ErrorType::MissingCachedInputs;
         }
 
-        int NrOfInputs = this->mHeader->dimensioninput_x;
-        int NrOfChannels = this->mHeader->channelsin;
-        int ElemsPerChannel = NrOfInputs / NrOfChannels; // ElemsPerChannel
+        const int nrOfInputs = m_header->dimensioninput_x;
+        const int nrOfChannels = m_header->channelsin;
+        int ElemsPerChannel = nrOfInputs / nrOfChannels; // ElemsPerChannel
         float eps = 1e-5f;
 
         // alloc memory
-        T* dL_dgamma = new T[NrOfChannels];
-        T* dL_dbeta = new T[NrOfChannels];
-        double* sum_dnorm = new double[NrOfChannels];
-        double* sum_dnorm_norm = new double[NrOfChannels];
+        T* dL_dgamma = new T[nrOfChannels];
+        T* dL_dbeta = new T[nrOfChannels];
+        double* sum_dnorm = new double[nrOfChannels];
+        double* sum_dnorm_norm = new double[nrOfChannels];
 
-        for (int c = 0; c < NrOfChannels; ++c) {
+        for (int c = 0; c < nrOfChannels; ++c) {
             dL_dgamma[c] = 0.0;
             dL_dbeta[c] = 0.0;
             sum_dnorm[c] = 0.0;
@@ -193,41 +193,41 @@ public:
         }
 
         // 1. calc dL/dy, dL/db, dL/dx per channel
-        for (int c = 0; c < NrOfChannels; ++c) {
+        for (int c = 0; c < nrOfChannels; ++c) {
             for (int i = 0; i < ElemsPerChannel; ++i) {
                 int idx = c * ElemsPerChannel + i;
 
-                double norm_input = mNormalizedInput[idx];
+                double norm_input = m_normalizedInput[idx];
                 double dy = static_cast<double>(inputData[idx]);
 
                 dL_dgamma[c] += dy * norm_input;
                 dL_dbeta[c] += dy;
 
-                sum_dnorm[c] += dy * mWeightPtr->getData(c); // dL/dx = dL/dy * y
-                sum_dnorm_norm[c] += (dy * mWeightPtr->getData(c)) * norm_input;
+                sum_dnorm[c] += dy * m_ptrWeight->getData(c); // dL/dx = dL/dy * y
+                sum_dnorm_norm[c] += (dy * m_ptrWeight->getData(c)) * norm_input;
             }
         }
 
         // 2. calc dL/dx per element
-        for (int c = 0; c < NrOfChannels; ++c) {
-            double std_inv = 1.0 / std::sqrt(mRunningVar[c] + eps);
+        for (int c = 0; c < nrOfChannels; ++c) {
+            double std_inv = 1.0 / std::sqrt(m_runningVar[c] + eps);
 
             for (int i = 0; i < ElemsPerChannel; ++i) {
                 int idx = c * ElemsPerChannel + i;
-                double dy_gamma = inputData[idx] * mWeightPtr->getData(c);
+                double dy_gamma = inputData[idx] * m_ptrWeight->getData(c);
 
                 double term1 = ElemsPerChannel * dy_gamma;
                 double term2 = sum_dnorm[c];
-                double term3 = mNormalizedInput[idx] * sum_dnorm_norm[c];
+                double term3 = m_normalizedInput[idx] * sum_dnorm_norm[c];
 
                 outputData[idx] = (1.0 / ElemsPerChannel) * std_inv * (term1 - term2 - term3);
             }
         }
 
         // 3. save gradient in puffer
-        for (int c = 0; c < NrOfChannels; ++c) {
-            mPtrWeightGradient[c] += dL_dgamma[c];
-            mPtrBiasGradient[c] += dL_dbeta[c];
+        for (int c = 0; c < nrOfChannels; ++c) {
+            m_ptrWeightGradient[c] += dL_dgamma[c];
+            m_ptrBiasGradient[c] += dL_dbeta[c];
         }
 
         // cleanup
@@ -236,159 +236,157 @@ public:
         delete[] sum_dnorm;
         delete[] sum_dnorm_norm;
 
-        delete[] mInput;
-        mInput = nullptr;
-        delete[] mNormalizedInput;
-        mNormalizedInput = nullptr;
+        delete[] m_input;
+        m_input = nullptr;
+        delete[] m_normalizedInput;
+        m_normalizedInput = nullptr;
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     // initializes mean and variance before a mini batch
     auto initGradients() -> ErrorType override
     {
-        if (mPtrWeightGradient != nullptr || mPtrBiasGradient != nullptr) {
+        if (m_ptrWeightGradient != nullptr || m_ptrBiasGradient != nullptr) {
             return ErrorType::UnknownError;
         }
 
         // create arrays dynamically and initialize them with 0.0
-        uint32_t sizeWeights = this->mHeader->dimensioninput_x;
-        uint32_t sizeBias = this->mHeader->dimensioninput_x;
+        const uint32_t sizeWeights = m_header->dimensioninput_x;
+        const uint32_t sizeBias = m_header->dimensioninput_x;
 
-        mPtrWeightGradient = new T[sizeWeights];
-        mPtrBiasGradient = new T[sizeBias];
+        m_ptrWeightGradient = new T[sizeWeights];
+        m_ptrBiasGradient = new T[sizeBias];
 
         for (uint32_t i = 0; i < sizeWeights; ++i) {
-            mPtrWeightGradient[i] = T(1.0);
+            m_ptrWeightGradient[i] = T(1.0);
         }
 
         for (uint32_t i = 0; i < sizeBias; ++i) {
-            mPtrBiasGradient[i] = T(0.0);
+            m_ptrBiasGradient[i] = T(0.0);
         }
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     // delete mean and variance after minibatch
     auto deleteGradients() -> ErrorType override
     {
-        if (mPtrWeightGradient != nullptr) {
-            delete[] mPtrWeightGradient;
-            mPtrWeightGradient = nullptr;
+        if (m_ptrWeightGradient != nullptr) {
+            delete[] m_ptrWeightGradient;
+            m_ptrWeightGradient = nullptr;
         }
 
-        if (mPtrBiasGradient != nullptr) {
-            delete[] mPtrBiasGradient;
-            mPtrBiasGradient = nullptr;
+        if (m_ptrBiasGradient != nullptr) {
+            delete[] m_ptrBiasGradient;
+            m_ptrBiasGradient = nullptr;
         }
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto update(uint32_t batchsize) -> ErrorType override
     {
 
-        if (mPtrWeightGradient == nullptr || mPtrBiasGradient == nullptr) {
+        if (m_ptrWeightGradient == nullptr || m_ptrBiasGradient == nullptr) {
             return ErrorType::UnknownError;
         }
 
         // SGD-Update of W and b
-        for (size_t i = 0; i < this->mHeader->dimensioninput_x; ++i) {
-
-            mWeightPtr->update(i, mPtrWeightGradient[i] / batchsize, this->mModel->mLearningRate, mTimestep);
-
-            mBiasPtr->update(i, mPtrBiasGradient[i] / batchsize, this->mModel->mLearningRate, mTimestep);
+        for (size_t i = 0; i < m_header->dimensioninput_x; ++i) {
+            m_ptrWeight->update(i, m_ptrWeightGradient[i] / batchsize, this->m_model->m_learningRate, m_timestep);
+            m_ptrBias->update(i, m_ptrBiasGradient[i] / batchsize, this->m_model->m_learningRate, m_timestep);
         }
-        mTimestep++;
+        m_timestep++;
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto loadFromFlash() -> ErrorType override
     {
-        switch (mOptimizerType) {
+        switch (m_optimizerType) {
         case OptimizerID::SGD:
             // init weights
-            mWeightPtr = new OptimizerSGD<T>;
-            mWeightPtr->init(mHeader->weights_amount_trainable);
+            m_ptrWeight = new OptimizerSGD<T>;
+            m_ptrWeight->init(m_header->weights_amount_trainable);
             // init bias
-            mBiasPtr = new OptimizerSGD<T>;
-            mBiasPtr->init(mHeader->bias_amount_trainable);
+            m_ptrBias = new OptimizerSGD<T>;
+            m_ptrBias->init(m_header->bias_amount_trainable);
             break;
 
         case OptimizerID::Momentum:
             // init weights
-            mWeightPtr = new OptimizerMomentum<T>;
-            mWeightPtr->init(mHeader->weights_amount_trainable);
+            m_ptrWeight = new OptimizerMomentum<T>;
+            m_ptrWeight->init(m_header->weights_amount_trainable);
             // init bias
-            mBiasPtr = new OptimizerMomentum<T>;
-            mBiasPtr->init(mHeader->bias_amount_trainable);
+            m_ptrBias = new OptimizerMomentum<T>;
+            m_ptrBias->init(m_header->bias_amount_trainable);
             break;
 
         case OptimizerID::ADAM:
             // init weights
-            mWeightPtr = new OptimizerAdam<T>;
-            mWeightPtr->init(mHeader->weights_amount_trainable);
+            m_ptrWeight = new OptimizerAdam<T>;
+            m_ptrWeight->init(m_header->weights_amount_trainable);
             // init bias
-            mBiasPtr = new OptimizerAdam<T>;
-            mBiasPtr->init(mHeader->bias_amount_trainable);
+            m_ptrBias = new OptimizerAdam<T>;
+            m_ptrBias->init(m_header->bias_amount_trainable);
             break;
         }
 
         // init weights and biases
-        for (size_t i = 0; i < mHeader->weights_amount_trainable; i++) {
-            mWeightPtr->setData(i, *(static_cast<T*>(mPtrData) + (mHeader->weights_trainable_offset / sizeof(T)) + i));
+        for (size_t i = 0; i < m_header->weights_amount_trainable; i++) {
+            m_ptrWeight->setData(i, *(static_cast<T*>(m_ptrData) + (m_header->weights_trainable_offset / sizeof(T)) + i));
         }
-        for (size_t i = 0; i < mHeader->bias_amount_trainable; i++) {
-            mBiasPtr->setData(i, *(static_cast<T*>(mPtrData) + (mHeader->bias_trainable_offset / sizeof(T)) + i));
+        for (size_t i = 0; i < m_header->bias_amount_trainable; i++) {
+            m_ptrBias->setData(i, *(static_cast<T*>(m_ptrData) + (m_header->bias_trainable_offset / sizeof(T)) + i));
         }
 
-        this->mIsLoaded = true;
-        return ErrorType::ok;
+        this->m_isLoaded = true;
+        return ErrorType::OK;
     }
 
     auto storeToFlash() -> ErrorType override
     {
         // not implemented for this version
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto getOutputSize() -> uint32_t override
     {
-        return this->mHeader->dimensionoutput_x;
+        return m_header->dimensionoutput_x;
     }
 
     auto getInputSize() -> uint32_t override
     {
-        return this->mHeader->dimensioninput_x;
+        return m_header->dimensioninput_x;
     }
 
 private:
-    void* mPtrLayer;
-    void* mPtrData;
-    Neural_Network_BatchNorm2d_t* mHeader;
-    OptimizerID mOptimizerType;
+    void* m_ptrLayer;
+    void* m_ptrData;
+    Neural_Network_BatchNorm2d_t* m_header;
+    OptimizerID m_optimizerType;
 
-    double* mRunningMean = nullptr;
-    double* mRunningVar = nullptr;
+    double* m_runningMean = nullptr;
+    double* m_runningVar = nullptr;
 
-    int mBatchIndex = 0;
+    int m_batchIndex = 0;
 
     // TODO fix datatypes
-    T* mNormalizedInput = nullptr;
-    T* mInput = nullptr;
+    T* m_normalizedInput = nullptr;
+    T* m_input = nullptr;
 
     // flag for first run, to init running mean/var
-    bool mInitRunningStats = false;
+    bool m_initRunningStats = false;
 
-    T* mPtrFlashWeight = nullptr;
-    T* mPtrFlashBias = nullptr;
+    T* m_ptrFlashWeight = nullptr;
+    T* m_ptrFlashBias = nullptr;
 
-    T* mPtrWeightGradient = nullptr;
-    T* mPtrBiasGradient = nullptr;
+    T* m_ptrWeightGradient = nullptr;
+    T* m_ptrBiasGradient = nullptr;
 
-    OptimizerBase<T>* mWeightPtr;
-    OptimizerBase<T>* mBiasPtr;
+    OptimizerBase<T>* m_ptrWeight;
+    OptimizerBase<T>* m_ptrBias;
 
-    uint32_t mTimestep = 1;
+    uint32_t m_timestep = 1;
 };
 } // namespace Edgeist
 

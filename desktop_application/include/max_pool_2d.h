@@ -29,20 +29,20 @@ class MaxPool2D : public Layer<T> {
 public:
     MaxPool2D(Model<T>* model, void* headerPointer, void* dataPointer, const OptimizerID optimizerType)
         : Layer<T>(model)
-        , mPtrLayer(headerPointer)
-        , mPtrData(dataPointer)
-        , mHeader(static_cast<Neural_Network_MaxPool2d_t*>(mPtrLayer))
-        , mOptimizerType(optimizerType)
+        , m_ptrLayer(headerPointer)
+        , m_ptrData(dataPointer)
+        , m_header(static_cast<Neural_Network_MaxPool2d_t*>(m_ptrLayer))
+        , m_optimizerType(optimizerType)
+        , m_argMax(nullptr)
     {
         MaxPool2D::loadFromFlash();
-        mArgmax = nullptr;
     }
 
     ~MaxPool2D() override
     {
-        if (mArgmax != nullptr) {
-            delete[] mArgmax;
-            mArgmax = nullptr;
+        if (m_argMax != nullptr) {
+            delete[] m_argMax;
+            m_argMax = nullptr;
         }
     }
 
@@ -51,28 +51,27 @@ public:
         if (inputData == nullptr || outputData == nullptr) {
             return ErrorType::UnknownError;
         }
-        if (!this->mIsLoaded) {
+        if (!this->m_isLoaded) {
             return ErrorType::LayerNotInitialized;
         }
 
-        const auto& H = *this->mHeader;
-        const int C = H.channelsin;
-        const int H_in = H.dimensioninput_y;
-        const int W_in = H.dimensioninput_x;
-        const int H_out = H.dimensionoutput_y;
-        const int W_out = H.dimensionoutput_x;
-        const int kH = H.kernelsize;
-        const int kW = H.kernelsize;
-        const int padH = H.padding;
-        const int padW = H.padding;
-        const int strideH = H.stride;
-        const int strideW = H.stride;
+        const int C = m_header->channelsin;
+        const int H_in = m_header->dimensioninput_y;
+        const int W_in = m_header->dimensioninput_x;
+        const int H_out = m_header->dimensionoutput_y;
+        const int W_out = m_header->dimensionoutput_x;
+        const int kH = m_header->kernelsize;
+        const int kW = m_header->kernelsize;
+        const int padH = m_header->padding;
+        const int padW = m_header->padding;
+        const int strideH = m_header->stride;
+        const int strideW = m_header->stride;
 
         // allocate argmax storage
         size_t outSize = size_t(C) * H_out * W_out;
-        delete[] mArgmax;
-        mArgmax = new (std::nothrow) uint32_t[outSize];
-        if (mArgmax == nullptr) {
+        delete[] m_argMax;
+        m_argMax = new (std::nothrow) uint32_t[outSize];
+        if (m_argMax == nullptr) {
             return ErrorType::UnknownError;
         }
 
@@ -99,12 +98,12 @@ public:
                     }
                     size_t outIdx = size_t(c) * H_out * W_out + oy * W_out + ox;
                     outputData[outIdx] = maxVal;
-                    mArgmax[outIdx] = maxIdx;
+                    m_argMax[outIdx] = maxIdx;
                 }
             }
         }
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto backwardPass(const T* gradOutput, T* gradInput) -> ErrorType override
@@ -112,19 +111,18 @@ public:
         if (gradOutput == nullptr || gradInput == nullptr) {
             return ErrorType::UnknownError;
         }
-        if (!this->mIsLoaded) {
+        if (!this->m_isLoaded) {
             return ErrorType::LayerNotInitialized;
         }
-        if (mArgmax == nullptr) {
+        if (m_argMax == nullptr) {
             return ErrorType::UnknownError;
         }
 
-        const auto& H = *this->mHeader;
-        const int C = H.channelsin;
-        const int H_in = H.dimensioninput_y;
-        const int W_in = H.dimensioninput_x;
-        const int H_out = H.dimensionoutput_y;
-        const int W_out = H.dimensionoutput_x;
+        const int C = m_header->channelsin;
+        const int H_in = m_header->dimensioninput_y;
+        const int W_in = m_header->dimensioninput_x;
+        const int H_out = m_header->dimensionoutput_y;
+        const int W_out = m_header->dimensionoutput_x;
 
         // zero initialize grad_input
         size_t inSize = size_t(C) * H_in * W_in;
@@ -134,41 +132,41 @@ public:
 
         // propagate gradients
         for (size_t outIdx = 0; outIdx < size_t(C) * H_out * W_out; ++outIdx) {
-            uint32_t inIdx = mArgmax[outIdx];
+            uint32_t inIdx = m_argMax[outIdx];
             gradInput[inIdx] += gradOutput[outIdx];
         }
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto loadFromFlash() -> ErrorType override
     {
-        this->mIsLoaded = true;
-        return ErrorType::ok;
+        this->m_isLoaded = true;
+        return ErrorType::OK;
     }
 
     auto storeToFlash() -> ErrorType override
     {
         // not implemented for this version
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto getOutputSize() -> uint32_t override
     {
-        return this->mHeader->channelsin * this->mHeader->dimensionoutput_x * this->mHeader->dimensionoutput_y;
+        return m_header->channelsin * m_header->dimensionoutput_x * m_header->dimensionoutput_y;
     }
 
     auto getInputSize() -> uint32_t override
     {
-        return this->mHeader->channelsin * this->mHeader->dimensioninput_x * this->mHeader->dimensioninput_y;
+        return m_header->channelsin * m_header->dimensioninput_x * m_header->dimensioninput_y;
     }
 
 private:
-    void* mPtrLayer;
-    void* mPtrData;
-    Neural_Network_MaxPool2d_t* mHeader;
-    OptimizerID mOptimizerType;
-    uint32_t* mArgmax;
+    void* m_ptrLayer;
+    void* m_ptrData;
+    Neural_Network_MaxPool2d_t* m_header;
+    OptimizerID m_optimizerType;
+    uint32_t* m_argMax;
 };
 } // namespace Edgeist
 

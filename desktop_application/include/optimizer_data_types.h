@@ -34,29 +34,29 @@ public:
 
     virtual ~OptimizerBase() = default;
 
-    T* mData = nullptr;
+    T* m_data = nullptr;
 };
 
 template <typename T>
 class OptimizerSGD : public OptimizerBase<T> {
 public:
-    size_t mData_size = 0;
+    size_t m_dataSize = 0;
 
     OptimizerSGD() = default;
     ~OptimizerSGD() override
     {
-        if (this->mData != nullptr) {
-            delete[] this->mData;
-            this->mData = nullptr;
+        if (this->m_data != nullptr) {
+            delete[] this->m_data;
+            this->m_data = nullptr;
         }
     }
 
     auto getData(uint32_t index) const -> T override
     {
-        if (index >= mData_size) {
+        if (index >= m_dataSize) {
             return T(0);
         }
-        return this->mData[index];
+        return this->m_data[index];
     }
 
     auto getM(uint32_t /* index */) const -> T override
@@ -71,83 +71,83 @@ public:
 
     auto setData(uint32_t index, T value) -> ErrorType override
     {
-        if (index >= mData_size) {
+        if (index >= m_dataSize) {
             return ErrorType::IndexOutOfBounds;
         }
-        this->mData[index] = value;
-        return ErrorType::ok;
+        this->m_data[index] = value;
+        return ErrorType::OK;
     }
 
     auto setM(uint32_t /* index */, T /* value */) -> ErrorType override
     {
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto setV(uint32_t /* index */, T /* value */) -> ErrorType override
     {
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto init(uint32_t size) -> ErrorType override
     {
-        this->mData = new T[size];
-        mData_size = size;
+        this->m_data = new T[size];
+        m_dataSize = size;
         for (size_t i = 0; i < size; i++) {
-            this->mData[i] = T(0.0);
+            this->m_data[i] = T(0.0);
         }
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto update(uint32_t index, T gradient, T learningRate, uint32_t /* timestep = 1 */) -> ErrorType override
     {
-        if (index >= mData_size) {
+        if (index >= m_dataSize) {
             return ErrorType::IndexOutOfBounds;
         }
 
-        this->mData[index] -= learningRate * gradient;
-        return ErrorType::ok;
+        this->m_data[index] -= learningRate * gradient;
+        return ErrorType::OK;
     }
 };
 
 template <typename T>
 class OptimizerMomentum : public OptimizerBase<T> {
 public:
-    T* mM = nullptr;
+    T* m_M = nullptr;
 
-    size_t mData_size = 0;
+    size_t m_dataSize = 0;
 
-    T beta = T(0.9);
+    static constexpr T BETA = T(0.9);
 
     OptimizerMomentum() = default;
     ~OptimizerMomentum() override
     {
 
-        if (this->mData != nullptr) {
-            delete[] this->mData;
-            this->mData = nullptr;
+        if (this->m_data != nullptr) {
+            delete[] this->m_data;
+            this->m_data = nullptr;
         }
 
-        if (mM != nullptr) {
-            delete[] mM;
-            mM = nullptr;
+        if (m_M != nullptr) {
+            delete[] m_M;
+            m_M = nullptr;
         }
     }
 
     auto getData(uint32_t index) const -> T override
     {
-        if (index >= mData_size) {
+        if (index >= m_dataSize) {
             return T(0);
         }
-        return this->mData[index];
+        return this->m_data[index];
     }
 
     auto getM(uint32_t index) const -> T override
     {
-        if (index >= mData_size) {
+        if (index >= m_dataSize) {
             return T(0);
         }
-        return mM[index];
+        return m_M[index];
     }
 
     auto getV(uint32_t /* index */) const -> T override
@@ -157,150 +157,150 @@ public:
 
     auto setData(uint32_t index, T value) -> ErrorType override
     {
-        if (index >= mData_size) {
+        if (index >= m_dataSize) {
             return ErrorType::IndexOutOfBounds;
         }
-        this->mData[index] = value;
-        return ErrorType::ok;
+        this->m_data[index] = value;
+        return ErrorType::OK;
     }
 
     auto setM(uint32_t index, T value) -> ErrorType override
     {
-        if (index >= mData_size) {
+        if (index >= m_dataSize) {
             return ErrorType::IndexOutOfBounds;
         }
-        mM[index] = value;
-        return ErrorType::ok;
+        m_M[index] = value;
+        return ErrorType::OK;
     }
 
     auto setV(uint32_t /* index */, T /* value */) -> ErrorType override
     {
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto init(uint32_t size) -> ErrorType override
     {
-        this->mData = new T[size];
-        mM = new T[size];
+        this->m_data = new T[size];
+        m_M = new T[size];
 
-        mData_size = size;
+        m_dataSize = size;
         for (size_t i = 0; i < size; i++) {
-            this->mData[i] = T(0.0);
-            mM[i] = T(0.0);
+            this->m_data[i] = T(0.0);
+            m_M[i] = T(0.0);
         }
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto update(uint32_t index, T gradient, T learningRate, uint32_t /* timestep = 1 */) -> ErrorType override
     {
-        if (index >= mData_size) {
+        if (index >= m_dataSize) {
             return ErrorType::IndexOutOfBounds;
         }
 
-        mM[index] = beta * mM[index] + (1 - beta) * gradient;
-        this->mData[index] -= learningRate * mM[index];
-        return ErrorType::ok;
+        m_M[index] = BETA * m_M[index] + (1 - BETA) * gradient;
+        this->m_data[index] -= learningRate * m_M[index];
+        return ErrorType::OK;
     }
 };
 
 template <typename T>
 class OptimizerAdam : public OptimizerBase<T> {
 public:
-    T* mM = nullptr;
-    T* mV = nullptr;
+    T* m_M = nullptr;
+    T* m_V = nullptr;
 
-    size_t mData_size = 0;
+    size_t m_dataSize = 0;
 
-    T beta1 = T(0.9);
-    T beta2 = T(0.999);
-    T epsilon = T(1e-8);
+    static constexpr T BETA1 = T(0.9);
+    static constexpr T BETA2 = T(0.999);
+    static constexpr T EPSILON = T(1e-8);
 
     OptimizerAdam() = default;
     ~OptimizerAdam() override = default;
 
     auto getData(uint32_t index) const -> T override
     {
-        return this->mData[index];
+        return this->m_data[index];
     }
 
     auto getM(uint32_t index) const -> T override
     {
-        if (index >= mData_size) {
+        if (index >= m_dataSize) {
             return T(0);
         }
-        return mM[index];
+        return m_M[index];
     }
 
     auto getV(uint32_t index) const -> T override
     {
-        if (index >= mData_size) {
+        if (index >= m_dataSize) {
             return T(0);
         }
-        return mV[index];
+        return m_V[index];
     }
 
     auto setData(uint32_t index, T value) -> ErrorType override
     {
-        if (index >= mData_size) {
+        if (index >= m_dataSize) {
             return ErrorType::IndexOutOfBounds;
         }
-        this->mData[index] = value;
-        return ErrorType::ok;
+        this->m_data[index] = value;
+        return ErrorType::OK;
     }
 
     auto setM(uint32_t index, T value) -> ErrorType override
     {
-        if (index >= mData_size) {
+        if (index >= m_dataSize) {
             return ErrorType::IndexOutOfBounds;
         }
-        mM[index] = value;
-        return ErrorType::ok;
+        m_M[index] = value;
+        return ErrorType::OK;
     }
 
     auto setV(uint32_t index, T value) -> ErrorType override
     {
-        if (index >= mData_size) {
+        if (index >= m_dataSize) {
             return ErrorType::IndexOutOfBounds;
         }
-        mV[index] = value;
-        return ErrorType::ok;
+        m_V[index] = value;
+        return ErrorType::OK;
     }
 
     auto init(uint32_t size) -> ErrorType override
     {
-        this->mData = new T[size];
-        mM = new T[size];
-        mV = new T[size];
+        this->m_data = new T[size];
+        m_M = new T[size];
+        m_V = new T[size];
 
-        mData_size = size;
+        m_dataSize = size;
 
         for (size_t i = 0; i < size; i++) {
-            this->mData[i] = T(0.0);
-            mM[i] = T(0.0);
-            mV[i] = T(0.0);
+            this->m_data[i] = T(0.0);
+            m_M[i] = T(0.0);
+            m_V[i] = T(0.0);
         }
 
-        return ErrorType::ok;
+        return ErrorType::OK;
     }
 
     auto update(uint32_t index, T gradient, T learningRate, uint32_t timestep) -> ErrorType override
     {
-        if (index >= mData_size) {
+        if (index >= m_dataSize) {
             return ErrorType::IndexOutOfBounds;
         }
 
         // calculate m and v
-        mM[index] = beta1 * mM[index] + (1 - beta1) * gradient;
-        mV[index] = beta2 * mV[index] + (1 - beta2) * gradient * gradient;
+        m_M[index] = BETA1 * m_M[index] + (1 - BETA1) * gradient;
+        m_V[index] = BETA2 * m_V[index] + (1 - BETA2) * gradient * gradient;
 
         // bias correction
-        T m_hat = mM[index] / (1 - std::pow(beta1, timestep));
-        T v_hat = mV[index] / (1 - std::pow(beta2, timestep));
+        T mHat = m_M[index] / (1 - std::pow(BETA1, timestep));
+        T vHat = m_V[index] / (1 - std::pow(BETA2, timestep));
 
         // update
-        this->mData[index] -= learningRate * m_hat / (std::sqrt(v_hat) + epsilon);
-        return ErrorType::ok;
+        this->m_data[index] -= learningRate * mHat / (std::sqrt(vHat) + EPSILON);
+        return ErrorType::OK;
     }
 };
 } // namespace Edgeist
