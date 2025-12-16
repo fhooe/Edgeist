@@ -90,7 +90,6 @@ public:
 
     auto init(uint32_t size) -> ErrorType override
     {
-
         this->mData = new T[size];
         mData_size = size;
         for (size_t i = 0; i < size; i++) {
@@ -102,8 +101,9 @@ public:
 
     auto update(uint32_t index, T gradient, T learningRate, uint32_t /* timestep = 1 */) -> ErrorType override
     {
-        if (index >= mData_size)
+        if (index >= mData_size) {
             return ErrorType::IndexOutOfBounds;
+        }
 
         this->mData[index] -= learningRate * gradient;
         return ErrorType::ok;
@@ -194,8 +194,9 @@ public:
 
     auto update(uint32_t index, T gradient, T learningRate, uint32_t /* timestep = 1 */) -> ErrorType override
     {
-        if (index >= mData_size)
+        if (index >= mData_size) {
             return ErrorType::IndexOutOfBounds;
+        }
 
         mM[index] = beta * mM[index] + (1 - beta) * gradient;
         this->mData[index] -= learningRate * mM[index];
@@ -285,8 +286,9 @@ public:
 
     auto update(uint32_t index, T gradient, T learningRate, uint32_t timestep) -> ErrorType override
     {
-        if (index >= mData_size)
+        if (index >= mData_size) {
             return ErrorType::IndexOutOfBounds;
+        }
 
         // calculate m and v
         mM[index] = beta1 * mM[index] + (1 - beta1) * gradient;

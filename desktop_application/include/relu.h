@@ -27,17 +27,16 @@ template <typename T>
 class Relu : public Layer<T> {
 public:
     // CTor: Init the ReLU-Layer with pointers to config data and the chosen optimizer
-    Relu(Model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
-        : Layer<T>(m)
-        , mPtrLayer(HeaderPointer)
-        , mPtrData(DataPointer)
-        , mOptimizerType(OptimizerType)
+    Relu(Model<T>* model, void* headerPointer, void* dataPointer, const OptimizerID optimizerType)
+        : Layer<T>(model)
+        , mPtrLayer(headerPointer)
+        , mPtrData(dataPointer)
+        , mHeader(static_cast<Neural_Network_ReLU_t*>(mPtrLayer))
+        , mOptimizerType(optimizerType)
     {
-
-        this->mHeader = static_cast<Neural_Network_ReLU_t*>(mPtrLayer);
         this->mInputData = nullptr;
 
-        loadFromFlash();
+        Relu::loadFromFlash();
     }
 
     // DTor: Frees dynamically allocated memory
@@ -50,15 +49,15 @@ public:
     }
 
     // executes forward pass and writes the result to the output
-    auto forwardPass(const T* input_data, T* output_data, bool trainingFlag) -> ErrorType override
+    auto forwardPass(const T* inputData, T* outputData, const bool trainingFlag) -> ErrorType override
     {
-        if (input_data == nullptr || output_data == nullptr) {
+        if (inputData == nullptr || outputData == nullptr) {
             return ErrorType::UnknownError;
         }
 
         if (trainingFlag) {
 
-            if (this->mIsLoaded != true) {
+            if (!this->mIsLoaded) {
                 return ErrorType::LayerNotInitialized;
             }
             // get memory for training
@@ -68,27 +67,26 @@ public:
 
             if (this->mInputData != nullptr) {
                 for (size_t i = 0; i < this->mHeader->dimensionoutput_x; i++) {
-                    this->mInputData[i] = input_data[i];
+                    this->mInputData[i] = inputData[i];
                 }
             }
         }
 
         for (size_t i = 0; i < this->mHeader->dimensionoutput_x; i++) {
-            output_data[i] = (input_data[i] > T(0)) ? input_data[i] : T(0);
+            outputData[i] = (inputData[i] > T(0)) ? inputData[i] : T(0);
         }
 
         return ErrorType::ok;
     }
 
     // executes the backward pass and calculates the gradient for the layer before
-    auto backwardPass(const T* input_data, T* output_data) -> ErrorType override
+    auto backwardPass(const T* inputData, T* outputData) -> ErrorType override
     {
-
-        if (input_data == nullptr || output_data == nullptr) {
+        if (inputData == nullptr || outputData == nullptr) {
             return ErrorType::UnknownError;
         }
 
-        if (this->mIsLoaded != true) {
+        if (!this->mIsLoaded) {
             return ErrorType::LayerNotInitialized;
         }
 
@@ -97,7 +95,7 @@ public:
         }
 
         for (uint32_t i = 0; i < this->mHeader->dimensioninput_x; i++) {
-            output_data[i] = (this->mInputData[i] > T(0)) ? input_data[i] : T(0);
+            outputData[i] = (this->mInputData[i] > T(0)) ? inputData[i] : T(0);
         }
 
         if (this->mInputData != nullptr) {
@@ -111,7 +109,6 @@ public:
     // loads the training data from flash to SRAM
     auto loadFromFlash() -> ErrorType override
     {
-
         this->mIsLoaded = true;
         return ErrorType::ok;
     }

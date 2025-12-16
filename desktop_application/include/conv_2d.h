@@ -25,26 +25,23 @@ namespace Edgeist {
 template <typename T>
 class Conv2D : public Layer<T> {
 public:
-    typedef T Conv2d_DataType_t;
-    Conv2D(Model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
-        : Layer<T>(m)
-        , mPtrLayer(HeaderPointer)
-        , mPtrData(DataPointer)
-        , mOptimizerType(OptimizerType)
+    Conv2D(Model<T>* model, void* headerPointer, void* dataPointer, const OptimizerID optimizerType)
+        : Layer<T>(model)
+        , mPtrLayer(headerPointer)
+        , mPtrData(dataPointer)
+        , mHeader(static_cast<Neural_Network_Conv2d_t*>(mPtrLayer))
+        , mOptimizerType(optimizerType)
     {
+        mPtrWeightFrozen = static_cast<T*>(mPtrLayer) + mHeader->weights_frozen_offset * sizeof(T);
+        mPtrBiasFrozen = static_cast<T*>(mPtrLayer) + mHeader->bias_frozen_offset * sizeof(T);
 
-        mHeader = static_cast<Neural_Network_Conv2d_t*>(mPtrLayer);
-
-        mPtrWeightFrozen = static_cast<Conv2d_DataType_t*>(mPtrLayer) + mHeader->weights_frozen_offset * sizeof(Conv2d_DataType_t);
-        mPtrBiasFrozen = static_cast<Conv2d_DataType_t*>(mPtrLayer) + mHeader->bias_frozen_offset * sizeof(Conv2d_DataType_t);
-
-        mPtrFlashWeight = (static_cast<Conv2d_DataType_t*>(mPtrData) + (mHeader->weights_trainable_offset / sizeof(Conv2d_DataType_t)));
-        mPtrFlashBias = (static_cast<Conv2d_DataType_t*>(mPtrData) + (mHeader->bias_trainable_offset / sizeof(Conv2d_DataType_t)));
+        mPtrFlashWeight = (static_cast<T*>(mPtrData) + (mHeader->weights_trainable_offset / sizeof(T)));
+        mPtrFlashBias = (static_cast<T*>(mPtrData) + (mHeader->bias_trainable_offset / sizeof(T)));
 
         // Init Output values
-        mLayerOutput = new Conv2d_DataType_t[mHeader->dimensionoutput_x * mHeader->dimensionoutput_y * mHeader->channelsout];
+        mLayerOutput = new T[mHeader->dimensionoutput_x * mHeader->dimensionoutput_y * mHeader->channelsout];
 
-        loadFromFlash();
+        Conv2D::loadFromFlash();
     }
 
     ~Conv2D() override
@@ -82,18 +79,18 @@ public:
     }
 
     // executes forward pass and writes the result to the output
-    auto forwardPass(const T* input_data, T* output_data, bool trainingflag) -> ErrorType override
+    auto forwardPass(const T* inputData, T* outputData, const bool trainingFlag) -> ErrorType override
     {
-        if (input_data == nullptr || output_data == nullptr) {
+        if (inputData == nullptr || outputData == nullptr) {
             return ErrorType::UnknownError;
         }
 
         // Use ether data from flash or SRAM based on trainingflag
         T* ptrWeight = nullptr;
         T* ptrBias = nullptr;
-        if (trainingflag) {
+        if (trainingFlag) {
             // check if layer is loaded
-            if (this->mIsLoaded != true) {
+            if (!this->mIsLoaded) {
                 return ErrorType::LayerNotInitialized;
             }
             ptrWeight = mWeightPtr->mData;
@@ -104,11 +101,11 @@ public:
         }
 
         // get memory for training
-        if (trainingflag) {
+        if (trainingFlag) {
             this->mInputData = new T[mHeader->dimensioninput_x * mHeader->dimensioninput_y * mHeader->channelsin];
 
             for (uint32_t i = 0; i < mHeader->dimensioninput_x * mHeader->dimensioninput_y * mHeader->channelsin; i++) {
-                this->mInputData[i] = input_data[i];
+                this->mInputData[i] = inputData[i];
             }
         }
 
@@ -142,7 +139,7 @@ public:
                                     int input_idx = ((ic * H + iy) * W) + ix;
                                     int weight_idx = (((oc * Cin + ic) * K[0] + ky) * K[1] + kx);
 
-                                    sum += input_data[input_idx] * ptrWeight[weight_idx];
+                                    sum += inputData[input_idx] * ptrWeight[weight_idx];
                                 }
                             }
                         }
@@ -153,7 +150,7 @@ public:
 
                     // write output
                     int output_idx = ((oc * H + oy) * W) + ox;
-                    output_data[output_idx] = sum;
+                    outputData[output_idx] = sum;
                 }
             }
         }
@@ -161,9 +158,8 @@ public:
     }
 
     // Performs the backwardpass and calculates the gradients for the previous layer
-    ErrorType backwardPass(const T* input_data, T* output_data) override
+    auto backwardPass(const T* inputData, T* outputData) -> ErrorType override
     {
-
         const int H = mHeader->dimensioninput_x;
         const int W = mHeader->dimensioninput_y;
         const int K[2] = { mHeader->kernelsize[0], mHeader->kernelsize[1] };
@@ -172,7 +168,7 @@ public:
         const int pad = K[0] / 2; // same padding
 
         // check if layer is loaded
-        if (this->mIsLoaded != true) {
+        if (!this->mIsLoaded) {
             return ErrorType::LayerNotInitialized;
         }
         T* ptrWeight = mWeightPtr->mData;
@@ -182,7 +178,7 @@ public:
             for (int oy = 0; oy < H; ++oy) {
                 for (int ox = 0; ox < W; ++ox) {
                     int out_idx = ((oc * H + oy) * W + ox);
-                    T grad_out = input_data[out_idx];
+                    T grad_out = inputData[out_idx];
 
                     // Bias-Gradient: dL/db += dL/doutput
                     mPtrBiasGradient[oc] += grad_out;
@@ -225,14 +221,14 @@ public:
                                     int weight_idx = (((oc * Cin + ic) * K[0] + ky) * K[1] + kx);
 
                                     // dL/dinput = SUM dL/doutput * W^T
-                                    sum += input_data[out_idx] * ptrWeight[weight_idx];
+                                    sum += inputData[out_idx] * ptrWeight[weight_idx];
                                 }
                             }
                         }
                     }
 
                     int in_grad_idx = ((ic * H + iy) * W + ix);
-                    output_data[in_grad_idx] = sum;
+                    outputData[in_grad_idx] = sum;
                 }
             }
         }
@@ -321,10 +317,9 @@ public:
         return ErrorType::ok;
     }
 
-    // Loads the trainable values ​​from Flash into SRAM
-    ErrorType loadFromFlash() override
+    // Loads the trainable values from Flash into SRAM
+    auto loadFromFlash() -> ErrorType override
     {
-
         switch (mOptimizerType) {
         case OptimizerID::SGD:
             // init weights
@@ -356,10 +351,10 @@ public:
 
         // init weights and biases
         for (size_t i = 0; i < mHeader->weights_amount_trainable; i++) {
-            mWeightPtr->setData(i, *(static_cast<Conv2d_DataType_t*>(mPtrData) + (mHeader->weights_trainable_offset / sizeof(Conv2d_DataType_t)) + i));
+            mWeightPtr->setData(i, *(static_cast<T*>(mPtrData) + (mHeader->weights_trainable_offset / sizeof(T)) + i));
         }
         for (size_t i = 0; i < mHeader->bias_amount_trainable; i++) {
-            mBiasPtr->setData(i, *(static_cast<Conv2d_DataType_t*>(mPtrData) + (mHeader->bias_trainable_offset / sizeof(Conv2d_DataType_t)) + i));
+            mBiasPtr->setData(i, *(static_cast<T*>(mPtrData) + (mHeader->bias_trainable_offset / sizeof(T)) + i));
         }
 
         this->mIsLoaded = true;
@@ -399,17 +394,17 @@ private:
     // chosen optimizer
     OptimizerID mOptimizerType;
 
-    Conv2d_DataType_t* mPtrWeightFrozen;
-    Conv2d_DataType_t* mPtrBiasFrozen;
+    T* mPtrWeightFrozen;
+    T* mPtrBiasFrozen;
 
-    Conv2d_DataType_t* mPtrFlashWeight;
-    Conv2d_DataType_t* mPtrFlashBias;
+    T* mPtrFlashWeight;
+    T* mPtrFlashBias;
 
-    Conv2d_DataType_t* mPtrWeightGradient = nullptr;
-    Conv2d_DataType_t* mPtrBiasGradient = nullptr;
+    T* mPtrWeightGradient = nullptr;
+    T* mPtrBiasGradient = nullptr;
 
     // vector with output Values
-    Conv2d_DataType_t* mLayerOutput;
+    T* mLayerOutput;
 
     // vector with the trainable weights in SRAM
     OptimizerBase<T>* mWeightPtr;

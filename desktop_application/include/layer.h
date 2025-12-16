@@ -7,8 +7,8 @@
 #ifndef LAYER_H
 #define LAYER_H
 
-#include "Object.h"
 #include "nmcf_error_types.h"
+#include "object.h"
 
 namespace Edgeist {
 template <typename T>
@@ -24,18 +24,18 @@ class Model;
 template <typename T>
 class Layer : public Object {
 public:
-    explicit Layer(Model<T>* m)
-        : mModel(m)
+    explicit Layer(Model<T>* model)
+        : mModel(model)
     {
     }
 
     ~Layer() override = default;
 
     // executes forward pass and writes the result to the output
-    virtual auto forwardPass(const T* input_data, T* output_data, bool trainingflag) -> ErrorType = 0;
+    virtual auto forwardPass(const T* inputData, T* outputData, bool trainingFlag) -> ErrorType = 0;
 
     // executes the backward pass and calculates the gradient for the layer before
-    virtual auto backwardPass(const T* input_data, T* output_data) -> ErrorType = 0;
+    virtual auto backwardPass(const T* inputData, T* outputData) -> ErrorType = 0;
 
     virtual auto initGradients() -> ErrorType
     {

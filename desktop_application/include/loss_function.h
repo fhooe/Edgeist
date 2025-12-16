@@ -37,10 +37,10 @@ public:
      *
      * @param predicted Pointer to array of prediction values.
      * @param target Pointer to array of setpoints (ground truth).
-     * @param output_grad Pointer to array storing the result of this method.
+     * @param outputGrad Pointer to array storing the result of this method.
      * @param size Length of input arrays.
      */
-    virtual auto derivative(const T* predicted, const T* target, T* output_grad, std::size_t size) const -> void = 0;
+    virtual auto derivative(const T* predicted, const T* target, T* outputGrad, std::size_t size) const -> void = 0;
 };
 
 /**
@@ -71,10 +71,10 @@ public:
         return sum / static_cast<T>(size);
     }
 
-    auto derivative(const T* predicted, const T* target, T* output_grad, std::size_t size) const -> void override
+    auto derivative(const T* predicted, const T* target, T* outputGrad, std::size_t size) const -> void override
     {
         for (std::size_t i = 0; i < size; ++i) {
-            output_grad[i] = 2 * (predicted[i] - target[i]) / static_cast<T>(size);
+            outputGrad[i] = 2 * (predicted[i] - target[i]) / static_cast<T>(size);
         }
     }
 };
@@ -92,7 +92,7 @@ public:
 template <typename T>
 class CrossEntropyLoss : public LossFunction<T> {
 public:
-    auto compute(const T* predicted, const T* target, std::size_t size) const -> T override
+    auto compute(const T* predicted, const T* target, const std::size_t size) const -> T override
     {
         T loss = 0;
         for (std::size_t i = 0; i < size; ++i) {
@@ -103,7 +103,7 @@ public:
         return loss;
     }
 
-    auto derivative(const T* predicted, const T* target, T* output_grad, std::size_t size) const -> void override
+    auto derivative(const T* predicted, const T* target, T* output_grad, const std::size_t size) const -> void override
     {
         for (std::size_t i = 0; i < size; ++i) {
             T p = std::max(predicted[i], static_cast<T>(1e-12));
@@ -126,17 +126,20 @@ public:
 template <typename T>
 class SoftmaxCrossEntropyLoss : public LossFunction<T> {
 public:
-    auto compute(const T* logits, const T* target, std::size_t size) const -> T override
+    auto compute(const T* logits, const T* target, const std::size_t size) const -> T override
     {
 
         T max_logit = logits[0];
-        for (std::size_t i = 1; i < size; ++i)
-            if (logits[i] > max_logit)
+        for (std::size_t i = 1; i < size; ++i) {
+            if (logits[i] > max_logit) {
                 max_logit = logits[i];
+            }
+        }
 
         T sum = 0;
-        for (std::size_t i = 0; i < size; ++i)
+        for (std::size_t i = 0; i < size; ++i) {
             sum += std::exp(logits[i] - max_logit);
+        }
 
         T loss = 0;
         for (std::size_t i = 0; i < size; ++i) {
@@ -147,21 +150,23 @@ public:
         return loss;
     }
 
-    auto derivative(const T* logits, const T* target, T* output_grad, std::size_t size) const -> void override
+    auto derivative(const T* logits, const T* target, T* outputGrad, const std::size_t size) const -> void override
     {
-
         T max_logit = logits[0];
-        for (std::size_t i = 1; i < size; ++i)
-            if (logits[i] > max_logit)
+        for (std::size_t i = 1; i < size; ++i) {
+            if (logits[i] > max_logit) {
                 max_logit = logits[i];
+            }
+        }
 
         T sum = 0;
-        for (std::size_t i = 0; i < size; ++i)
+        for (std::size_t i = 0; i < size; ++i) {
             sum += std::exp(logits[i] - max_logit);
+        }
 
         for (std::size_t i = 0; i < size; ++i) {
             T prob = std::exp(logits[i] - max_logit) / sum;
-            output_grad[i] = prob - target[i];
+            outputGrad[i] = prob - target[i];
         }
     }
 };
@@ -197,14 +202,14 @@ public:
         return loss / static_cast<T>(size);
     }
 
-    auto derivative(const T* logits, const T* targets, T* output_grad, std::size_t size) const -> void override
+    auto derivative(const T* logits, const T* targets, T* outputGrad, std::size_t size) const -> void override
     {
         for (std::size_t i = 0; i < size; ++i) {
             T z = logits[i];
             T y = targets[i];
 
             T sigmoid = static_cast<T>(1) / (static_cast<T>(1) + std::exp(-z));
-            output_grad[i] = (sigmoid - y) / static_cast<T>(size);
+            outputGrad[i] = (sigmoid - y) / static_cast<T>(size);
         }
     }
 };
