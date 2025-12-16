@@ -1,0 +1,35 @@
+name: Different lints
+run-name: Different lints for ${{ github.ref_type }} ${{ github.ref_name }}
+on: [push]
+jobs:
+  Lint-Commit:
+    runs-on: self-hosted
+    container:
+      image: commitlint/commitlint:master
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: git config --global --add safe.directory $(pwd)
+      - run: ./scripts/lint_commit.sh
+  Check-Spelling:
+    runs-on: self-hosted
+    container:
+      image: alpine:3.21
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+      - run: apk --update --no-cache add py3-codespell git
+      - run: ./scripts/check_spelling.sh ./desktop_application/
+      - run: ./scripts/check_spelling.sh ./Fileformat
+      - run: ./scripts/check_spelling.sh ./FormatParser
+  Lint-Scripts:
+    runs-on: self-hosted
+    container:
+      image: alpine:latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+      - run: apk --update --no-cache add shellcheck
+      - run: ./scripts/lint_bash.sh scripts/

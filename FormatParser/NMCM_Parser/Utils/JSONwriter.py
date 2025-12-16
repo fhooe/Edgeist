@@ -1,16 +1,16 @@
-
 import json
 
+
 class JSON_writer:
-    def __init__(self, filename : str):
+    def __init__(self, filename: str):
         """
         Constructor of the class JSON_writter
-        
+
         Checks fileending is valid .json
-        
+
         Parameters:
         filename (str): filename and path e.g. ./test.json
-        
+
         Raises:
         File is no .json: If file ends not with .json
         """
@@ -19,14 +19,14 @@ class JSON_writer:
         self.filename = filename
 
         if self.filename.split(".")[-1] != "json":
-            raise("File is no .json")
+            raise ("File is no .json")
 
     def writeJSON(self, model_struct):
         """
         Creates or clears the outputfile.
         writes all model information to the outputfile
         in json format.
-        
+
         Parameters:
         model_struct (array): list of header + all layers
         """
@@ -38,7 +38,7 @@ class JSON_writer:
             for layer in model_struct:
                 # Serializing json
                 json_object = json.dumps(layer.json_data, indent=4)
-            
+
                 # Writing to output file
                 outfile.write(json_object)
                 if idx == len(model_struct):
@@ -47,4 +47,3 @@ class JSON_writer:
                     outfile.write(",\n")
 
                 idx += 1
-        

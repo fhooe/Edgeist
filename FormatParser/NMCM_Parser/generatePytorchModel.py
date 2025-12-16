@@ -10,8 +10,7 @@ import time
 import torch
 import torch.nn as nn
 
-
-class SimpleNN(nn.Module):
+ class SimpleNN(nn.Module):
     def __init__(self, num_classes: int = 10, dropout_p: float = 0.10):
         super().__init__()
         # Feature extractor
