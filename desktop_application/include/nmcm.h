@@ -56,57 +56,56 @@ public:
     // init model
     auto init() -> ErrorType
     {
-
         // Generate Layers
         for (int i = 0; i < mHeader->layernrs; i++) {
             // GenerateLayer(layerPointers[i], )
-            int ID = static_cast<int>(*mPtrLayerPointers[i]);
+            auto layerId = *mPtrLayerPointers[i];
 
             // Print Layers with IDs
-            std::cout << "Layer: " << i << "; LayerID: " << ID << std::endl;
+            std::cout << "Layer: " << i << "; LayerID: " << std::to_string(layerId) << std::endl;
 
-            switch (ID) {
-            case int(LayerIDs::Linear_ID):
+            switch (static_cast<LayerIDs>(layerId)) {
+            case LayerIDs::Linear_ID:
                 layersInSRAM.push_back(std::make_shared<Linear<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
                 break;
 
-            case int(LayerIDs::ReLU_ID):
+            case LayerIDs::ReLU_ID:
                 layersInSRAM.push_back(std::make_shared<Relu<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
                 break;
 
-            case int(LayerIDs::Softmax_ID):
+            case LayerIDs::Softmax_ID:
                 layersInSRAM.push_back(std::make_shared<Softmax<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
                 break;
 
-            case int(LayerIDs::Conv2d_ID):
+            case LayerIDs::Conv2d_ID:
                 layersInSRAM.push_back(std::make_shared<Conv2D<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
                 break;
 
-            case int(LayerIDs::Flatten_ID):
+            case LayerIDs::Flatten_ID:
                 layersInSRAM.push_back(std::make_shared<Flatten<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
                 break;
 
-            case int(LayerIDs::MaxPool2d_ID):
+            case LayerIDs::MaxPool2d_ID:
                 layersInSRAM.push_back(std::make_shared<MaxPool2D<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
                 break;
 
-            case int(LayerIDs::BatchNorm1d_ID):
+            case LayerIDs::BatchNorm1d_ID:
                 layersInSRAM.push_back(std::make_shared<BatchNorm1D<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
                 break;
 
-            case int(LayerIDs::BatchNorm2d_ID):
+            case LayerIDs::BatchNorm2d_ID:
                 layersInSRAM.push_back(std::make_shared<BatchNorm2D<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
                 break;
 
-            case int(LayerIDs::AdaptiveAvgPool1d_ID):
+            case LayerIDs::AdaptiveAvgPool1d_ID:
                 layersInSRAM.push_back(std::make_shared<AdaptiveAvgPool1D<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
                 break;
 
-            case int(LayerIDs::AdaptiveAvgPool2d_ID):
+            case LayerIDs::AdaptiveAvgPool2d_ID:
                 layersInSRAM.push_back(std::make_shared<AdaptiveAvgPool2D<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
                 break;
 
-            case int(LayerIDs::Dropout_ID):
+            case LayerIDs::Dropout_ID:
                 layersInSRAM.push_back(std::make_shared<Dropout<T>>(this, getLayerPtr(i), mPtrData, mOptimizerType));
                 break;
 
