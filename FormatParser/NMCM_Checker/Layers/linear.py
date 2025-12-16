@@ -13,14 +13,14 @@ class Linear(Layer):
 
     def reconstruct_data(self, data: str, config_data):
         # pure virtual function
-        data_read = 0  # for aligment
+        data_read = 0  # for alignment
         for key, typename in config_data[self.name].items():
             datasize = Sizeof(typename)
 
             # handle modular amount of predecessors
             if key == "predecessors":
                 if not ("predecessorNr" in self.json_data):
-                    raise "predecessors befor predecessorNr in Layer: " + self.name
+                    raise "predecessors before predecessorNr in Layer: " + self.name
 
                 current_data = []
                 for i in range(0, self.json_data["predecessorNr"]):
@@ -58,7 +58,7 @@ class Linear(Layer):
 
         pos += 1
         if self.json_data["Offset_Table"][pos] != 0:
-            # weigth mask
+            # weight mask
             len_weight_mask = self.json_data["Weights"]
             data, data_read = self._read_mask(
                 data, "Weights", len_weight_mask, data_read

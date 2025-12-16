@@ -411,7 +411,7 @@ private:
     // vector with output Values
     Conv2d_DataType_t* mLayerOutput;
 
-    // vector with the trainabel Weigths in SRAM
+    // vector with the trainable weights in SRAM
     OptimizerBase<T>* mWeightPtr;
 
     OptimizerBase<T>* mBiasPtr;

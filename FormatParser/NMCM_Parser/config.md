@@ -10,7 +10,7 @@
 
 # Config-Info
 - Version: 01.00.00
-## Add befor every Layer
+## Add before every Layer
 - ID: uint8_t
 ## Size of one entry of every offset_table
 - Offset_Table: uint32_t

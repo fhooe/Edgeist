@@ -1,15 +1,15 @@
-
 import os
 from collections import OrderedDict
 
-class Config_Parser:
-    def __init__(self, filename : str):
-        if filename.split(".")[-1] != "md":
-            raise("Configfile is no .md")
 
-        # remove output file if allready exists
-        if not(os.path.exists(filename)):
-            raise("Configfile at: " + filename + " doesn't exists")
+class Config_Parser:
+    def __init__(self, filename: str):
+        if filename.split(".")[-1] != "md":
+            raise ("Configfile is no .md")
+
+        # remove output file if already exists
+        if not (os.path.exists(filename)):
+            raise ("Configfile at: " + filename + " doesn't exists")
 
         self.configfile = filename
 
@@ -38,10 +38,15 @@ class Config_Parser:
                         amount = int(amount_s) if amount_s.isdigit() else 1
 
                         if datatype == "Offset_Table_t":
-                            for offset_name, offset_info in configdata["Offset_Table"].items():
+                            for offset_name, offset_info in configdata[
+                                "Offset_Table"
+                            ].items():
                                 configdata[currentSegment][offset_name] = offset_info
                         elif datatype == "Offset_Table":
-                            configdata[currentSegment][name] = (amount, configdata["Config-Info"]["Offset_Table"][1])
+                            configdata[currentSegment][name] = (
+                                amount,
+                                configdata["Config-Info"]["Offset_Table"][1],
+                            )
                         else:
                             configdata[currentSegment][name] = (amount, datatype)
 
@@ -53,7 +58,11 @@ class Config_Parser:
         for key, value in configdata["Config-Info"].items():
             if key == "ID":
                 for name, data in configdata.items():
-                    if name != "Config-Info" and name != "Offset_Table" and name != "Header":
+                    if (
+                        name != "Config-Info"
+                        and name != "Offset_Table"
+                        and name != "Header"
+                    ):
                         data[key] = value
                         data.move_to_end(key, last=False)
 

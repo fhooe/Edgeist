@@ -325,7 +325,7 @@ private:
     Linear_DataType_t* mPtrWeightGradient = nullptr;
     Linear_DataType_t* mPtrBiasGradient = nullptr;
 
-    // vector with the trainabel Weigths in SRAM
+    // vector with the trainable weights in SRAM
     OptimizerBase<T>* mWeightPtr;
 
     OptimizerBase<T>* mBiasPtr;

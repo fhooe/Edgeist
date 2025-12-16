@@ -10,7 +10,7 @@ Dependencies: torch, numpy, argparse, custom Utils and Layers modules
 
 Description:
 This script converts a PyTorch model into a format that is compatible with the Neural MicroController Framework (NMCF).
-It extracts model structure and weights, processes each layer 
+It extracts model structure and weights, processes each layer
 using custom classes, and generates the following outputs:
 
 - .hex            Contains the model configuration and frozen weights and biases in a hex format
@@ -22,10 +22,10 @@ The script is intended for deployment of neural networks to embedded systems,
 where PyTorch cannot be used directly.
 
 Usage Example:
-    python script.py 
-        --config ./config.md 
-        --model ./mnist_model.pth 
-        --inputsize "(1,28,28)" 
+    python script.py
+        --config ./config.md
+        --model ./mnist_model.pth
+        --inputsize "(1,28,28)"
         --name ./output/test_model
 
 Inputs:
@@ -56,7 +56,7 @@ import numpy as np
 import argparse
 import torch
 
-# inport Utils from ./Utils
+# import Utils from ./Utils
 from Utils.local_torchsummary import summary
 from Utils.ConfigParser import Config_Parser
 from Utils.datatyps import Masks
@@ -80,7 +80,7 @@ from Layers.adaptiveavgpool2d import AdaptiveAvgPool2d
 from Layers.dropout import Dropout
 
 # import model class
-# requirment for torch.load
+# requirement for torch.load
 from generatePytorchModel import SimpleNN
 
 
@@ -120,8 +120,7 @@ def main(args):
     for key, value in layers.items():
         classname = str(key).split("-")[0]
 
-        print(f"[INFO] Conversion of Layer {idx+1}: {classname} started...") 
-
+        print(f"[INFO] Conversion of Layer {idx+1}: {classname} started...")
 
         # look for class by name
         try:
@@ -144,14 +143,14 @@ def main(args):
         except Exception as e:
             print(f"[ERROR] Error converting Layer {idx+1} ({classname}): {e}")
             sys.exit(-1)
-        
+
         idx += 1
 
     header.define_data(model_struct)
     header.generate_data(configdata)
 
-    #insert header at the front
-    model_struct.insert(0,header)
+    # insert header at the front
+    model_struct.insert(0, header)
 
     # update modular array-sizes
     configdata = update_header_offset_length(model_struct, configdata)
@@ -161,9 +160,10 @@ def main(args):
     json_writer.writeJSON(model_struct)
     h_writer.writeH(configdata, model_struct)
 
+
 if __name__ == "__main__":
     # Possible arguments:
-    #"args": [
+    # "args": [
     #            "--config", "./config.md",
     #            "--model", "./mnist_model.pth",
     #            "--inputsize", "(1,28,28)",
@@ -171,25 +171,33 @@ if __name__ == "__main__":
     #        ]
 
     # Create the argument parser
-    parser = argparse.ArgumentParser(description="Generate a json, hex and a h file from a pytorch model")
+    parser = argparse.ArgumentParser(
+        description="Generate a json, hex and a h file from a pytorch model"
+    )
 
     # Add arguments
-    parser.add_argument('--config', type=str, help='Path to configfile e.g. ./config.md')
-    parser.add_argument('--model', type=str, help='Path to modelfile e.g. ./model.pth')
-    parser.add_argument('--inputsize', type=str, help='Inputsize of the model e.g. (1,28,28)')
-    parser.add_argument('--name', type=str, help='Name of the outputfiles')
+    parser.add_argument(
+        "--config", type=str, help="Path to configfile e.g. ./config.md"
+    )
+    parser.add_argument("--model", type=str, help="Path to modelfile e.g. ./model.pth")
+    parser.add_argument(
+        "--inputsize", type=str, help="Inputsize of the model e.g. (1,28,28)"
+    )
+    parser.add_argument("--name", type=str, help="Name of the outputfiles")
 
     # Parse the arguments
     args = parser.parse_args()
 
     # convert inputsize str to tuple of int
-    if not(str(args.inputsize).endswith(")")) or not(str(args.inputsize).startswith("(")):
+    if not (str(args.inputsize).endswith(")")) or not (
+        str(args.inputsize).startswith("(")
+    ):
         raise "Invalid Inputsize format"
     args.inputsize = str(args.inputsize).removeprefix("(").removesuffix(")")
 
     input = ()
     for value in str(args.inputsize).split(","):
-        input = input + (int(value,10),)
+        input = input + (int(value, 10),)
 
     args.inputsize = input
 

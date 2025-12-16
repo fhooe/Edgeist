@@ -148,7 +148,7 @@ public:
         // Make a forward Pass throu all the Layers
         for (int i = 0; i < mHeader->layernrs; i++) {
 
-            // First Layer gets input from Methode argumet
+            // First Layer gets input from Method argument
             if (i == 0) {
                 layersInSRAM[i]->forwardPass(mPtrInputData, ptrLayerOutputData, trainingFlag);
             }
@@ -176,7 +176,7 @@ public:
         return ErrorType::ok;
     }
 
-    // Train Methode
+    // Train Method
     auto train(const T* input, T* expectedOutput, const LossFunction<T>& lossFn) -> ErrorType
     {
         mPtrExpectedOutputData = expectedOutput;
@@ -202,7 +202,7 @@ public:
         // Make a forward Pass through all the Layers
         for (int i = 0; i < mHeader->layernrs; i++) {
 
-            // First Layer gets input as argumet
+            // First Layer gets input as argument
             if (i == 0) {
                 layersInSRAM[i]->forwardPass(mPtrInputData, ptrLayerOutputData, true);
             } else {
@@ -222,7 +222,7 @@ public:
         // Make a backward Pass through all the Layers
         for (int i = mHeader->layernrs - 1; i >= 0; i--) {
 
-            // Last Layer gets expected Output as argumet
+            // Last Layer gets expected Output as argument
             if (i == mHeader->layernrs - 1) {
                 layersInSRAM[i]->backwardPass(ptrGradient, ptrLayerOutputData);
             }
@@ -279,7 +279,7 @@ public:
         return ErrorType::ok;
     }
 
-    // access methode vor model header
+    // access method for model header
     [[nodiscard]] auto header() const -> const Neural_Network_Header_t&
     {
         return *mHeader;
@@ -362,7 +362,7 @@ private:
     // Pointer to Output Data
     T* mPtrOutputData = nullptr;
 
-    // init Flag, set when model.init is called and returns succesfully.
+    // init Flag, set when model.init is called and returns successfully.
     bool isInit = 0;
 
     // Model generated Flag

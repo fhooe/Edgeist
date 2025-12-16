@@ -1,14 +1,15 @@
 import os
 from collections import OrderedDict
 
-class H_Parser:
-    def __init__(self, filename : str):
-        if filename.split(".")[-1] != "h":
-            raise("Configfile is no .h")
 
-        # remove output file if allready exists
-        if not(os.path.exists(filename)):
-            raise("H-file at: " + filename + " doesn't exists")
+class H_Parser:
+    def __init__(self, filename: str):
+        if filename.split(".")[-1] != "h":
+            raise ("Configfile is no .h")
+
+        # remove output file if already exists
+        if not (os.path.exists(filename)):
+            raise ("H-file at: " + filename + " doesn't exists")
 
         self.configfile = filename
 
@@ -30,12 +31,24 @@ class H_Parser:
                     continue
 
                 if line.startswith("#"):
-                    # multible inclusion protection or version
+                    # multiple inclusion protection or version
                     if line.startswith("#define version"):
-                        config[current_config] = OrderedDict([("Version", line.split(" ")[-1].removeprefix("\"").removesuffix("\""))])
+                        config[current_config] = OrderedDict(
+                            [
+                                (
+                                    "Version",
+                                    line.split(" ")[-1]
+                                    .removeprefix('"')
+                                    .removesuffix('"'),
+                                )
+                            ]
+                        )
                     continue
 
-                config[current_config][line.split(" ")[-1].removeprefix(current_config + "_").removesuffix("_t;")] = line.split(" ")[1]
+                config[current_config][
+                    line.split(" ")[-1]
+                    .removeprefix(current_config + "_")
+                    .removesuffix("_t;")
+                ] = line.split(" ")[1]
 
         return config
-

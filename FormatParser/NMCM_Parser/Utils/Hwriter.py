@@ -3,54 +3,54 @@ from Utils.helper_functions import Datatype
 import importlib.util
 import inspect
 import pathlib
-from Layers.layer import Layer  # Stelle sicher, dass das Basismodul importiert ist
+from Layers.layer import Layer  # Ensure that base module has been imported
+
 
 class H_writer:
     def __init__(self, typefile: str, structfile: str, enumfile: str):
         """
         Constructor of the class H_writter
-        
+
         Checks fileending is valid .h
-        
+
         Parameters:
         file (str): filename and path e.g. ./test.h
-        
+
         Raises:
         File is no .h: If file ends not with .h
         """
         # init h File
         self.type_file = typefile
         self.type_filename = os.path.basename(typefile).split(".")[0]
-        
+
         if self.type_file.split(".")[-1] != "h":
-            raise("Type-File is no .h")
+            raise ("Type-File is no .h")
 
         self.struct_file = structfile
         self.struct_filename = os.path.basename(structfile).split(".")[0]
-        
+
         if self.struct_file.split(".")[-1] != "h":
-            raise("Struct-File is no .h")
-        
+            raise ("Struct-File is no .h")
+
         self.enum_file = enumfile
         self.enum_filename = os.path.basename(enumfile).split(".")[0]
-        
-        if self.enum_file.split(".")[-1] != "h":
-            raise("Enum-File is no .h")
 
+        if self.enum_file.split(".")[-1] != "h":
+            raise ("Enum-File is no .h")
 
     def writeH(self, config, model_struct):
         """
         Creates or clears the outputfile.
         writes all types and the version from the config
         to the outputfile in c++ style
-        
+
         Parameters:
         config (dic): data of the configfile as dictionary
         """
         self.__write_Typefile(config)
         self.__write_Structfile(config)
         self.__write_Enumfile(model_struct)
-        
+
     # Helper function to map the typenames to cpp compatible ones
     def __map_cpp_type(self, typename: str) -> str:
         mapping = {
@@ -85,16 +85,30 @@ class H_writer:
                     # this section has no types but the version string
                     outfile.write("\n")
                     outfile.write("// " + key + "-Types\n")
-                    outfile.write("#define version_str \"" + config[key]["Version"][1] + "\"\n")
+                    outfile.write(
+                        '#define version_str "' + config[key]["Version"][1] + '"\n'
+                    )
                     outfile.write("typedef " + config[key]["ID"][1] + " ID_t;\n")
-                    outfile.write("typedef " + config[key]["Offset_Table"][1] + " Offset_Table_entry;\n")
+                    outfile.write(
+                        "typedef "
+                        + config[key]["Offset_Table"][1]
+                        + " Offset_Table_entry;\n"
+                    )
                     outfile.write("\n")
                 else:
                     outfile.write("// " + key + "-Types\n")
                     # write datatypes
                     for name, typeinfo in config[key].items():
                         mapped_type = self.__map_cpp_type(typeinfo[1])
-                        outfile.write("\ttypedef " + mapped_type + " " + key + "_" + name + "_t;\n")
+                        outfile.write(
+                            "\ttypedef "
+                            + mapped_type
+                            + " "
+                            + key
+                            + "_"
+                            + name
+                            + "_t;\n"
+                        )
 
                     outfile.write("\n")
 
@@ -116,12 +130,26 @@ class H_writer:
 
                     for name, typeinfo in config[key].items():
                         if typeinfo[0] == 1:
-                            outfile.write("\t" +  key + "_" + name + "_t " + name.lower() + ";\n")
+                            outfile.write(
+                                "\t" + key + "_" + name + "_t " + name.lower() + ";\n"
+                            )
                         elif typeinfo[0] == 0:
                             # should be a pointer
-                            outfile.write("\t" +  key + "_" + name + "_t* " + name.lower() + ";\n")
+                            outfile.write(
+                                "\t" + key + "_" + name + "_t* " + name.lower() + ";\n"
+                            )
                         else:
-                            outfile.write("\t" +  key + "_" + name + "_t " + name.lower() + "[" + str(typeinfo[0]) + "];\n")
+                            outfile.write(
+                                "\t"
+                                + key
+                                + "_"
+                                + name
+                                + "_t "
+                                + name.lower()
+                                + "["
+                                + str(typeinfo[0])
+                                + "];\n"
+                            )
 
                     outfile.write("} Neural_Network_" + key + "_t;\n")
                     outfile.write("#pragma pack(pop)\n")
@@ -140,7 +168,13 @@ class H_writer:
             # DataEncodingIDs
             outfile.write("enum class DataEncodingIDs\n{\n")
             for val in types:
-                outfile.write("\t " + Datatype.get_str(val).removesuffix("_t") + "_ID = " + str(val) + ",\n")
+                outfile.write(
+                    "\t "
+                    + Datatype.get_str(val).removesuffix("_t")
+                    + "_ID = "
+                    + str(val)
+                    + ",\n"
+                )
             outfile.write("};\n\n")
 
             # LayerIDs – dynamisch aus ./Layers/
@@ -159,12 +193,16 @@ class H_writer:
                 for name, obj in inspect.getmembers(mod, inspect.isclass):
                     if issubclass(obj, Layer) and obj is not Layer:
                         try:
-                            layer_instance = obj(config={})  # evtl. Dummy config anpassen
+                            layer_instance = obj(
+                                config={}
+                            )  # evtl. Dummy config anpassen
                             layer_id = getattr(layer_instance, "LayerId", None)
                             if layer_id is not None:
                                 outfile.write(f"\t {name}_ID = {layer_id},\n")
                         except Exception as e:
-                            print(f"Warnung: konnte Klasse {name} nicht instanziieren: {e}")
+                            print(
+                                f"Warnung: konnte Klasse {name} nicht instanziieren: {e}"
+                            )
 
             outfile.write("};\n\n")
             outfile.write("#endif")

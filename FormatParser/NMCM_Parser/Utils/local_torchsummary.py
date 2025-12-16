@@ -1,4 +1,4 @@
-# code coppied from https://github.com/sksq96/pytorch-summary/blob/master/torchsummary/torchsummary.py
+# code copied from https://github.com/sksq96/pytorch-summary/blob/master/torchsummary/torchsummary.py
 
 import torch
 import torch.nn as nn
@@ -7,11 +7,12 @@ from torch.autograd import Variable
 from collections import OrderedDict
 import numpy as np
 
-def summary(model, input_size, batch_size=-1, device=torch.device('cpu'), dtypes=None):
-    if dtypes == None:
-        dtypes = [torch.FloatTensor]*len(input_size)
 
-    summary_str = ''
+def summary(model, input_size, batch_size=-1, device=torch.device("cpu"), dtypes=None):
+    if dtypes == None:
+        dtypes = [torch.FloatTensor] * len(input_size)
+
+    summary_str = ""
 
     def register_hook(module):
         def hook(module, input, output):
@@ -45,12 +46,15 @@ def summary(model, input_size, batch_size=-1, device=torch.device('cpu'), dtypes
                 summary[m_key]["bias"]["dtype"] = module.bias.dtype
                 summary[m_key]["bias"]["trainable"] = module.bias.requires_grad
 
-
             # running_mean and running_var for BatchNorm layers
             if hasattr(module, "running_mean"):
-                summary[m_key]["running_mean"] = module.running_mean.detach().cpu().numpy().tolist()
+                summary[m_key]["running_mean"] = (
+                    module.running_mean.detach().cpu().numpy().tolist()
+                )
             if hasattr(module, "running_var"):
-                summary[m_key]["running_var"] = module.running_var.detach().cpu().numpy().tolist()
+                summary[m_key]["running_var"] = (
+                    module.running_var.detach().cpu().numpy().tolist()
+                )
 
             if hasattr(module, "dilation"):
                 summary[m_key]["dilation"] = module.dilation
@@ -67,9 +71,8 @@ def summary(model, input_size, batch_size=-1, device=torch.device('cpu'), dtypes
             if hasattr(module, "p"):
                 summary[m_key]["DropoutRate"] = module.p
 
-        if (
-            not isinstance(module, nn.Sequential)
-            and not isinstance(module, nn.ModuleList)
+        if not isinstance(module, nn.Sequential) and not isinstance(
+            module, nn.ModuleList
         ):
             hooks.append(module.register_forward_hook(hook))
 
@@ -78,8 +81,10 @@ def summary(model, input_size, batch_size=-1, device=torch.device('cpu'), dtypes
         input_size = [input_size]
 
     # batch_size of 2 for batchnorm
-    x = [torch.rand(2, *in_size).type(dtype).to(device=device)
-         for in_size, dtype in zip(input_size, dtypes)]
+    x = [
+        torch.rand(2, *in_size).type(dtype).to(device=device)
+        for in_size, dtype in zip(input_size, dtypes)
+    ]
 
     # create properties
     summary = OrderedDict()

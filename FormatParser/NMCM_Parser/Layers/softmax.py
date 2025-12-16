@@ -1,17 +1,18 @@
 from Layers.layer import Layer
 from Utils.datatyps import Masks
 
+
 class Softmax(Layer):
     def __init__(self, config):
         super().__init__(config)
         self.LayerId = 7
-        
-    def define_data(self, idx : int, modelinfo, masks : Masks = None):
+
+    def define_data(self, idx: int, modelinfo, masks: Masks = None):
         dimension = 1
-        for i in range(1,len(modelinfo["input_shape"])):
+        for i in range(1, len(modelinfo["input_shape"])):
             dimension *= modelinfo["input_shape"][i]
 
-        # define all posible values of this layer without order
+        # define all possible values of this layer without order
         self.data["LayerNr"] = idx
         self.data["ID"] = self.LayerId
         self.data["predecessorNr"] = 1
@@ -20,12 +21,7 @@ class Softmax(Layer):
         self.data["DimensionOutput_x"] = dimension  # Output width
 
     def generate_data(self):
-        if not(self.name in self.config):
+        if not (self.name in self.config):
             raise "Layer is not defined in config: " + self.name
-        
+
         self._convert_config(self.config)
-        
-
-
-        
-            

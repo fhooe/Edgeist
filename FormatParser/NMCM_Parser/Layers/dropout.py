@@ -1,18 +1,19 @@
 from Layers.layer import Layer
 from Utils.datatyps import Masks
 
+
 class Dropout(Layer):
     def __init__(self, config):
         super().__init__(config)
         self.LayerId = 4
-        
-    def define_data(self, idx : int, modelinfo, masks : Masks = None):
+
+    def define_data(self, idx: int, modelinfo, masks: Masks = None):
         dimension = 1
         DropoutRate = 0.0
-        for i in range(1,len(modelinfo["input_shape"])):
+        for i in range(1, len(modelinfo["input_shape"])):
             dimension *= modelinfo["input_shape"][i]
 
-        # define all posible values of this layer without order
+        # define all possible values of this layer without order
         self.data["LayerNr"] = idx
         self.data["ID"] = self.LayerId
         self.data["predecessorNr"] = 1
@@ -22,12 +23,7 @@ class Dropout(Layer):
         self.data["DropoutRate"] = modelinfo["DropoutRate"]
 
     def generate_data(self):
-        if not(self.name in self.config):
+        if not (self.name in self.config):
             raise "Layer is not defined in config: " + self.name
-        
+
         self._convert_config(self.config)
-        
-
-
-        
-            

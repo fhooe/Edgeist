@@ -29,7 +29,7 @@ class Model;
 template <typename T>
 class Softmax : public Layer<T> {
 public:
-    // Konstruktor: Initialisiert die Softmax-Schicht mit Zeigern auf Konfigurationsdaten und gew�hltem Optimierer
+    // CTor: Init the Softmax-Layer with pointers to config data and the chosen optimizer
     Softmax(Model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
         : Layer<T>(m)
         , mPtrLayer(HeaderPointer)
@@ -43,7 +43,7 @@ public:
         loadFromFlash();
     }
 
-    // Destruktor: Gibt dynamisch allokierten Speicher frei
+    // DTor: Frees dynamically allocated memory
     ~Softmax() override
     {
 
@@ -53,9 +53,9 @@ public:
         }
     }
 
-    // Führt die Vorwärtspassage (Forward Pass) durch; berechnet Softmax-Ausgabe aus Eingabedaten
-    // input_data: output der Vorherigen Layer
-    // output_Data: output dieses Layers
+    // Performs the forward pass; calculates softmax output from input data
+    // input_data: output of the previous layer
+    // output_Data: output of this layer
     auto forwardPass(const T* input_data, T* output_data, bool trainingflag) -> ErrorType override
     {
         if (input_data == nullptr || output_data == nullptr) {
@@ -66,7 +66,7 @@ public:
             return ErrorType::LayerNotInitialized;
         }
 
-        // Finde den Maximalwert der Eingabe zur numerischen Stabilisierung der Exponentialfunktion
+        // Find the maximum value of the input for numerical stabilization of the exponential function.
         T maxVal = input_data[0];
         for (size_t i = 1; i < this->mHeader->dimensioninput_x; i++) {
             if (input_data[i] > maxVal) {
@@ -74,7 +74,7 @@ public:
             }
         }
 
-        // Berechne exponentielle Werte der um maxVal verschobenen Eingaben und summiere sie
+        // Calculate exponential values of the inputs shifted by maxVal and sum them up.
         T sumExponents = T(0);
         T* mPtrExponents = new T[this->mHeader->dimensioninput_x];
 
@@ -84,13 +84,13 @@ public:
         }
 
         if (trainingflag) {
-            // Allokiere Speicher für Zwischenspeicherung der Eingabe (für Backpropagation)
+            // Allocate memory for temporary storage of input (for backpropagation)
             if (this->mInputData != nullptr) {
                 delete[] this->mInputData;
             }
             this->mInputData = new T[this->mHeader->dimensioninput_x];
 
-            // Normiere Exponentialwerte zur Softmax-Ausgabe
+            // Normalize exponential values for Softmax output
             if (this->mInputData != nullptr) {
                 for (size_t i = 0; i < this->mHeader->dimensionoutput_x; i++) {
                     this->mInputData[i] = input_data[i];
@@ -107,9 +107,9 @@ public:
         return ErrorType::ok;
     }
 
-    // Führt die Rückwärtspassage (Backward Pass) durch; berechnet den Fehlergradienten der Softmax-Schicht
-    // input_data: output vom forwardPass
-    // output_Data: ist Gradient
+    // Performs the backward pass; calculates the error gradient of the softmax layer
+    // input_data: output from forwardPass
+    // output_Data: is gradient
     auto backwardPass(const T* input_data, T* output_data) -> ErrorType override
     {
         if (input_data == nullptr || output_data == nullptr) {
@@ -120,7 +120,7 @@ public:
             return ErrorType::LayerNotInitialized;
         }
 
-        // Softmax + Cross-Entropy Ableitung: p - y
+        // Softmax + cross-entropy derivative: p - y
         for (size_t i = 0; i < this->mHeader->dimensioninput_x; i++) {
             output_data[i] = input_data[i] - this->mModel->mPtrExpectedOutputData[i];
         }
@@ -128,20 +128,20 @@ public:
         return ErrorType::ok;
     }
 
-    // Lädt die trainierbaren werte vom Flash in den SRAM
+    // Loads the trainable values from Flash into SRAM
     auto loadFromFlash() -> ErrorType override
     {
 
         this->mIsLoaded = true;
-        // Nicht relevant bei ReLU, da keine Weights und Biases
+        // Not relevant for ReLU, as there are no weights and biases
         return ErrorType::ok;
     }
 
-    // Speichert die trainierbaren werte vom SRAM in den Flash
+    // Stores the trainable values from SRAM in flash memory
     auto storeToFlash() -> ErrorType override
     {
         this->mIsLoaded = false;
-        // nicht implementier in dieser Version, wird erst am �Controller relevant
+        // Not implemented in this version, will only become relevant on the uController
         return ErrorType::UnknownError;
     }
 
