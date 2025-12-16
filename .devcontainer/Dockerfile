@@ -19,6 +19,7 @@ RUN --mount=type=bind,source=requirements.txt,target=/requirements.txt apt-get u
     ssh \
     locales \
     vim \
+    less \
     python3 \
     python3-venv \
     python3-pip \
