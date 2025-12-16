@@ -12,7 +12,6 @@
 #include "optimizer_data_types.h"
 
 namespace Edgeist {
-
 template <typename T>
 class Model;
 
@@ -27,33 +26,32 @@ template <typename T>
 class Flatten : public Layer<T> {
 public:
     // CTor: Init the ReLU-Layer with pointers to config data and the chosen optimizer
-    Flatten(Model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
-        : Layer<T>(m)
-        , mPtrLayer(HeaderPointer)
-        , mPtrData(DataPointer)
-        , mOptimizerType(OptimizerType)
+    Flatten(Model<T>* model, void* headerPointer, void* dataPointer, const OptimizerID optimizerType)
+        : Layer<T>(model)
+        , mPtrLayer(headerPointer)
+        , mPtrData(dataPointer)
+        , mHeader(static_cast<Neural_Network_Flatten_t*>(mPtrLayer))
+        , mOptimizerType(optimizerType)
     {
-
-        this->mHeader = static_cast<Neural_Network_Flatten_t*>(mPtrLayer);
     }
 
     // DTor: frees dynamically allocated memory
     ~Flatten() override = default;
 
     // executes forward pass and writes the result to the output
-    auto forwardPass(const T* input_data, T* output_data, bool /* trainingflag */) -> ErrorType override
+    auto forwardPass(const T* inputData, T* outputData, bool /* trainingflag */) -> ErrorType override
     {
         for (size_t i = 0; i < mHeader->dimensioninput_x; i++) {
-            output_data[i] = input_data[i];
+            outputData[i] = inputData[i];
         }
         return ErrorType::ok;
     }
 
     // executes the backward pass and calculates the gradient for the layer before
-    auto backwardPass(const T* input_data, T* output_data) -> ErrorType override
+    auto backwardPass(const T* inputData, T* outputData) -> ErrorType override
     {
         for (size_t i = 0; i < mHeader->dimensioninput_x; i++) {
-            output_data[i] = input_data[i];
+            outputData[i] = inputData[i];
         }
         return ErrorType::ok;
     }
@@ -61,7 +59,6 @@ public:
     // loads the training data from flash to SRAM
     auto loadFromFlash() -> ErrorType override
     {
-        ;
         return ErrorType::ok;
     }
 

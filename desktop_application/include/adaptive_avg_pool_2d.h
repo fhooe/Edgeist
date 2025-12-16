@@ -25,22 +25,24 @@ namespace Edgeist {
 template <typename T>
 class AdaptiveAvgPool2D : public Layer<T> {
 public:
-    AdaptiveAvgPool2D(Model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
-        : Layer<T>(m)
-        , mPtrLayer(HeaderPointer)
-        , mPtrData(DataPointer)
-        , mOptimizerType(OptimizerType)
+    AdaptiveAvgPool2D(Model<T>* model, void* headerPointer, void* dataPointer, const OptimizerID optimizerType)
+        : Layer<T>(model)
+        , mPtrLayer(headerPointer)
+        , mPtrData(dataPointer)
+        , mHeader(static_cast<Neural_Network_AdaptiveAvgPool2d_t*>(mPtrLayer))
+        , mOptimizerType(optimizerType)
     {
-        this->mHeader = static_cast<Neural_Network_AdaptiveAvgPool2d_t*>(mPtrLayer);
-        loadFromFlash();
+        AdaptiveAvgPool2D::loadFromFlash();
     }
 
-    auto forwardPass(const T* input_data, T* output_data, bool /* trainingflag */) -> ErrorType override
+    auto forwardPass(const T* inputData, T* outputData, bool /* trainingflag */) -> ErrorType override
     {
-        if (!input_data || !output_data)
+        if (inputData == nullptr || outputData == nullptr) {
             return ErrorType::UnknownError;
-        if (!this->mIsLoaded)
+        }
+        if (!this->mIsLoaded) {
             return ErrorType::LayerNotInitialized;
+        }
 
         const auto& H = *this->mHeader;
         const int C = H.channelsin;
@@ -65,13 +67,13 @@ public:
                     for (int iy = y_start; iy < y_end; ++iy) {
                         for (int ix = x_start; ix < x_end; ++ix) {
                             size_t in_idx = size_t(c) * H_in * W_in + iy * W_in + ix;
-                            sum += input_data[in_idx];
+                            sum += inputData[in_idx];
                             ++count;
                         }
                     }
 
                     size_t out_idx = size_t(c) * H_out * W_out + oy * W_out + ox;
-                    output_data[out_idx] = count > 0 ? sum / static_cast<T>(count) : T(0);
+                    outputData[out_idx] = count > 0 ? sum / static_cast<T>(count) : T(0);
                 }
             }
         }
@@ -79,12 +81,14 @@ public:
         return ErrorType::ok;
     }
 
-    auto backwardPass(const T* grad_output, T* grad_input) -> ErrorType override
+    auto backwardPass(const T* gradOutput, T* gradInput) -> ErrorType override
     {
-        if (!grad_output || !grad_input)
+        if ((gradOutput == nullptr) || (gradInput == nullptr)) {
             return ErrorType::UnknownError;
-        if (!this->mIsLoaded)
+        }
+        if (!this->mIsLoaded) {
             return ErrorType::LayerNotInitialized;
+        }
 
         const auto& H = *this->mHeader;
         const int C = H.channelsin;
@@ -96,7 +100,7 @@ public:
         // init grad_input with 0
         size_t inSize = size_t(C) * H_in * W_in;
         for (size_t i = 0; i < inSize; ++i) {
-            grad_input[i] = T(0);
+            gradInput[i] = T(0);
         }
 
         // distribute gradient
@@ -110,14 +114,14 @@ public:
                     int x_end = std::ceil((ox + 1) * W_in / static_cast<float>(W_out));
 
                     size_t out_idx = size_t(c) * H_out * W_out + oy * W_out + ox;
-                    T grad = grad_output[out_idx];
+                    T grad = gradOutput[out_idx];
                     int count = (y_end - y_start) * (x_end - x_start);
                     T grad_val = count > 0 ? grad / static_cast<T>(count) : T(0);
 
                     for (int iy = y_start; iy < y_end; ++iy) {
                         for (int ix = x_start; ix < x_end; ++ix) {
                             size_t in_idx = size_t(c) * H_in * W_in + iy * W_in + ix;
-                            grad_input[in_idx] += grad_val;
+                            gradInput[in_idx] += grad_val;
                         }
                     }
                 }

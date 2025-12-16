@@ -28,22 +28,24 @@ namespace Edgeist {
 template <typename T>
 class AdaptiveAvgPool1D : public Layer<T> {
 public:
-    AdaptiveAvgPool1D(Model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
-        : Layer<T>(m)
-        , mPtrLayer(HeaderPointer)
-        , mPtrData(DataPointer)
-        , mOptimizerType(OptimizerType)
+    AdaptiveAvgPool1D(Model<T>* model, void* headerPointer, void* dataPointer, const OptimizerID optimizerType)
+        : Layer<T>(model)
+        , mPtrLayer(headerPointer)
+        , mPtrData(dataPointer)
+        , mHeader(static_cast<Neural_Network_AdaptiveAvgPool1d_t*>(mPtrLayer))
+        , mOptimizerType(optimizerType)
     {
-        this->mHeader = static_cast<Neural_Network_AdaptiveAvgPool1d_t*>(mPtrLayer);
-        loadFromFlash();
+        AdaptiveAvgPool1D::loadFromFlash();
     }
 
     auto forwardPass(const T* input_data, T* output_data, bool /* trainingflag */) -> ErrorType override
     {
-        if (!input_data || !output_data)
+        if (input_data == nullptr || output_data == nullptr) {
             return ErrorType::UnknownError;
-        if (!this->mIsLoaded)
+        }
+        if (!this->mIsLoaded) {
             return ErrorType::LayerNotInitialized;
+        }
 
         const auto& H = *this->mHeader;
         const int C = H.channelsin;
@@ -71,12 +73,14 @@ public:
         return ErrorType::ok;
     }
 
-    auto backwardPass(const T* grad_output, T* grad_input) -> ErrorType override
+    auto backwardPass(const T* gradOutput, T* gradInput) -> ErrorType override
     {
-        if (!grad_output || !grad_input)
+        if (gradOutput == nullptr || gradInput == nullptr) {
             return ErrorType::UnknownError;
-        if (!this->mIsLoaded)
+        }
+        if (!this->mIsLoaded) {
             return ErrorType::LayerNotInitialized;
+        }
 
         const auto& H = *this->mHeader;
         const int C = H.channelsin;
@@ -85,7 +89,7 @@ public:
 
         size_t inSize = size_t(C) * W_in;
         for (size_t i = 0; i < inSize; ++i) {
-            grad_input[i] = T(0);
+            gradInput[i] = T(0);
         }
 
         for (int c = 0; c < C; ++c) {
@@ -94,13 +98,13 @@ public:
                 int x_end = std::ceil((ox + 1) * W_in / static_cast<float>(W_out));
 
                 size_t out_idx = size_t(c) * W_out + ox;
-                T grad = grad_output[out_idx];
+                T grad = gradOutput[out_idx];
                 int count = x_end - x_start;
                 T grad_val = count > 0 ? grad / static_cast<T>(count) : T(0);
 
                 for (int ix = x_start; ix < x_end; ++ix) {
                     size_t in_idx = size_t(c) * W_in + ix;
-                    grad_input[in_idx] += grad_val;
+                    gradInput[in_idx] += grad_val;
                 }
             }
         }

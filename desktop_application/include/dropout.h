@@ -26,56 +26,62 @@ namespace Edgeist {
 template <typename T>
 class Dropout : public Layer<T> {
 public:
-    Dropout(Model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
-        : Layer<T>(m)
-        , mPtrLayer(HeaderPointer)
-        , mPtrData(DataPointer)
-        , mOptimizerType(OptimizerType)
+    Dropout(Model<T>* model, void* headerPointer, void* dataPointer, const OptimizerID optimizerType)
+        : Layer<T>(model)
+        , mPtrLayer(headerPointer)
+        , mPtrData(dataPointer)
+        , mHeader(static_cast<Neural_Network_Dropout_t*>(mPtrLayer))
+        , mOptimizerType(optimizerType)
         , mRng(std::random_device {}())
     {
-        this->mHeader = static_cast<Neural_Network_Dropout_t*>(mPtrLayer);
-        loadFromFlash();
+        Dropout::loadFromFlash();
     }
 
-    auto forwardPass(const T* input_data, T* output_data, bool trainingflag) -> ErrorType override
+    auto forwardPass(const T* inputData, T* outputData, const bool trainingFlag) -> ErrorType override
     {
-        if (!input_data || !output_data)
+        if (inputData == nullptr || outputData == nullptr) {
             return ErrorType::UnknownError;
-        if (!this->mIsLoaded)
+        }
+        if (!this->mIsLoaded) {
             return ErrorType::LayerNotInitialized;
+        }
 
         const size_t size = mHeader->dimensioninput_x;
 
-        if (trainingflag) {
-            if (mDropoutMask.size() != size)
+        if (trainingFlag) {
+            if (mDropoutMask.size() != size) {
                 return ErrorType::DropoutMaskMissing;
+            }
 
             for (size_t i = 0; i < size; ++i) {
-                output_data[i] = input_data[i] * mDropoutMask[i];
+                outputData[i] = inputData[i] * mDropoutMask[i];
             }
         } else {
             for (size_t i = 0; i < size; ++i) {
-                output_data[i] = input_data[i]; // do not change in inference mode
+                outputData[i] = inputData[i]; // do not change in inference mode
             }
         }
 
         return ErrorType::ok;
     }
 
-    auto backwardPass(const T* grad_output, T* grad_input) -> ErrorType override
+    auto backwardPass(const T* gradOutput, T* gradInput) -> ErrorType override
     {
-        if (!grad_output || !grad_input)
+        if (gradOutput == nullptr || gradInput == nullptr) {
             return ErrorType::UnknownError;
-        if (!this->mIsLoaded)
+        }
+        if (!this->mIsLoaded) {
             return ErrorType::LayerNotInitialized;
+        }
 
         const size_t size = mHeader->dimensioninput_x;
 
-        if (mDropoutMask.size() != size)
+        if (mDropoutMask.size() != size) {
             return ErrorType::DropoutMaskMissing;
+        }
 
         for (size_t i = 0; i < size; ++i) {
-            grad_input[i] = grad_output[i] * mDropoutMask[i];
+            gradInput[i] = gradOutput[i] * mDropoutMask[i];
         }
 
         return ErrorType::ok;

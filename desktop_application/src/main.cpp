@@ -72,8 +72,9 @@ void evaluateModel(Model<float>& myModel, const std::vector<MNISTImage>& images,
         }
         totalLoss += lossFn.compute(output, expected, NUM_OUTPUTS);
 
-        if (maxIdx == img.label)
+        if (maxIdx == img.label) {
             ++correct;
+        }
 
         expected[img.label] = 0.0f;
     }
@@ -87,12 +88,13 @@ void evaluateModel(Model<float>& myModel, const std::vector<MNISTImage>& images,
 
 int main()
 {
-    std::streamsize sizeFixed = 0, sizeTrainable = 0;
+    std::streamsize sizeFixed = 0;
+    std::streamsize sizeTrainable = 0;
     char* modelFixed = loadFileToBuffer("model.hex", sizeFixed);
     char* modelTrainable = loadFileToBuffer("model_trainable.hex", sizeTrainable);
 
-    if (!modelFixed || !modelTrainable) {
-        return 1;
+    if (modelFixed == nullptr || modelTrainable == nullptr) {
+        return EXIT_FAILURE;
     }
 
     Model<float> myModel(modelFixed, modelTrainable, OptimizerID::SGD, LEARNING_RATE);
@@ -139,9 +141,8 @@ int main()
         std::cout << "Epoch " << epoch + 1 << " finished." << std::endl;
         evaluateModel(myModel, testImages, loss, "after epoch: " + std::to_string(epoch + 1));
     }
-    auto end = std::chrono::steady_clock::now();
-
-    std::chrono::duration<double> duration = end - start;
+    const auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<double> const duration = end - start;
     std::cout << "Program runtime: " << duration.count() << " seconds for " << TRAINING_EPOCHS << "epochs";
 
     if (modelFixed) {

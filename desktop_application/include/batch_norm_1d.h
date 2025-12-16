@@ -29,28 +29,26 @@ class Model;
 template <typename T>
 class BatchNorm1D : public Layer<T> {
 public:
-    typedef T BatchNorm1d_DataType_t;
-    BatchNorm1D(Model<T>* m, void* HeaderPointer, void* DataPointer, OptimizerID OptimizerType)
-        : Layer<T>(m)
-        , mPtrLayer(HeaderPointer)
-        , mPtrData(DataPointer)
-        , mOptimizerType(OptimizerType)
+    BatchNorm1D(Model<T>* model, void* headerPointer, void* dataPointer, const OptimizerID optimizerType)
+        : Layer<T>(model)
+        , mPtrLayer(headerPointer)
+        , mPtrData(dataPointer)
+        , mHeader(static_cast<Neural_Network_BatchNorm1d_t*>(mPtrLayer))
+        , mOptimizerType(optimizerType)
     {
-        this->mHeader = static_cast<Neural_Network_BatchNorm1d_t*>(mPtrLayer);
-        loadFromFlash();
+        BatchNorm1D::loadFromFlash();
 
         mRunningMean = new double[this->mHeader->dimensioninput_x];
         mRunningVar = new double[this->mHeader->dimensioninput_x];
 
-        mPtrFlashWeight = (static_cast<BatchNorm1d_DataType_t*>(mPtrData) + (mHeader->weights_trainable_offset / sizeof(BatchNorm1d_DataType_t)));
-        mPtrFlashBias = (static_cast<BatchNorm1d_DataType_t*>(mPtrData) + (mHeader->bias_trainable_offset / sizeof(BatchNorm1d_DataType_t)));
+        mPtrFlashWeight = (static_cast<T*>(mPtrData) + (mHeader->weights_trainable_offset / sizeof(T)));
+        mPtrFlashBias = (static_cast<T*>(mPtrData) + (mHeader->bias_trainable_offset / sizeof(T)));
 
-        loadFromFlash();
+        BatchNorm1D::loadFromFlash();
     }
 
     ~BatchNorm1D() override
     {
-
         delete[] mWeightPtr;
         mWeightPtr = nullptr;
         delete[] mBiasPtr;
@@ -62,15 +60,14 @@ public:
         mRunningVar = nullptr;
     }
 
-    auto forwardPass(const T* input_data, T* output_data, bool trainingflag) -> ErrorType override
+    auto forwardPass(const T* inputData, T* outputData, bool trainingFlag) -> ErrorType override
     {
-
         // Use ether data from flash or SRAM based on trainingflag
         T* ptrWeight = nullptr;
         T* ptrBias = nullptr;
-        if (trainingflag) {
+        if (trainingFlag) {
             // check if layer is loaded
-            if (this->mIsLoaded != true) {
+            if (!this->mIsLoaded) {
                 return ErrorType::LayerNotInitialized;
             }
             ptrWeight = mWeightPtr->mData;
@@ -90,13 +87,13 @@ public:
 
         // calculate average
         for (int i = 0; i < NrOfInputs; i++) {
-            mean += input_data[i];
+            mean += inputData[i];
         }
         mean = mean / NrOfInputs;
 
         // calculate variance
         for (int i = 0; i < NrOfInputs; i++) {
-            T diff = input_data[i] - mean;
+            T diff = inputData[i] - mean;
             var += diff * diff;
         }
         var = var / NrOfInputs;
@@ -110,7 +107,7 @@ public:
             mInitRunningStats = true;
         }
 
-        if (trainingflag) {
+        if (trainingFlag) {
             // forward pass with training
             float momentum = 0.1f;
             for (int i = 0; i < NrOfInputs; i++) {
@@ -123,38 +120,40 @@ public:
 
             // normalize + scale + move
             for (int i = 0; i < NrOfInputs; i++) {
-                double norm = (double(input_data[i]) - mRunningMean[i]) / std::sqrt(mRunningVar[i] + eps);
+                double norm = (double(inputData[i]) - mRunningMean[i]) / std::sqrt(mRunningVar[i] + eps);
 
                 // save input and normaliced input
                 mNormalizedInput[i] = norm;
-                mInput[i] = input_data[i];
+                mInput[i] = inputData[i];
 
                 T gamma = ptrWeight[i];
                 T beta = ptrBias[i];
-                output_data[i] = gamma * norm + beta;
+                outputData[i] = gamma * norm + beta;
             }
-            // store values ​​for backwardpass
+            // store values for backwardpass
 
         } else {
             // normalize + scale + move
             for (int i = 0; i < NrOfInputs; i++) {
                 T gamma = ptrWeight[i];
                 T beta = ptrBias[i];
-                double norm = (double(input_data[i]) - mRunningMean[i]) / std::sqrt(mRunningVar[i] + eps);
-                output_data[i] = gamma * norm + beta;
+                double norm = (double(inputData[i]) - mRunningMean[i]) / std::sqrt(mRunningVar[i] + eps);
+                outputData[i] = gamma * norm + beta;
             }
         }
 
         return ErrorType::ok;
     }
 
-    auto backwardPass(const T* input_data, T* output_data) -> ErrorType override
+    auto backwardPass(const T* inputData, T* outputData) -> ErrorType override
     {
-        if (input_data == nullptr || output_data == nullptr)
+        if (inputData == nullptr || outputData == nullptr) {
             return ErrorType::InvalidPointer;
+        }
 
-        if (!mInput || !mNormalizedInput)
+        if (mInput == nullptr || mNormalizedInput == nullptr) {
             return ErrorType::MissingCachedInputs;
+        }
 
         int NrOfInputs = this->mHeader->dimensioninput_x;
         float eps = 1e-5f;
@@ -166,9 +165,9 @@ public:
 
         // init
         for (int i = 0; i < NrOfInputs; ++i) {
-            dL_dgamma[i] = input_data[i] * mNormalizedInput[i]; // dL/dy = dL/dy * x
-            dL_dbeta[i] = input_data[i]; // dL/db = dL/dy
-            dL_dnorm[i] = input_data[i] * mWeightPtr->getData(i); // dL/dx = dL/dy * y
+            dL_dgamma[i] = inputData[i] * mNormalizedInput[i]; // dL/dy = dL/dy * x
+            dL_dbeta[i] = inputData[i]; // dL/db = dL/dy
+            dL_dnorm[i] = inputData[i] * mWeightPtr->getData(i); // dL/dx = dL/dy * y
         }
 
         // calculate helper values
@@ -186,7 +185,7 @@ public:
             double term2 = sum_dnorm;
             double term3 = mNormalizedInput[i] * sum_dnorm_norm;
 
-            output_data[i] = (1.0 / NrOfInputs) * std_inv * (term1 - term2 - term3);
+            outputData[i] = (1.0 / NrOfInputs) * std_inv * (term1 - term2 - term3);
         }
 
         // accumulate within gradient buffer
@@ -253,7 +252,6 @@ public:
 
     auto update(uint32_t batchsize) -> ErrorType override
     {
-
         if (mPtrWeightGradient == nullptr || mPtrBiasGradient == nullptr) {
             return ErrorType::UnknownError;
         }
@@ -272,7 +270,6 @@ public:
 
     auto loadFromFlash() -> ErrorType override
     {
-
         switch (mOptimizerType) {
         case OptimizerID::SGD:
             // init weights
@@ -304,10 +301,10 @@ public:
 
         // init weights and biases
         for (size_t i = 0; i < mHeader->weights_amount_trainable; i++) {
-            mWeightPtr->setData(i, *(static_cast<BatchNorm1d_DataType_t*>(mPtrData) + (mHeader->weights_trainable_offset / sizeof(BatchNorm1d_DataType_t)) + i));
+            mWeightPtr->setData(i, *(static_cast<T*>(mPtrData) + (mHeader->weights_trainable_offset / sizeof(T)) + i));
         }
         for (size_t i = 0; i < mHeader->bias_amount_trainable; i++) {
-            mBiasPtr->setData(i, *(static_cast<BatchNorm1d_DataType_t*>(mPtrData) + (mHeader->bias_trainable_offset / sizeof(BatchNorm1d_DataType_t)) + i));
+            mBiasPtr->setData(i, *(static_cast<T*>(mPtrData) + (mHeader->bias_trainable_offset / sizeof(T)) + i));
         }
 
         this->mIsLoaded = true;
@@ -346,11 +343,11 @@ private:
     // flag for first run, to init running mean/var
     bool mInitRunningStats = false;
 
-    BatchNorm1d_DataType_t* mPtrFlashWeight = nullptr;
-    BatchNorm1d_DataType_t* mPtrFlashBias = nullptr;
+    T* mPtrFlashWeight = nullptr;
+    T* mPtrFlashBias = nullptr;
 
-    BatchNorm1d_DataType_t* mPtrWeightGradient = nullptr;
-    BatchNorm1d_DataType_t* mPtrBiasGradient = nullptr;
+    T* mPtrWeightGradient = nullptr;
+    T* mPtrBiasGradient = nullptr;
 
     OptimizerBase<T>* mWeightPtr;
     OptimizerBase<T>* mBiasPtr;

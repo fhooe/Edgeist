@@ -13,8 +13,6 @@
 
 #include "Modelenums.h"
 #include "Modeltypes.h"
-#include "Object.h"
-#include "Softmax.h"
 #include "adaptive_avg_pool_1d.h"
 #include "adaptive_avg_pool_2d.h"
 #include "batch_norm_1d.h"
@@ -27,11 +25,13 @@
 #include "loss_function.h"
 #include "max_pool_2d.h"
 #include "nmcf_error_types.h"
+#include "object.h"
 #include "optimizer_data_types.h"
 #include "relu.h"
+#include "softmax.h"
 
 namespace Edgeist {
-typedef size_t com;
+using com = size_t;
 
 /**
  * @brief Template-based implementation of a neural network model.
@@ -147,7 +147,6 @@ public:
 
         // Make a forward Pass throu all the Layers
         for (int i = 0; i < mHeader->layernrs; i++) {
-
             // First Layer gets input from Method argument
             if (i == 0) {
                 layersInSRAM[i]->forwardPass(mPtrInputData, ptrLayerOutputData, trainingFlag);
@@ -201,7 +200,6 @@ public:
 
         // Make a forward Pass through all the Layers
         for (int i = 0; i < mHeader->layernrs; i++) {
-
             // First Layer gets input as argument
             if (i == 0) {
                 layersInSRAM[i]->forwardPass(mPtrInputData, ptrLayerOutputData, true);
@@ -221,14 +219,12 @@ public:
 
         // Make a backward Pass through all the Layers
         for (int i = mHeader->layernrs - 1; i >= 0; i--) {
-
             // Last Layer gets expected Output as argument
             if (i == mHeader->layernrs - 1) {
                 layersInSRAM[i]->backwardPass(ptrGradient, ptrLayerOutputData);
             }
             // Other Layers get Input from Previous Layer
             else {
-
                 layersInSRAM[i]->backwardPass(ptrLayerInputData, ptrLayerOutputData);
             }
 
@@ -288,7 +284,6 @@ public:
     // access method for Layer by index
     auto getLayer(uint32_t index) -> Layer<T>*
     {
-
         if (index >= layersInSRAM.size()) {
             return nullptr;
         }
@@ -313,11 +308,11 @@ public:
     }
 
     // Constructor
-    Model(void* ModelPointer, void* DataPointer, OptimizerID OptimizerType, float LearningRate)
-        : mLearningRate(LearningRate)
-        , mPtrModel(ModelPointer)
-        , mPtrData(DataPointer)
-        , mOptimizerType(OptimizerType)
+    Model(void* modelPointer, void* dataPointer, const OptimizerID optimizerType, const float learningRate)
+        : mLearningRate(learningRate)
+        , mPtrModel(modelPointer)
+        , mPtrData(dataPointer)
+        , mOptimizerType(optimizerType)
     {
         // populate the Header
         mHeader = static_cast<Neural_Network_Header_t*>(mPtrModel);
@@ -372,7 +367,7 @@ private:
     OptimizerID mOptimizerType;
 
     // returns void Pointer to Layer by Index
-    [[nodiscard]] auto getLayerPtr(size_t layerNr) const -> void*
+    [[nodiscard]] auto getLayerPtr(const size_t layerNr) const -> void*
     {
         // Add offset to the pointer address of header
         size_t offset = (sizeof(Neural_Network_Header_t) - mHeader->layernrs * 4) / sizeof(uint32_t) + layerNr;
