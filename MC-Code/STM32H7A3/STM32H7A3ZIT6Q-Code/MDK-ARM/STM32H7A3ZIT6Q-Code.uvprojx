@@ -10,8 +10,8 @@
       <TargetName>STM32H7A3ZIT6Q-Code</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pArmCC>6190000::V6.19::ARMCLANG</pArmCC>
-      <pCCUsed>6190000::V6.19::ARMCLANG</pCCUsed>
+      <pArmCC>6230000::V6.23::ARMCLANG</pArmCC>
+      <pCCUsed>6230000::V6.23::ARMCLANG</pCCUsed>
       <uAC6>1</uAC6>
       <TargetOption>
         <TargetCommonOption>
@@ -138,7 +138,7 @@
             <DriverSelection>4101</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
-          <Flash2>BIN\UL2V8M.DLL</Flash2>
+          <Flash2>BIN\UL2CM3.DLL</Flash2>
           <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut>.\STM32H7A3ZIT6Q.axf</pFcarmOut>
@@ -341,7 +341,7 @@
               <MiscControls></MiscControls>
               <Define>USE_PWR_DIRECT_SMPS_SUPPLY,USE_HAL_DRIVER,STM32H7A3xxQ,_WIZCHIP_=5500</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../../../W5500/Ethernet/inc;../../../W5500/Communication/inc;..\ProjectSpecific\Inc;..\ProjectSpecific\Assambler</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;..\..\..\Allgemein\W5500\Ethernet\inc;..\..\..\Allgemein\W5500\Communication\inc;..\ProjectSpecific\Inc;..\ProjectSpecific\Assambler;..\..\..\Allgemein\Framework\inc;..\..\..\Allgemein\Retraining\inc;..\..\..\Allgemein\Utils\inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -429,6 +429,16 @@
               <FileName>main.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\Core\Src\main.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\tim.c</FilePath>
+            </File>
+            <File>
+              <FileName>tim.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\Inc\tim.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -525,6 +535,16 @@
               <FileType>1</FileType>
               <FilePath>../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_spi_ex.c</FilePath>
             </File>
+            <File>
+              <FileName>stm32h7xx_hal_tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_tim.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_tim_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_tim_ex.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -541,44 +561,44 @@
           <GroupName>w5500</GroupName>
           <Files>
             <File>
-              <FileName>socket.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\..\W5500\Ethernet\inc\socket.h</FilePath>
-            </File>
-            <File>
-              <FileName>w5500.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\..\W5500\Ethernet\inc\w5500.h</FilePath>
-            </File>
-            <File>
-              <FileName>w5500_spi.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\..\W5500\Ethernet\inc\w5500_spi.h</FilePath>
-            </File>
-            <File>
-              <FileName>wizchip_conf.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\..\W5500\Ethernet\inc\wizchip_conf.h</FilePath>
+              <FileName>socket.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\Allgemein\W5500\Ethernet\src\socket.c</FilePath>
             </File>
             <File>
               <FileName>w5500.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\W5500\Ethernet\src\w5500.c</FilePath>
-            </File>
-            <File>
-              <FileName>socket.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\W5500\Ethernet\src\socket.c</FilePath>
+              <FilePath>..\..\..\Allgemein\W5500\Ethernet\src\w5500.c</FilePath>
             </File>
             <File>
               <FileName>w5500_spi.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\W5500\Ethernet\src\w5500_spi.c</FilePath>
+              <FilePath>..\..\..\Allgemein\W5500\Ethernet\src\w5500_spi.c</FilePath>
             </File>
             <File>
               <FileName>wizchip_conf.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\W5500\Ethernet\src\wizchip_conf.c</FilePath>
+              <FilePath>..\..\..\Allgemein\W5500\Ethernet\src\wizchip_conf.c</FilePath>
+            </File>
+            <File>
+              <FileName>socket.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\W5500\Ethernet\inc\socket.h</FilePath>
+            </File>
+            <File>
+              <FileName>w5500.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\W5500\Ethernet\inc\w5500.h</FilePath>
+            </File>
+            <File>
+              <FileName>w5500_spi.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\W5500\Ethernet\inc\w5500_spi.h</FilePath>
+            </File>
+            <File>
+              <FileName>wizchip_conf.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\W5500\Ethernet\inc\wizchip_conf.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -588,12 +608,12 @@
             <File>
               <FileName>Socket_setup.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\..\..\W5500\Communication\inc\Socket_setup.h</FilePath>
+              <FilePath>..\..\..\Allgemein\W5500\Communication\inc\Socket_setup.h</FilePath>
             </File>
             <File>
               <FileName>Socket_setup.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\..\W5500\Communication\src\Socket_setup.c</FilePath>
+              <FilePath>..\..\..\Allgemein\W5500\Communication\src\Socket_setup.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -629,6 +649,141 @@
               <FileName>model_info.s</FileName>
               <FileType>2</FileType>
               <FilePath>..\ProjectSpecific\Assambler\model_info.s</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Retraining-Framework</GroupName>
+          <Files>
+            <File>
+              <FileName>Conf2d.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\inc\Conf2d.h</FilePath>
+            </File>
+            <File>
+              <FileName>ErrorTypes.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\inc\ErrorTypes.h</FilePath>
+            </File>
+            <File>
+              <FileName>Flatten.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\inc\Flatten.h</FilePath>
+            </File>
+            <File>
+              <FileName>Layer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\inc\Layer.h</FilePath>
+            </File>
+            <File>
+              <FileName>Linear.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\inc\Linear.h</FilePath>
+            </File>
+            <File>
+              <FileName>MaxPool2d.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\inc\MaxPool2d.h</FilePath>
+            </File>
+            <File>
+              <FileName>mnist_loader.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\inc\mnist_loader.h</FilePath>
+            </File>
+            <File>
+              <FileName>model.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\inc\model.h</FilePath>
+            </File>
+            <File>
+              <FileName>Modelenums.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\inc\Modelenums.h</FilePath>
+            </File>
+            <File>
+              <FileName>Modelstructs.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\inc\Modelstructs.h</FilePath>
+            </File>
+            <File>
+              <FileName>Modeltypes.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\inc\Modeltypes.h</FilePath>
+            </File>
+            <File>
+              <FileName>object.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\inc\object.h</FilePath>
+            </File>
+            <File>
+              <FileName>OptimizerDataTypes.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\inc\OptimizerDataTypes.h</FilePath>
+            </File>
+            <File>
+              <FileName>pch.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\inc\pch.h</FilePath>
+            </File>
+            <File>
+              <FileName>Relu.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\inc\Relu.h</FilePath>
+            </File>
+            <File>
+              <FileName>Softmax.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\inc\Softmax.h</FilePath>
+            </File>
+            <File>
+              <FileName>model.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\src\model.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>pch.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\src\pch.cpp</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>New Group</GroupName>
+          <Files>
+            <File>
+              <FileName>Update.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Retraining\inc\Update.h</FilePath>
+            </File>
+            <File>
+              <FileName>Protocol.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Retraining\inc\Protocol.h</FilePath>
+            </File>
+            <File>
+              <FileName>Update.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\Allgemein\Retraining\src\Update.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>Timer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Utils\inc\Timer.h</FilePath>
+            </File>
+            <File>
+              <FileName>Timer.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\Allgemein\Utils\src\Timer.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>mnist_loader.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\src\mnist_loader.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>mnist_loader.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\..\Allgemein\Framework\inc\mnist_loader.h</FilePath>
             </File>
           </Files>
         </Group>

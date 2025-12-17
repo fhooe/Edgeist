@@ -24,11 +24,16 @@ def createsockets(pos, ips, outputs):
                     outputs[-1].append("C")
 
 
-ips = [1,2,3.4,5,6,7,8,9]
+ips = [0,1]
 outputs = []
+
+createsockets(0,ips,outputs)
+createsockets(1,ips,outputs)
+
 
 for i in range(0,len(ips)):
     createsockets(i,ips,outputs)
+
 
 # check output
 for idx in range(0, len(outputs)):
