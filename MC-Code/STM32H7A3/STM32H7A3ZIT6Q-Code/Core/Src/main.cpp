@@ -20,6 +20,7 @@
 #include "main.h"
 #include "spi.h"
 #include "gpio.h"
+#include "tim.h"
 
 #include "w5500_spi.h"
 #include "w5500.h"
@@ -27,8 +28,18 @@
 #include "Socket_setup.h"
 
 #include "flash_manager.h"
+#include "Protocol.h"
+#include "Timer.h"
 
 #include <stdint.h>
+
+// Model includes
+#include "pch.h"
+#include "model.h"
+#include "ErrorTypes.h"
+#include "OptimizerDataTypes.h"
+
+#include "mnist_loader.h"
 
 /* Private includes ----------------------------------------------------------*/
 
@@ -42,9 +53,15 @@ extern const uint8_t SectorNumbers[];
 extern const uint8_t Modeldata[];
 extern const uint8_t Modeldata_End[];
 
+extern uint8_t Heap_Mem[];
+static const uint32_t Heap_Size = 0xF0000;
+
+extern uint8_t Stack_Mem[];
+static const uint32_t Stack_Size = 0xFF00;
+
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-#define BUFFER_SIZE 14
+#define BUFFER_SIZE 8192
 	
 /* USER CODE END PD */
 
@@ -55,7 +72,6 @@ extern const uint8_t Modeldata_End[];
 
 /* Private variables ---------------------------------------------------------*/
 static uint8_t buffer[BUFFER_SIZE];
-static uint8_t sendbuffer[] = {'H', 'A', 'L', 'L', 'O', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'};
 	
 /* USER CODE BEGIN PV */
 
@@ -78,37 +94,34 @@ void SystemClock_Config(void);
   */
 int main(void)
 {
-
-  /* USER CODE BEGIN 1 */
-	uint8_t* fileptr = const_cast<uint8_t*>(Modelinfo);
-	// check file (Header)
-	volatile uint16_t Header_Size = *(uint16_t*)fileptr;
-	fileptr += 2;
-	volatile uint32_t Magic_Number = *(uint32_t*)fileptr;
-	fileptr += 4;
-	volatile char Version[8];
-	for(uint8_t i = 0; i < 8; i++)
+	// Heap init to see how much was used
+	uint8_t* pHeap = Heap_Mem;
+	for (uint32_t i = Heap_Size/4; i < Heap_Size; i++)
 	{
-		Version[i] = *fileptr;
-		fileptr++;
+		Heap_Mem[i] = 0xFF;
 	}
+	
+	// init Stack with 0xFF to check usage
+	uint8_t* pStack = Stack_Mem;
+	for (uint32_t i = 0; i < (Stack_Size * 3) /4; i++)
+  {
+		Stack_Mem[i] = 0xFF;
+  }
+	
+  /* USER CODE BEGIN 1 */
+	// load all ptrs from .s files
+	uint8_t* fileptr = const_cast<uint8_t*>(Modelinfo);
 	
 	uint8_t* start_data = const_cast<uint8_t*>(Modeldata);
 	uint32_t start_data_32 = reinterpret_cast<uint32_t>(reinterpret_cast<uint32_t*>(start_data));
 	
 	float firstval = *(float*)start_data;
+	uint32_t firstval_uint = *(uint32_t*)start_data;
 	
 	uint32_t amount = SectorAmount;
 	uint8_t* sector_ptr = const_cast<uint8_t*>(SectorNumbers);
 	
-	uint32_t val = 255;
-	for (uint8_t i = 0; i < amount; i++)
-	{
-		val = *(uint32_t*)sector_ptr;
-		sector_ptr += 4;
-	}
-	
-	
+	uint32_t firstval_after = *(uint32_t*)start_data;
 	
   /* USER CODE END 1 */
 
@@ -131,18 +144,23 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_SPI1_Init();
+	MX_TIM2_Init();
 	
+	// Initialize all userer moduls
+	Flash_manager fm = Flash_manager();
 	wizchip_init(NULL, NULL); // default buffer size (2kb)
 	W5500_Init();
 	
-	Flash_manager fm = Flash_manager();
-	
-	
   /* USER CODE BEGIN 2 */
-	uint8_t pos = 2;
-	ip_t IPs[] = {{10,42,1,29},{10,42,1,30}};
+	uint8_t pos = 1;
+	ip_t IPs[] = {{192,168,0,29},{192,168,0,30}};
 	uint8_t num_ip = 2;
 
+	com_t CommunicationData;
+	CommunicationData.IP_Addresses = IPs;
+	CommunicationData.size = num_ip;
+	CommunicationData.pos = pos;
+	
 	// start socket
 	InitSocket(pos, IPs, 2); 
 	
@@ -157,26 +175,250 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	
-	uint16_t bytes_received = 0;
-
-	//send_to(IPs[0],sendbuffer,6);
+	void* voidPtr_fixed = const_cast<void*>(static_cast<const void*>(Modelinfo));
+	void* voidPtr_trainable = const_cast<void*>(static_cast<const void*>(Modeldata));
+	
+	uint32_t Start = 4;
+	uint32_t End = 11;
+	
+	Start_timer(htim2,0);
+	
+	// Init AI-Model
+	model<float> myModel(voidPtr_fixed, voidPtr_trainable, ADAM, 0.01);
+	myModel.Init();
+	myModel.loadWeights(Start, End);
+	myModel.initGradients(Start, End);
+	//myModel.loadWeights();
+	
+	// Train parameters
+	int trainingEpochs = 10;
+	int trainsize = 2;
+	int batch_size = 2;
+	
+	// load Trainingsdata if needed
+	std::vector<MnistImage> batch;
+	for (int i = 0; i < trainsize; i++)
+	{
+		batch.emplace_back(MnistImage());
+	}
+	
+	load_mnist_small(batch);
+	const MnistImage* mnist_four_byte = &batch[0];
+	static const float* mnist_test_data = reinterpret_cast<const float*>(mnist_four_byte->data);
+	
+	// Trainingsvariables
+	int numOutputs = myModel.mExpectedOutputSize;
+	float* output= new float[numOutputs];
+	float* expectedOutput = new float[numOutputs];
+	
+	uint32_t batchsize = 0;
+	int32_t bytes_received = 0;
+	uint32_t length;
+	uint32_t length_to_recv = 0;
+	int32_t retval = 0;
+	Protocol instruction = Protocol::None ;
+	Layerinformation_t layer_info;
+	uint32_t ticks = 0;
 	
   while (1)
   {
-		// busy waiting for message
-    bytes_received = recv_from(IPs[0],buffer,BUFFER_SIZE);
-		if (bytes_received != 0 && buffer[bytes_received] == '\0')
+		if (instruction != Protocol::Start_Training)
 		{
-			/* loop back
-			send_to(IPs[0],buffer,bytes_received);
-			bytes_received = 0;
-			*/
-			fm.EraseFlash(start_data_32,SectorAmount,(uint32_t*)SectorNumbers);
-			
-			fm.WriteFlash(start_data_32, reinterpret_cast<uint32_t*>(buffer), bytes_received / sizeof(uint32_t));
+			// wait for new Instruction
+			bytes_received = recv_from_direct(IPs[0],reinterpret_cast<uint8_t*>(&instruction),sizeof(Protocol));
+		
+			if (bytes_received < 0)
+			{
+				while(1);
+			}
+		
+			if (bytes_received == 0)
+			{
+				continue;
+			}
 		}
+		
+		switch (instruction)
+		{
+			case Protocol::Train:
+				// called from myModel.Train from the prev MC
+				bytes_received = 0;
+				while (bytes_received != sizeof(uint32_t))
+				{
+					bytes_received = recv_from_direct(IPs[0],reinterpret_cast<uint8_t*>(&length),sizeof(uint32_t));
+					if (bytes_received < 0)
+					{
+						while(1);
+					}
+				}
+
+				if (length > BUFFER_SIZE)
+				{
+					while(1);
+				}
+				
+				// wait for input weigths
+				bytes_received = 0;
+				while (bytes_received != length)
+				{
+					bytes_received = recv_from_direct(IPs[0],buffer,length);
+					if (bytes_received < 0)
+					{
+						while(1);
+					}
+				}
+				
+				// wait for expectedOutput
+				bytes_received = 0;
+				while (bytes_received != myModel.mExpectedOutputSize * sizeof(uint32_t))
+				{
+					bytes_received = recv_from_direct(IPs[0],reinterpret_cast<uint8_t*>(expectedOutput),myModel.mExpectedOutputSize * sizeof(uint32_t));
+					if (bytes_received < 0)
+					{
+						while(1);
+					}
+				}
+
+				myModel.Train(reinterpret_cast<float*>(buffer), expectedOutput, Start, End, &CommunicationData);
+				break;
+				
+			case Protocol::Update:
+				// get batchsize
+				bytes_received = 0;
+				while (bytes_received != sizeof(uint32_t))
+				{
+					bytes_received = recv_from_direct(IPs[0],reinterpret_cast<uint8_t*>(&batchsize),sizeof(uint32_t));
+					if (bytes_received < 0)
+					{
+						while(1);
+					}
+				}
+			
+				if (batchsize == 0)
+				{
+					while(1);
+				}
+				
+				// make a Update from the local Gradients
+				myModel.Update(batchsize, Start, End);
+				myModel.deleteGradients(Start, End);
+				myModel.initGradients(Start, End);
+				break;
+				
+			case Protocol::Safe_and_Swap:
+				ticks = Stop_timer(htim2);
+				Start_timer(htim2,0);
+			
+				// clear flash from old Data
+				fm.EraseFlash(start_data_32,SectorAmount,(uint32_t*)SectorNumbers);
+			
+				// save Weights in Flash
+				myModel.saveWeights(&fm, (uint32_t*)start_data, Start, End);
+			
+				myModel.UpdateFlash(CommunicationData, buffer, BUFFER_SIZE, fm, (uint32_t*)start_data, Start, End);
+				
+				break;
+			
+			case Protocol::Start_Training:
+				for (int epoch = 0; epoch < trainingEpochs; epoch++)
+				{
+					for (int x = 0; x < trainsize / batch_size; x++)
+					{
+						//myModel.initGradients();
+						myModel.initGradients(Start, End);
+						
+						for (int i = 0; i < batch_size; i++)
+						{
+							mnist_four_byte = &batch[x*batch_size + i];
+							mnist_test_data = reinterpret_cast<const float*>(mnist_four_byte->data);
+							expectedOutput[mnist_four_byte->label] = 1.0;
+							//myModel.Train(mnist_test_data, expectedOutput);
+							myModel.Train(mnist_test_data, expectedOutput, Start, End, &CommunicationData);
+							expectedOutput[mnist_four_byte->label] = 0.0;
+						}
+						
+						// send all devices the Update command
+						instruction = Protocol::Update;
+						broadcast_direct(reinterpret_cast<uint8_t*>(&instruction),sizeof(Protocol));
+						
+						// send batchsize
+						broadcast_direct(reinterpret_cast<uint8_t*>(&batch_size),sizeof(batch_size));
+						
+						//myModel.Update(batch_size);
+						//myModel.deleteGradients();
+						
+						myModel.Update(batch_size, Start, End);
+						myModel.deleteGradients(Start, End);
+					}
+				}
+				// clear local Weigths and Bias
+				instruction = Protocol::Safe_and_Swap;
+				ticks = Stop_timer(htim2);
+				
+				
+				broadcast_direct(reinterpret_cast<uint8_t*>(&instruction),sizeof(Protocol));
+				
+				fm.EraseFlash(start_data_32, SectorAmount, (uint32_t*)SectorNumbers);
+				
+				myModel.saveWeights(&fm, (uint32_t*)start_data, Start, End);
+				
+				myModel.UpdateFlash(CommunicationData, buffer, BUFFER_SIZE, fm, (uint32_t*) start_data, Start, End, true);
+				ticks = Stop_timer(htim2);
+				break;
+			
+			case Protocol::None:
+				// Used when no message it recived
+				break;
+			default:
+				while(1)
+				{
+					// Unknown message
+				}
+				break;
+		}
+		
+		// reset instruction
+		instruction = Protocol::None;
   }
+	delete[] output;
+	delete[] expectedOutput;
   /* USER CODE END 3 */
+	/* code to simulate training
+		uint16_t bytes_received = 0;
+
+		uint32_t length;
+		// busy waiting for message
+		bytes_received = recv_from_direct(IPs[0],reinterpret_cast<uint8_t*>(&length),sizeof(uint32_t));
+		if (bytes_received != sizeof(uint32_t))
+		{
+			continue;
+		}
+			
+		if (length > BUFFER_SIZE)
+		{
+			while(1);
+		}
+		
+		while (bytes_received != length)
+		{
+			bytes_received = recv_from_direct(IPs[0],buffer,length);
+				//loop back
+				//send_to(IPs[0],buffer,bytes_received);
+				//bytes_received = 0;
+				//fm.EraseFlash(start_data_32,SectorAmount,(uint32_t*)SectorNumbers);
+				
+				//fm.WriteFlash(start_data_32, reinterpret_cast<uint32_t*>(buffer), bytes_received / sizeof(uint32_t));
+		}
+		
+		uint32_t Data_to_send = 0x620;
+		uint32_t Bytes_to_send = Data_to_send * sizeof(float);
+		
+		float * send_buffer = new float[Data_to_send];
+		
+		send_to_direct(IPs[0], reinterpret_cast<uint8_t*>(&Bytes_to_send), sizeof(uint32_t));
+		
+		send_to_direct(IPs[0], reinterpret_cast<uint8_t*>(send_buffer), Bytes_to_send);
+	*/
 }
 
 /**

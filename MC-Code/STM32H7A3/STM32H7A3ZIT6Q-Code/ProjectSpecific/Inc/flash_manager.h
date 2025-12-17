@@ -20,11 +20,22 @@ class Flash_manager
 		// functions
 		Flash_manager();
 	
-		Flash_Returntypes WriteFlash(uint32_t addr, uint32_t* data, uint32_t data_size);
+		Flash_Returntypes WriteFlash(uint32_t addr, uint32_t* data, int32_t data_size);
 	
 		Flash_Returntypes ReadFlash(uint32_t addr, uint8_t* buffer, uint32_t bytes);
 	
 		Flash_Returntypes EraseFlash(uint32_t start_addr, uint32_t Sector_amount, uint32_t* Sector_Nr);
+
+		Flash_Returntypes Flush();
+
+	private:
+		static int8_t const Flash_Write_Length = 4;
+	
+		// define data (needs to be 32 bit alignet) and can only write (128 bit)
+		alignas(4) uint32_t Transmit_data[Flash_Write_Length] __attribute__((aligned(4)));
+
+		// current address of the transmit buffer
+		uint32_t addr = 0;
 };
 
 #endif
