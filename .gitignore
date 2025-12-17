@@ -104,7 +104,6 @@ wheels/
 pyproject.toml
 README.md
 *.lock
-src/
 
 # venv
 .venv
