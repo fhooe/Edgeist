@@ -24,13 +24,13 @@ The format consists of the following elements:
       4. Number of layers (layers and activation functions are separate layers)
       5. Input format
          1. Size
-6. Output format
+      6. Output format
          1. Size
-4. Offset table
+   4. Offset table
       1. Offset for efficient addressing of the respective layers
-2. Layers (for details on layer types, see the section below)
-3. Backup
-   1. Checksum
+      2. Layers (for details on layer types, see the section below)
+      3. Backup
+         1. Checksum
 
 ## Layers
 
@@ -56,12 +56,12 @@ The format consists of the following elements:
       5. Offset Bias_mask
       6. Offset Bias_trainable
       7. Offset Bias_frozen
-2. if (pruned) Prune_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
+   2. if (pruned) Prune_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
    3. if (trainableWeights>0) Weights_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
-   4. Weights_trainable[ trainableWeights ]: Datatype //loaded into Sram, empty if all are frozen
-   5. Weights_frozen[size * size * ChannelsOut - trainableWeignts]: Datatype //remains in flash, is empty if all are trainable
+   4. Weights_trainable[ trainableWeights ]: Datatype //loaded into SRAM, empty if all are frozen
+   5. Weights_frozen[size * size * ChannelsOut - trainableWeights]: Datatype //remains in flash, is empty if all are trainable
    6. if (trainableWeights>0) Bias_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
-   7. Bias_trainable[ trainableBias]: Datatype //loaded into Sram, empty if all are frozen
+   7. Bias_trainable[ trainableBias]: Datatype //loaded into SRAM, empty if all are frozen
    8. Bias_frozen[ChannelsOut - trainableBias]: Datatype //remains in flash, empty if all are trainable
 
 #### Explanation
@@ -93,15 +93,15 @@ Depending on the bitmask entry of trainableMask and pruneMask, the respective po
    1. Data Header
       1. Offset trainableMask
       2. Offset pruneMask
-3. Offset Kernel_trainable
-4. Offset Kernel_frozen
-5. Offset Bias_trainable
-6. Offset Bias_frozen
-2. if (trainableWeights>0 || trainableBias >0) trainableMask [(KernelSize + DimensionOutput_x]: bool
+      3. Offset Kernel_trainable
+      4. Offset Kernel_frozen
+      5. Offset Bias_trainable
+      6. Offset Bias_frozen
+   2. if (trainableWeights>0 || trainableBias >0) trainableMask [(KernelSize + DimensionOutput_x]: bool
    3. if (pruned) pruneMask [(KernelSize + DimensionOutput_x]: bool
-4. Weights_trainable[ trainableWeights ]: Datatype //loaded into Sram, empty if all are frozen
-5. Weights_frozen[KernelSize * ChannelsOut - trainableWeights]: Datatype //remains in flash, is empty if all are trainable
-   6. Bias_trainable[ trainableBias]: Datatype //loaded into Sram, is empty if all are frozen
+   4. Weights_trainable[ trainableWeights ]: Datatype //loaded into SRAM, empty if all are frozen
+   5. Weights_frozen[KernelSize * ChannelsOut - trainableWeights]: Datatype //remains in flash, is empty if all are trainable
+   6. Bias_trainable[ trainableBias]: Datatype //loaded into SRAM, is empty if all are frozen
    7. Bias_frozen[ChannelsOut - trainableBias]: Datatype //remains in flash, is empty if all are trainable
 
 ### Conv2D
@@ -134,12 +134,12 @@ Depending on the bitmask entry of trainableMask and pruneMask, the respective po
       4. Offset Kernel_frozen
       5. Offset Bias_trainable
       6. Offset Bias_frozen
-2. if (pruned) Prune_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
+   2. if (pruned) Prune_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
    3. if (trainableWeights>0) Weights_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
-   4. Weights_trainable[ trainableWeights ]: Datatype //loaded into Sram, empty if all are frozen
-   5. Weights_frozen[size * size * ChannelsOut - trainableWeignts]: Datatype //remains in flash, is empty if all are trainable
+   4. Weights_trainable[ trainableWeights ]: Datatype //loaded into SRAM, empty if all are frozen
+   5. Weights_frozen[size * size * ChannelsOut - trainableWeights]: Datatype //remains in flash, is empty if all are trainable
    6. if (trainableWeights>0) Bias_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
-   7. Bias_trainable[ trainableBias]: Datatype //loaded into Sram, empty when all are frozen
+   7. Bias_trainable[ trainableBias]: Datatype //loaded into SRAM, empty when all are frozen
    8. Bias_frozen[ChannelsOut - trainableBias]: Datatype //remains in flash, empty when all are trainable
 
 ### Depth-wise Convolution
