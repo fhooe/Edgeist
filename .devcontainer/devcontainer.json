@@ -31,5 +31,6 @@
     "runArgs": [
         "--privileged",
         "--init"
-    ]
+    ],
+    "postCreateCommand": "pip install -e nmcm/common"
 }
