@@ -23,7 +23,7 @@ jobs:
       - run: apk --update --no-cache add py3-codespell git
       - run: ./scripts/check_spelling.sh ./desktop_application/
       - run: ./scripts/check_spelling.sh ./doc
-      - run: ./scripts/check_spelling.sh ./FormatParser
+      - run: ./scripts/check_spelling.sh ./nmcm
   Lint-Scripts:
     runs-on: self-hosted
     container:

@@ -13,3 +13,4 @@
 **.pth
 **cmake-build-*/
 **build/
+**_version.py

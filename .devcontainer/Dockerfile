@@ -90,7 +90,8 @@ ENV LC_ALL=en_US.UTF-8
 # set default user
 USER $USERNAME
 
-RUN bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)"
+RUN bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)" && \
+    sudo chown -R "$USERNAME": /venv
 
 # expose required ports
 EXPOSE 6666
