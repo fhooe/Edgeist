@@ -17,7 +17,7 @@ class Conv2d(Layer):
             # handle modular amount of predecessors
             if key == "predecessors":
                 if not ("predecessorNr" in self.json_data):
-                    raise "predecessors before predecessorNr in Layer: " + self.name
+                    raise RuntimeError(f"'predecessors' before 'predecessorNr' in layer '{self.name}'")
 
                 current_data = []
                 for i in range(0, self.json_data["predecessorNr"]):

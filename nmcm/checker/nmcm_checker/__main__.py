@@ -46,7 +46,7 @@ def main(args):
             case 6:
                 layer = ReLU()
             case _:
-                raise "LayerID " + str(ID) + " is not implemented"
+                raise ValueError(f"Unknown layer {ID}")
 
         data = layer.reconstruct_data(data, config_data)
         model_struct.append(layer)

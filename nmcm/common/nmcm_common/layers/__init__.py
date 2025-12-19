@@ -7,6 +7,7 @@ from nmcm_common.layers.batch_norm_2d import BatchNorm2d
 from nmcm_common.layers.conv_2d import Conv2d
 from nmcm_common.layers.dropout import Dropout
 from nmcm_common.layers.flatten import Flatten
+from nmcm_common.layers.layer import Layer
 from nmcm_common.layers.linear import Linear
 from nmcm_common.layers.max_pool_2d import MaxPool2d
 from nmcm_common.layers.relu import ReLU

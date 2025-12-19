@@ -1,7 +1,6 @@
 from nmcm_common.layers.layer import Layer
 from nmcm_common.utils.datatype import Datatype
 from nmcm_common.utils.helper_functions import Sizeof
-from nmcm_common.utils.hex_converter import HexConverter
 from nmcm_common.utils.masks import Masks
 
 
@@ -81,7 +80,7 @@ class BatchNorm1d(Layer):
         self,
     ):
         if not (self.name in self.config):
-            raise "Layer is not defined in config: " + self.name
+            raise RuntimeError(f"Layer is not defined in config: '{self.name}'")
 
         offset_table_pos = self._convert_config(self.config)
 

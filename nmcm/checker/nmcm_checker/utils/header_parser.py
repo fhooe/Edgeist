@@ -5,11 +5,11 @@ from collections import OrderedDict
 class HeaderParser:
     def __init__(self, filename: str):
         if filename.split(".")[-1] != "h":
-            raise ("Configfile is no .h")
+            raise ValueError(f"Header-file '{filename}' is missing the '.h' file extension")
 
         # remove output file if already exists
         if not (os.path.exists(filename)):
-            raise ("H-file at: " + filename + " doesn't exists")
+            raise FileNotFoundError(f"Header-file '{filename}' does not exist")
 
         self.configfile = filename
 

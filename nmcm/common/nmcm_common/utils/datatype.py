@@ -1,6 +1,3 @@
-import struct
-
-import numpy as np
 import torch
 
 
@@ -19,7 +16,7 @@ class Datatype:
         self.type = self.dtype_map.get(type, None)
 
         if self.type is None:
-            raise ValueError("Unknown Type")
+            raise ValueError(f"Unknown type '{type}'")
 
     def get_number(self) -> int:
         return self.type

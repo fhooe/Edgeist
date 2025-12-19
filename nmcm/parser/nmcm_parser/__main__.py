@@ -169,20 +169,20 @@ if __name__ == "__main__":
     #        ]
 
     # Create the argument parser
-    parser = argparse.ArgumentParser(description="Generate a json, hex and a h file from a pytorch model")
+    parser = argparse.ArgumentParser(description="Generate json-, hex- and header-files from a pytorch model")
 
     # Add arguments
-    parser.add_argument("--config", type=str, help="Path to configfile e.g. ./config.md")
-    parser.add_argument("--model", type=str, help="Path to modelfile e.g. ./model.pth")
-    parser.add_argument("--inputsize", type=str, help="Inputsize of the model e.g. (1,28,28)")
-    parser.add_argument("--name", type=str, help="Name of the outputfiles")
+    parser.add_argument("--config", type=str, help="Path to config-file e.g. ./config.md")
+    parser.add_argument("--model", type=str, help="Path to model-file e.g. ./model.pth")
+    parser.add_argument("--inputsize", type=str, help="Input-size of the model e.g. (1,28,28)")
+    parser.add_argument("--name", type=str, help="Name of the output-files")
 
     # Parse the arguments
     args = parser.parse_args()
 
     # convert inputsize str to tuple of int
     if not (str(args.inputsize).endswith(")")) or not (str(args.inputsize).startswith("(")):
-        raise "Invalid Inputsize format"
+        raise RuntimeError("Invalid input-size format")
     args.inputsize = str(args.inputsize).removeprefix("(").removesuffix(")")
 
     input = ()

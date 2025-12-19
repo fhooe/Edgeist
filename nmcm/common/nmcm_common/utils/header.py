@@ -15,7 +15,7 @@ class Header:
 
     def define_data(self, model_stuct):
         if len(model_stuct) == 0:
-            raise "Model is empty"
+            raise RuntimeError("Model is empty")
 
         self.data["Header_Size"] = 0  # placeholder
         self.data["Magic_Number"] = 0x46434D4E
@@ -46,18 +46,18 @@ class Header:
 
     def generate_data(self, config):
         if not ("Config-Info" in config):
-            raise "No Config-Info for Version in config file found"
+            raise RuntimeError("No 'Config-Info' section found config file")
 
         for key, value in config["Config-Info"].items():
             if key == "Version":
                 self.data["Version"] = value[1]
 
         if not ("Header" in config):
-            raise "No Header section in config file found"
+            raise RuntimeError("No 'Header' section found in config file")
 
         for key, datatype in config["Header"].items():
             if not (key in self.data):
-                raise "Key: " + key + " is not defined in Header"
+                raise RuntimeError(f"'Header' section missing key '{key}'")
 
             if key == "Header_Size":
                 self.Header_Size_info = (len(self.hex_data), datatype)
@@ -83,7 +83,7 @@ class Header:
                 # in byte
                 offset_step = 4
             case _:
-                raise "Unknown Datatype: " + self.Offset_Table_info[1][1]
+                raise ValueError(f"Unknown type: '{self.Offset_Table_info[1][1]}'")
 
         # Update Offset Table
         offset_pos = self.Offset_Table_info[0]

@@ -17,7 +17,7 @@ def HexConverter(value, type: str) -> bytes:
             case "bit":
                 return "bit"
             case _:
-                raise ValueError(f"Error Datatype: {t} unknown")
+                raise TypeError(f"Unknown type '{t}'")
 
     fmt = get_format(type)
 
