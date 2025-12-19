@@ -1,5 +1,5 @@
-from .helper_functions import Sizeof
-from .hex_converter import HexConverter
+from nmcm_common.utils.helper_functions import Sizeof
+from nmcm_common.utils.hex_converter import HexConverter
 
 
 class HexWriter:
@@ -20,7 +20,7 @@ class HexWriter:
         self.filename = filename
 
         if self.filename.split(".")[-1] != "hex":
-            raise ("File is no .hex")
+            raise ValueError(f"Hex-file '{self.filename}' is missing the '.hex' file extension")
 
         self.filename_trainable = self.filename.split(".")
         self.filename_trainable[len(self.filename_trainable) - 2] += "_trainable"

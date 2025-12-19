@@ -79,7 +79,7 @@ class Layer(ABC):
 
         for key, datatype_info in config[self.name].items():
             if not (key in self.data):
-                raise "Key: " + key + " is not defined in Layer " + self.name
+                raise RuntimeError(f"Key: '{key}' is not defined in Layer '{self.name}'")
 
             if key == next(iter(config["Offset_Table"])):
                 offset_table_pos = len(self.hex_data)

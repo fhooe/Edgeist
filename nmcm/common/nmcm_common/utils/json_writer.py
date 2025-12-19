@@ -19,7 +19,7 @@ class JSONWriter:
         self.filename = filename
 
         if self.filename.split(".")[-1] != "json":
-            raise ("File is no .json")
+            raise ValueError(f"JSON-file '{self.filename}' is missing the '.json' file extension")
 
     def writeJSON(self, model_struct):
         """

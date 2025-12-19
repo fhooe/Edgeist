@@ -5,11 +5,11 @@ from collections import OrderedDict
 class ConfigParser:
     def __init__(self, filename: str):
         if filename.split(".")[-1] != "md":
-            raise ("Configfile is no .md")
+            raise ValueError(f"Config-file '{filename}' is missing the '.md' file extension")
 
         # remove output file if already exists
         if not (os.path.exists(filename)):
-            raise ("Configfile at: " + filename + " doesn't exists")
+            raise FileNotFoundError(f"Config-file '{filename}' does not exist")
 
         self.configfile = filename
 
@@ -19,7 +19,7 @@ class ConfigParser:
 
         with open(self.configfile, "r") as configfile:
             for line in configfile:
-                # remove lineendings
+                # remove line endings
                 line = line.strip()
 
                 # remove comments

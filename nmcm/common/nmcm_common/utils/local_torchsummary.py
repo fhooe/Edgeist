@@ -2,14 +2,12 @@
 
 from collections import OrderedDict
 
-import numpy as np
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 
 
 def summary(model, input_size, batch_size=-1, device=torch.device("cpu"), dtypes=None):
-    if dtypes == None:
+    if dtypes is None:
         dtypes = [torch.FloatTensor] * len(input_size)
 
     summary_str = ""

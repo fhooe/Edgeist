@@ -23,7 +23,7 @@ def Sizeof(datatype: str) -> int:
         case "float16_t":
             return 2
         case _:
-            raise "Unknown Type: " + datatype
+            raise TypeError(f"Unknown type '{datatype}'")
 
 
 def update_header_offset_length(model_struct, config):

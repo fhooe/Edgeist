@@ -42,7 +42,7 @@ if __name__ == "__main__":
             optimizer.step()
             running_loss += loss.item()
 
-        print(f"Epoche [{epoch+1}/{num_epochs}], Verlust: {running_loss / len(train_loader)}")
+        print(f"Epoch [{epoch+1}/{num_epochs}]; Loss: {running_loss / len(train_loader)}")
 
         model.eval()
         correct = 0
@@ -55,12 +55,12 @@ if __name__ == "__main__":
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
 
-        print(f"Accuracy auf dem Testdatensatz: {100 * correct / total}%")
+        print(f"Accuracy on test-dataset: {100 * correct / total}%")
 
     endTime = time.time()
     duration = endTime - startTime
 
-    print(f"Programmlaufzeit: {duration:.6f} Sekunden für  {num_epochs} epochen")
+    print(f"Execution time: {duration:.6f}s for {num_epochs} epochs")
 
     print(summary(model, input_size=(1, 28, 28)))
     torch.save(model, "./mnist_model.pth")

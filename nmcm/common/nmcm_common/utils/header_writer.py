@@ -3,8 +3,6 @@ import inspect
 import os
 import pathlib
 
-from .datatype import Datatype
-
 
 class HeaderWriter:
     def __init__(self, typefile: str, structfile: str, enumfile: str):
@@ -24,19 +22,19 @@ class HeaderWriter:
         self.type_filename = os.path.basename(typefile).split(".")[0]
 
         if self.type_file.split(".")[-1] != "h":
-            raise ("Type-File is no .h")
+            raise ValueError(f"Type-file '{self.type_file}' is missing the '.h' file extension")
 
         self.struct_file = structfile
         self.struct_filename = os.path.basename(structfile).split(".")[0]
 
         if self.struct_file.split(".")[-1] != "h":
-            raise ("Struct-File is no .h")
+            raise ValueError(f"Struct-file '{self.struct_file}' is missing the '.h' file extension")
 
         self.enum_file = enumfile
         self.enum_filename = os.path.basename(enumfile).split(".")[0]
 
         if self.enum_file.split(".")[-1] != "h":
-            raise ("Enum-File is no .h")
+            raise ValueError(f"Enum-file '{self.enum_file}' is missing the '.h' file extension")
 
     def writeH(self, config, model_struct):
         """
@@ -77,7 +75,7 @@ class HeaderWriter:
             outfile.write("\n")
             outfile.write("#include<stdint.h>\n")
 
-            for key, value in config.items():
+            for key, _ in config.items():
                 if key == "Offset_Table":
                     continue
 
@@ -133,6 +131,9 @@ class HeaderWriter:
 
     # write all IDs of the Layers in ./Layers
     def __write_Enumfile(self, model_struct):
+        from nmcm_common.layers.layer import Layer
+        from nmcm_common.utils.datatype import Datatype
+
         types = Datatype.get_all_datatypes()
 
         with open(self.enum_file, "w") as outfile:
@@ -166,7 +167,7 @@ class HeaderWriter:
                             if layer_id is not None:
                                 outfile.write(f"\t {name}_ID = {layer_id},\n")
                         except Exception as e:
-                            print(f"Warnung: konnte Klasse {name} nicht instanziieren: {e}")
+                            print(f"WARNING: Could not initialize class '{name}': '{e}'")
 
             outfile.write("};\n\n")
             outfile.write("#endif")

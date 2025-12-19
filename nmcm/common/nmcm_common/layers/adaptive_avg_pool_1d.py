@@ -19,6 +19,6 @@ class AdaptiveAvgPool1d(Layer):
 
     def generate_data(self):
         if not (self.name in self.config):
-            raise "Layer is not defined in config: " + self.name
+            raise RuntimeError(f"Layer is not defined in config: '{self.name}'")
 
         self._convert_config(self.config)
