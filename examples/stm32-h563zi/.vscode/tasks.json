@@ -1,0 +1,24 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "openocd",
+      "type": "shell",
+      "command": "/usr/local/bin/sudoopenocd",
+      "isBackground": true,
+      "args": [
+        "-f",
+        "interface/stlink-dap.cfg",
+        "-c",
+        "transport select dapdirect_swd",
+        "-f",
+        "target/stm32h5x.cfg",
+        "-c",
+        "adapter speed 200",
+        "-c",
+        "program ${command:cmake.launchTargetPath}"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

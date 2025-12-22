@@ -1,0 +1,80 @@
+{
+    "folders": [
+        {
+            "path": ".",
+            "name": "Project Root"
+        },
+        {
+            "path": "examples/stm32-h563zi",
+            "name": "STM32H563ZI"
+        },
+        {
+            "path": "examples/legacy",
+            "name": "Legacy Examples"
+        },
+        {
+            "path": "nmcm/checker",
+            "name": "Checker Tool"
+        },
+        {
+            "path": "nmcm/common",
+            "name": "Common Python Code"
+        },
+        {
+            "path": "nmcm/generator",
+            "name": "Generator Tool"
+        },
+        {
+            "path": "nmcm/packer",
+            "name": "Packer Tool"
+        },
+        {
+            "path": "nmcm/parser",
+            "name": "Parser Tool"
+        }
+    ],
+    "settings": {
+        "peacock.remoteColor": "#61dafb",
+        "peacock.color": "#61dafb",
+        "editor.formatOnSave": true,
+        "git.allowForcePush": true,
+        "C_Cpp.intelliSenseEngine": "disabled",
+        "python.defaultInterpreterPath": "/venv/bin/python",
+        "python.analysis.ignore": [
+            "test/**/*.py",
+            "conf.py"
+        ],
+        "mypy-type-checker.ignorePatterns": [
+            "test/**/*.py",
+            "conf.py"
+        ],
+        "pylint.ignorePatterns": [
+            "test/**/*.py",
+            "conf.py"
+        ],
+        "mypy-type-checker.args": [
+            "--config-file",
+            "${containerWorkspaceFolder}/pyproject.toml"
+        ],
+        "pylint.args": [
+            "--rcfile=${containerWorkspaceFolder}/pyproject.toml"
+        ],
+        "isort.args": [
+            "--profile",
+            "black"
+        ],
+        "python.testing.pytestEnabled": true,
+        "[python]": {
+            "editor.codeActionsOnSave": {
+                "source.organizeImports": "always"
+            }
+        },
+        "cmake.generator": "Ninja",
+        "cmake.configureOnOpen": true,
+        "cmake.options.statusBarVisibility": "visible",
+        "cmakeFormat.args": [
+            "-c",
+            "${workspaceFolder}/.cmake-format"
+        ]
+    }
+}

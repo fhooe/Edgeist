@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Parser Tool Debug",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "nmcm_parser",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--config",
+                "config.md",
+                "--model",
+                "../generator/mnist_model.pth",
+                "--inputsize",
+                "(1,28,28)",
+                "--name",
+                "output"
+            ]
+        }
+    ]
+}
