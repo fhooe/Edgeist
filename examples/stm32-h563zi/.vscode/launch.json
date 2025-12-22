@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "STM32H563ZI Debug",
+            "type": "cortex-debug",
+            "executable": "${command:cmake.launchTargetPath}",
+            "cwd": "${workspaceFolder}",
+            "request": "launch",
+            "servertype": "external",
+            "gdbPath": "gdb-multiarch",
+            "gdbTarget": "localhost:3333",
+            "runToEntryPoint": "main",
+            "postRestartCommands": [
+                "break main",
+                "continue"
+            ],
+            "preLaunchTask": "openocd"
+        }
+    ]
+}

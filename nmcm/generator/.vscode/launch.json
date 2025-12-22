@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Generator Tool Debug",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "nmcm_generator",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": []
+        }
+    ]
+}

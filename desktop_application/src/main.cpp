@@ -25,7 +25,7 @@ constexpr int TRAINING_EPOCHS = 1;
 constexpr float LEARNING_RATE = 0.001F;
 
 // Loads file into a buffer
-char* loadFileToBuffer(const std::string& filename, std::streamsize& size)
+auto loadFileToBuffer(const std::string& filename, std::streamsize& size) -> char*
 {
     std::ifstream file(filename, std::ios::binary);
     if (!file) {
@@ -47,7 +47,7 @@ char* loadFileToBuffer(const std::string& filename, std::streamsize& size)
 }
 
 // execute a forwardPass and calculate accuracy & loss
-void evaluateModel(Model<float>& myModel, const std::vector<MNISTImage>& images, SoftmaxCrossEntropyLoss<float>& lossFn, const std::string& label)
+auto evaluateModel(Model<float>& myModel, const std::vector<MNISTImage>& images, SoftmaxCrossEntropyLoss<float>& lossFn, const std::string& label) -> void
 {
     float output[NUM_OUTPUTS] = { 0.0f };
     float expected[NUM_OUTPUTS] = { 0.0f };
@@ -86,7 +86,7 @@ void evaluateModel(Model<float>& myModel, const std::vector<MNISTImage>& images,
 }
 } // namespace
 
-int main()
+auto main() -> int
 {
     std::streamsize sizeFixed = 0;
     std::streamsize sizeTrainable = 0;
@@ -127,7 +127,7 @@ int main()
 
             for (int i = 0; i < BATCH_SIZE; ++i) {
                 const MNISTImage& img = trainImages[batch * BATCH_SIZE + i];
-                const float* input = reinterpret_cast<const float*>(img.data);
+                const auto* input = reinterpret_cast<const float*>(img.data);
 
                 expected[img.label] = 1.0f;
                 myModel.train(input, expected, loss);
