@@ -1,0 +1,22 @@
+name: Build
+run-name: Build jobs for ${{ github.ref_type }} ${{ github.ref_name }}
+on:
+  workflow_run:
+    workflows: ["Lints"]
+    types:
+      - completed
+
+jobs:
+  STM32H563ZI:
+    runs-on: self-hosted
+    container:
+      image: debian:trixie-slim
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: apt-get update
+      - run: apt-get install --no-install-recommends -y git make cmake ninja-build clang-tidy gcc-arm-none-eabi libnewlib-arm-none-eabi
+      - run: git config --global --add safe.directory $(pwd)
+      - run: ./scripts/build_cpp.sh examples/stm32-h563zi

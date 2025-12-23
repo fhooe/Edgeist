@@ -1,8 +1,8 @@
-name: Different lints
-run-name: Different lints for ${{ github.ref_type }} ${{ github.ref_name }}
+name: Lints
+run-name: Lints for ${{ github.ref_type }} ${{ github.ref_name }}
 on: [push]
 jobs:
-  Lint-Commit:
+  Commit:
     runs-on: self-hosted
     container:
       image: commitlint/commitlint:master
@@ -13,7 +13,7 @@ jobs:
           fetch-depth: 0
       - run: git config --global --add safe.directory $(pwd)
       - run: ./scripts/lint_commit.sh
-  Check-Spelling:
+  Spelling:
     runs-on: self-hosted
     container:
       image: alpine:3.21
@@ -24,7 +24,7 @@ jobs:
       - run: ./scripts/check_spelling.sh ./desktop_application/
       - run: ./scripts/check_spelling.sh ./doc
       - run: ./scripts/check_spelling.sh ./nmcm
-  Lint-Scripts:
+  Scripts:
     runs-on: self-hosted
     container:
       image: alpine:latest
