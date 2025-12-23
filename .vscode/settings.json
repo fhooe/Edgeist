@@ -1,0 +1,6 @@
+{
+    "cmakeFormat.args": [
+        "-c",
+        "${workspaceFolder}/.cmake-format"
+    ],
+}

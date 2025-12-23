@@ -71,10 +71,6 @@
         },
         "cmake.generator": "Ninja",
         "cmake.configureOnOpen": true,
-        "cmake.options.statusBarVisibility": "visible",
-        "cmakeFormat.args": [
-            "-c",
-            "${workspaceFolder}/.cmake-format"
-        ]
+        "cmake.options.statusBarVisibility": "visible"
     }
 }
