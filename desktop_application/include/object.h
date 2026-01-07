@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Implements the base object for all classes.
+ * @brief Implements the base object for all classes
  */
 
 #ifndef OBJECT_H
@@ -8,7 +8,7 @@
 
 namespace Edgeist {
 /**
- * @brief Base object for all classes.
+ * @brief Base object for all classes
  **/
 class Object {
 public:

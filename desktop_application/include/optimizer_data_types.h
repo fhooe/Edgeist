@@ -1,7 +1,7 @@
 /**
  * @file
  * @author David Muttenthaler
- * @brief Defines base and derived classes for neural network optimizers.
+ * @brief Defines base and derived classes for neural network optimizers
  */
 
 #ifndef OPTIMIZER_DATA_TYPES
@@ -9,9 +9,10 @@
 
 #include "nmcf_error_types.h"
 #include <cmath>
+#include <cstdint>
 
 namespace Edgeist {
-enum class OptimizerID {
+enum class OptimizerID : std::uint8_t {
     SGD = 0,
     Momentum = 1,
     ADAM = 2

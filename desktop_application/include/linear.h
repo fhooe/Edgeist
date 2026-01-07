@@ -1,7 +1,7 @@
 /**
  * @file
  * @author David Muttenthaler
- * @brief Implements the fully connected (dense) linear layer.
+ * @brief Implements the fully connected (dense) linear layer
  */
 
 #ifndef LINEAR_H
@@ -13,7 +13,7 @@
 
 namespace Edgeist {
 /**
- * @brief Fully connected (dense) linear layer.
+ * @brief Fully connected (dense) linear layer
  *
  * Applies a linear transformation: `output = input * weight^T + bias`.
  * Commonly used for classification or regression tasks.
@@ -27,7 +27,7 @@ public:
         : Layer<T>(model)
         , m_ptrLayer(headerPointer)
         , m_ptrData(dataPointer)
-        , m_header(static_cast<Neural_Network_Linear_t*>(m_ptrLayer))
+        , m_header(static_cast<Nmcm::Linear::NeuralNetwork_t*>(m_ptrLayer))
         , m_optimizerType(optimizerType)
     {
         m_ptrWeightFrozen = static_cast<T*>(m_ptrLayer) + m_header->weights_frozen_offset * sizeof(T);
@@ -291,7 +291,7 @@ public:
         return uint32_t(m_header->dimensioninput_x);
     }
 
-    [[nodiscard]] auto header() const -> const Neural_Network_Linear_t&
+    [[nodiscard]] auto header() const -> const Nmcm::Linear::NeuralNetwork_t&
     {
         return *m_header;
     }
@@ -300,7 +300,7 @@ private:
     void* m_ptrLayer;
     void* m_ptrData;
 
-    Neural_Network_Linear_t* m_header;
+    Nmcm::Linear::NeuralNetwork_t* m_header;
 
     // chosen optimizer
     OptimizerID m_optimizerType;

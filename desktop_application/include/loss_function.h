@@ -1,7 +1,7 @@
 ﻿/**
  * @file
  * @author David Muttenthaler
- * @brief Implements loss functions for neural networks.
+ * @brief Implements loss functions for neural networks
  */
 
 #ifndef LOSS_FUNCTION_H
@@ -11,7 +11,7 @@
 
 namespace Edgeist {
 /**
- * @brief Linear loss function.
+ * @brief Linear loss function
  *
  * Implements a generic linear loss function for neural networks.
  *
@@ -23,7 +23,7 @@ public:
     virtual ~LossFunction() = default;
 
     /**
-     * @brief Calculates the loss between prediction and setpoint.
+     * @brief Calculates the loss between prediction and setpoint
      *
      * @param predicted Pointer to array of prediction values.
      * @param target Pointer to array of setpoints (ground truth).
@@ -33,7 +33,7 @@ public:
     virtual auto compute(const T* predicted, const T* target, std::size_t size) const -> T = 0;
 
     /**
-     * @brief Calculates the loss gradient for given prediction values.
+     * @brief Calculates the loss gradient for given prediction values
      *
      * @param predicted Pointer to array of prediction values.
      * @param target Pointer to array of setpoints (ground truth).
@@ -44,7 +44,7 @@ public:
 };
 
 /**
- * @brief Mean Squared Error (MSE) loss function.
+ * @brief Mean Squared Error (MSE) loss function
  *
  * This loss is commonly used for regression tasks. It computes the average
  * of the squared differences between predicted and target values.
@@ -80,7 +80,7 @@ public:
 };
 
 /**
- * @brief Cross-Entropy loss function (without softmax).
+ * @brief Cross-Entropy loss function (without softmax)
  *
  * This loss is typically used for classification tasks with outputs that
  * already represent probabilities (e.g., after a sigmoid or softmax).
@@ -113,7 +113,7 @@ public:
 };
 
 /**
- * @brief Cross-Entropy loss combined with softmax activation (logits input).
+ * @brief Cross-Entropy loss combined with softmax activation (logits input)
  *
  * This is a numerically stable implementation commonly used for multi-class
  * classification problems. The softmax is applied internally on the raw logits.
@@ -172,7 +172,7 @@ public:
 };
 
 /**
- * @brief Binary Cross-Entropy loss with integrated sigmoid activation.
+ * @brief Binary Cross-Entropy loss with integrated sigmoid activation
  *
  * This version is used for binary classification when the model outputs logits
  * (i.e., no activation applied yet). Internally applies sigmoid and computes

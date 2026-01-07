@@ -1,7 +1,7 @@
 /**
  * @file
  * @author David Muttenthaler
- * @brief Implements a template-based neural network model.
+ * @brief Implements a template-based neural network model
  */
 
 #ifndef NMCM_H
@@ -34,7 +34,7 @@ namespace Edgeist {
 using com = size_t;
 
 /**
- * @brief Template-based implementation of a neural network model.
+ * @brief Template-based implementation of a neural network model
  *
  * This class encapsulates all key operations of a neural network, including:
  *  - Initialization from flash memory
@@ -64,48 +64,48 @@ public:
             // Print Layers with IDs
             std::cout << "Layer: " << i << "; LayerID: " << std::to_string(layerId) << std::endl;
 
-            switch (static_cast<LayerIDs>(layerId)) {
-            case LayerIDs::Linear_ID:
+            switch (static_cast<Nmcm::LayerId>(layerId)) {
+            case Nmcm::LayerId::Linear:
                 m_layersInSRAM.push_back(std::make_shared<Linear<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
-            case LayerIDs::ReLU_ID:
+            case Nmcm::LayerId::ReLU:
                 m_layersInSRAM.push_back(std::make_shared<Relu<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
-            case LayerIDs::Softmax_ID:
+            case Nmcm::LayerId::Softmax:
                 m_layersInSRAM.push_back(std::make_shared<Softmax<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
-            case LayerIDs::Conv2d_ID:
+            case Nmcm::LayerId::Conv2d:
                 m_layersInSRAM.push_back(std::make_shared<Conv2D<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
-            case LayerIDs::Flatten_ID:
+            case Nmcm::LayerId::Flatten:
                 m_layersInSRAM.push_back(std::make_shared<Flatten<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
-            case LayerIDs::MaxPool2d_ID:
+            case Nmcm::LayerId::MaxPool2d:
                 m_layersInSRAM.push_back(std::make_shared<MaxPool2D<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
-            case LayerIDs::BatchNorm1d_ID:
+            case Nmcm::LayerId::BatchNorm1d:
                 m_layersInSRAM.push_back(std::make_shared<BatchNorm1D<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
-            case LayerIDs::BatchNorm2d_ID:
+            case Nmcm::LayerId::BatchNorm2d:
                 m_layersInSRAM.push_back(std::make_shared<BatchNorm2D<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
-            case LayerIDs::AdaptiveAvgPool1d_ID:
+            case Nmcm::LayerId::AdaptiveAvgPool1d:
                 m_layersInSRAM.push_back(std::make_shared<AdaptiveAvgPool1D<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
-            case LayerIDs::AdaptiveAvgPool2d_ID:
+            case Nmcm::LayerId::AdaptiveAvgPool2d:
                 m_layersInSRAM.push_back(std::make_shared<AdaptiveAvgPool2D<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
-            case LayerIDs::Dropout_ID:
+            case Nmcm::LayerId::Dropout:
                 m_layersInSRAM.push_back(std::make_shared<Dropout<T>>(this, getLayerPtr(i), m_ptrData, m_optimizerType));
                 break;
 
@@ -145,7 +145,7 @@ public:
         ptrLayerOutputData = new T[buffersize];
         ptrLayerInputData = new T[buffersize];
 
-        // Make a forward Pass throu all the Layers
+        // Make a forward Pass through all the Layers
         for (int i = 0; i < m_header->layernrs; i++) {
             // First Layer gets input from Method argument
             if (i == 0) {
@@ -277,7 +277,7 @@ public:
     }
 
     // access method for model header
-    [[nodiscard]] auto header() const -> const Neural_Network_Header_t&
+    [[nodiscard]] auto header() const -> const Nmcm::Header::NeuralNetwork_t&
     {
         return *m_header;
     }
@@ -316,7 +316,7 @@ public:
         , m_optimizerType(optimizerType)
     {
         // populate the Header
-        m_header = static_cast<Neural_Network_Header_t*>(m_ptrModel);
+        m_header = static_cast<Nmcm::Header::NeuralNetwork_t*>(m_ptrModel);
 
         // Initialize the layer pointer array with correct size
         m_ptrLayerPointers.resize(m_header->layernrs, nullptr);
@@ -324,7 +324,7 @@ public:
         // populate the layer Pointer array
         for (int i = 0; i < m_header->layernrs; i++) {
             // Add offset to the pointer address of header
-            size_t offset = (sizeof(Neural_Network_Header_t) - m_header->layernrs * 4) / sizeof(uint32_t) + i;
+            size_t offset = (sizeof(Nmcm::Header::NeuralNetwork_t) - m_header->layernrs * 4) / sizeof(uint32_t) + i;
             uint32_t* targetAddressOffset = static_cast<uint32_t*>(m_ptrModel) + offset;
 
             m_ptrLayerPointers[i] = std::shared_ptr<uint8_t>(static_cast<uint8_t*>(m_ptrModel) + *targetAddressOffset);
@@ -338,7 +338,7 @@ public:
 
 private:
     // Base Information from file
-    Neural_Network_Header_t* m_header = nullptr;
+    Nmcm::Header::NeuralNetwork_t* m_header = nullptr;
 
     // pointer to the model in Flash
     void* m_ptrModel = nullptr;
@@ -371,7 +371,7 @@ private:
     [[nodiscard]] auto getLayerPtr(const size_t layerNr) const -> void*
     {
         // Add offset to the pointer address of header
-        size_t offset = (sizeof(Neural_Network_Header_t) - m_header->layernrs * 4) / sizeof(uint32_t) + layerNr;
+        size_t offset = (sizeof(Nmcm::Header::NeuralNetwork_t) - m_header->layernrs * 4) / sizeof(uint32_t) + layerNr;
         uint32_t* targetAddress = static_cast<uint32_t*>(m_ptrModel) + offset;
 
         return static_cast<void*>(static_cast<uint8_t*>(m_ptrModel) + *targetAddress);

@@ -1,7 +1,7 @@
 /**
  * @file
  * @author David Muttenthaler
- * @brief Implements the 2D convolutional layer.
+ * @brief Implements the 2D convolutional layer
  */
 
 #ifndef CONV_2D_H
@@ -14,7 +14,7 @@
 
 namespace Edgeist {
 /**
- * @brief 2D convolutional layer.
+ * @brief 2D convolutional layer
  *
  * Applies a 2D convolution over an input image or feature map using learnable
  * filters (kernels), bias terms, and stride/padding configuration.
@@ -29,7 +29,7 @@ public:
         : Layer<T>(model)
         , m_ptrLayer(headerPointer)
         , m_ptrData(dataPointer)
-        , m_header(static_cast<Neural_Network_Conv2d_t*>(m_ptrLayer))
+        , m_header(static_cast<Nmcm::Conv2d::NeuralNetwork_t*>(m_ptrLayer))
         , m_optimizerType(optimizerType)
     {
         m_ptrWeightFrozen = static_cast<T*>(m_ptrLayer) + m_header->weights_frozen_offset * sizeof(T);
@@ -379,7 +379,7 @@ public:
         return uint32_t(m_header->dimensioninput_x * m_header->dimensioninput_y * m_header->channelsin);
     }
 
-    [[nodiscard]] auto header() const -> const Neural_Network_Conv2d_t&
+    [[nodiscard]] auto header() const -> const Nmcm::Conv2d::NeuralNetwork_t&
     {
         return *m_header;
     }
@@ -387,7 +387,7 @@ public:
 private:
     void* m_ptrLayer;
     void* m_ptrData;
-    Neural_Network_Conv2d_t* m_header;
+    Nmcm::Conv2d::NeuralNetwork_t* m_header;
 
     // chosen optimizer
     OptimizerID m_optimizerType;

@@ -1,7 +1,7 @@
 /**
  * @file
  * @author David Muttenthaler
- * @brief Implements the 1D batch normalization layer.
+ * @brief Implements the 1D batch normalization layer
  */
 
 #ifndef BATCH_NORM_1D_H
@@ -17,7 +17,7 @@ template <typename T>
 class Model;
 
 /**
- * @brief 1D batch normalization layer.
+ * @brief 1D batch normalization layer
  *
  * Applies batch normalization to 1D input (typically features across a batch).
  * Normalizes the input to zero mean and unit variance, followed by a learnable
@@ -33,7 +33,7 @@ public:
         : Layer<T>(model)
         , m_ptrLayer(headerPointer)
         , m_ptrData(dataPointer)
-        , m_header(static_cast<Neural_Network_BatchNorm1d_t*>(m_ptrLayer))
+        , m_header(static_cast<Nmcm::BatchNorm1d::NeuralNetwork_t*>(m_ptrLayer))
         , m_optimizerType(optimizerType)
     {
         BatchNorm1D::loadFromFlash();
@@ -257,7 +257,7 @@ public:
         }
 
         // SGD-Update of W and b
-        for (BatchNorm1d_DimensionInput_x_t i = 0; i < m_header->dimensioninput_x; ++i) {
+        for (Nmcm::BatchNorm1d::DimensionInput_x_t i = 0; i < m_header->dimensioninput_x; ++i) {
             m_weightPtr->update(i, m_ptrWeightGradient[i] / batchsize, this->m_model->m_learningRate, m_timestep);
             m_biasPtr->update(i, m_ptrBiasGradient[i] / batchsize, this->m_model->m_learningRate, m_timestep);
         }
@@ -328,7 +328,7 @@ public:
 private:
     void* m_ptrLayer;
     void* m_ptrData;
-    Neural_Network_BatchNorm1d_t* m_header;
+    Nmcm::BatchNorm1d::NeuralNetwork_t* m_header;
     OptimizerID m_optimizerType;
 
     double* m_runningMean = nullptr;

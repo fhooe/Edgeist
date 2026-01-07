@@ -1,7 +1,7 @@
 /**
  * @file
  * @author David Muttenthaler
- * @brief Implements the 2D max pooling layer.
+ * @brief Implements the 2D max pooling layer
  */
 
 #ifndef MAX_POOL_2D_H
@@ -16,7 +16,7 @@ template <typename T>
 class Model;
 
 /**
- * @brief 2D max pooling layer.
+ * @brief 2D max pooling layer
  *
  * Applies a 2D max pooling operation over the input, reducing spatial
  * dimensions by taking the maximum value in each kernel region.
@@ -31,7 +31,7 @@ public:
         : Layer<T>(model)
         , m_ptrLayer(headerPointer)
         , m_ptrData(dataPointer)
-        , m_header(static_cast<Neural_Network_MaxPool2d_t*>(m_ptrLayer))
+        , m_header(static_cast<Nmcm::MaxPool2d::NeuralNetwork_t*>(m_ptrLayer))
         , m_optimizerType(optimizerType)
         , m_argMax(nullptr)
     {
@@ -164,7 +164,7 @@ public:
 private:
     void* m_ptrLayer;
     void* m_ptrData;
-    Neural_Network_MaxPool2d_t* m_header;
+    Nmcm::MaxPool2d::NeuralNetwork_t* m_header;
     OptimizerID m_optimizerType;
     uint32_t* m_argMax;
 };

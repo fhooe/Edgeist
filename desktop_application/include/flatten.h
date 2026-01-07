@@ -1,7 +1,7 @@
 /**
  * @file
  * @author David Muttenthaler
- * @brief Implements the flatten layer.
+ * @brief Implements the flatten layer
  */
 
 #ifndef FLATTEN_H
@@ -16,7 +16,7 @@ template <typename T>
 class Model;
 
 /**
- * @brief Flatten layer.
+ * @brief Flatten layer
  *
  * Flattens a multi-dimensional input tensor into a 1D tensor.
  * Commonly used to connect convolutional layers with fully connected layers.
@@ -30,7 +30,7 @@ public:
         : Layer<T>(model)
         , m_ptrLayer(headerPointer)
         , m_ptrData(dataPointer)
-        , m_header(static_cast<Neural_Network_Flatten_t*>(m_ptrLayer))
+        , m_header(static_cast<Nmcm::Flatten::NeuralNetwork_t*>(m_ptrLayer))
         , m_optimizerType(optimizerType)
     {
     }
@@ -78,7 +78,7 @@ public:
         return uint32_t(m_header->dimensioninput_x);
     }
 
-    [[nodiscard]] auto header() const -> const Neural_Network_Flatten_t&
+    [[nodiscard]] auto header() const -> const Nmcm::Flatten::NeuralNetwork_t&
     {
         return *m_header;
     }
@@ -89,7 +89,7 @@ private:
     void* m_ptrData;
 
     // Pointer to the Layer in Flash
-    Neural_Network_Flatten_t* m_header;
+    Nmcm::Flatten::NeuralNetwork_t* m_header;
 
     // chosen optimizer
     OptimizerID m_optimizerType;
