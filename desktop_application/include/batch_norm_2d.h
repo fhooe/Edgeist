@@ -1,7 +1,7 @@
 /**
  * @file
  * @author David Muttenthaler
- * @brief Implements the 2D batch normalization layer.
+ * @brief Implements the 2D batch normalization layer
  */
 
 #ifndef BATCH_NORM_2D_H
@@ -16,7 +16,7 @@ template <typename T>
 class Model;
 
 /**
- * @brief 2D batch normalization Layer.
+ * @brief 2D batch normalization Layer
  *
  * Applies batch normalization to 2D input (e.g., channels in a 2D image tensor).
  * Normalizes each channel separately across the batch.
@@ -31,7 +31,7 @@ public:
         : Layer<T>(model)
         , m_ptrLayer(headerPointer)
         , m_ptrData(dataPointer)
-        , m_header(static_cast<Neural_Network_BatchNorm2d_t*>(m_ptrLayer))
+        , m_header(static_cast<Nmcm::BatchNorm2d::NeuralNetwork_t*>(m_ptrLayer))
         , m_optimizerType(optimizerType)
     {
         m_runningMean = new double[m_header->channelsin];
@@ -362,7 +362,7 @@ public:
 private:
     void* m_ptrLayer;
     void* m_ptrData;
-    Neural_Network_BatchNorm2d_t* m_header;
+    Nmcm::BatchNorm2d::NeuralNetwork_t* m_header;
     OptimizerID m_optimizerType;
 
     double* m_runningMean = nullptr;

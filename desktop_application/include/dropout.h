@@ -1,7 +1,7 @@
 /**
  * @file
  * @author David Muttenthaler
- * @brief Implements the dropout layer.
+ * @brief Implements the dropout layer
  */
 
 #ifndef DROPOUT_H
@@ -15,7 +15,7 @@
 
 namespace Edgeist {
 /**
- * @brief Dropout layer.
+ * @brief Dropout layer
  *
  * Randomly zeroes some of the elements of the input tensor during training
  * with a probability `p`, helping prevent overfitting.
@@ -30,7 +30,7 @@ public:
         : Layer<T>(model)
         , m_ptrLayer(headerPointer)
         , m_ptrData(dataPointer)
-        , m_header(static_cast<Neural_Network_Dropout_t*>(m_ptrLayer))
+        , m_header(static_cast<Nmcm::Dropout::NeuralNetwork_t*>(m_ptrLayer))
         , m_optimizerType(optimizerType)
         , m_rng(std::random_device {}())
     {
@@ -134,7 +134,7 @@ public:
 private:
     void* m_ptrLayer;
     void* m_ptrData;
-    Neural_Network_Dropout_t* m_header;
+    Nmcm::Dropout::NeuralNetwork_t* m_header;
     OptimizerID m_optimizerType;
 
     std::vector<T> m_dropoutMask;

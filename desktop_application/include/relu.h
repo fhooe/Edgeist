@@ -1,7 +1,7 @@
 /**
  * @file
  * @author David Muttenthaler
- * @brief Implements the rectified linear unit (ReLU) activation layer.
+ * @brief Implements the Rectified Linear Unit (ReLU) activation layer
  */
 
 #ifndef RELU_H
@@ -17,7 +17,7 @@ template <typename T>
 class Model;
 
 /**
- * @brief Rectified Linear Unit (ReLU) Activation Layer.
+ * @brief Rectified Linear Unit (ReLU) activation layer
  *
  * Applies the function `f(x) = max(0, x)` element-wise.
  * Adds non-linearity to the network and prevents vanishing gradients.
@@ -31,7 +31,7 @@ public:
         : Layer<T>(model)
         , mPtrLayer(headerPointer)
         , mPtrData(dataPointer)
-        , mHeader(static_cast<Neural_Network_ReLU_t*>(mPtrLayer))
+        , mHeader(static_cast<Nmcm::ReLU::NeuralNetwork_t*>(mPtrLayer))
         , mOptimizerType(optimizerType)
     {
         this->m_inputData = nullptr;
@@ -131,7 +131,7 @@ public:
         return uint32_t(mHeader->dimensioninput_x);
     }
 
-    [[nodiscard]] auto header() const -> const Neural_Network_ReLU_t&
+    [[nodiscard]] auto header() const -> const Nmcm::ReLU::NeuralNetwork_t&
     {
         return *mHeader;
     }
@@ -142,7 +142,7 @@ private:
     void* mPtrData;
 
     // pointer to the layer in flash
-    Neural_Network_ReLU_t* mHeader;
+    Nmcm::ReLU::NeuralNetwork_t* mHeader;
 
     // chosen optimizer
     OptimizerID mOptimizerType;

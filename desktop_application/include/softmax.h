@@ -1,7 +1,7 @@
 /**
  * @file
  * @author David Muttenthaler
- * @brief Implements the softmax activation layer.
+ * @brief Implements the softmax activation layer
  */
 
 #ifndef SOFTMAX_H
@@ -18,7 +18,7 @@ template <typename T>
 class Model;
 
 /**
- * @brief Softmax activation layer.
+ * @brief Softmax activation layer
  *
  * Converts raw logits into probabilities by exponentiating and normalizing.
  * Used as the final layer in multi-class classification tasks.
@@ -34,7 +34,7 @@ public:
         : Layer<T>(model)
         , mPtrLayer(headerPointer)
         , mPtrData(dataPointer)
-        , mHeader(static_cast<Neural_Network_Softmax_t*>(mPtrLayer))
+        , mHeader(static_cast<Nmcm::Softmax::NeuralNetwork_t*>(mPtrLayer))
         , mOptimizerType(optimizerType)
     {
         this->m_inputData = nullptr;
@@ -152,7 +152,7 @@ public:
         return uint32_t(mHeader->dimensioninput_x);
     }
 
-    [[nodiscard]] auto header() const -> const Neural_Network_Softmax_t&
+    [[nodiscard]] auto header() const -> const Nmcm::Softmax::NeuralNetwork_t&
     {
         return *mHeader;
     }
@@ -163,7 +163,7 @@ private:
     void* mPtrData;
 
     // Pointer to the Layer in Flash
-    Neural_Network_Softmax_t* mHeader;
+    Nmcm::Softmax::NeuralNetwork_t* mHeader;
 
     // chosen optimizer
     OptimizerID mOptimizerType;

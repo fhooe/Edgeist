@@ -1,7 +1,7 @@
 /**
  * @file
  * @author David Muttenthaler
- * @brief Implements the 2D adaptive average pooling layer.
+ * @brief Implements the 2D adaptive average pooling layer
  */
 
 #ifndef ADAPTIVE_AVG_POOL_2D_H
@@ -14,7 +14,7 @@
 
 namespace Edgeist {
 /**
- * @brief 2D adaptive average pooling layer.
+ * @brief 2D adaptive average pooling layer
  *
  * Performs average pooling on 2D input (e.g. images), adapting the pooling
  * regions to achieve a desired fixed output size regardless of input size.
@@ -29,7 +29,7 @@ public:
         : Layer<T>(model)
         , m_ptrLayer(headerPointer)
         , m_ptrData(dataPointer)
-        , m_header(static_cast<Neural_Network_AdaptiveAvgPool2d_t*>(m_ptrLayer))
+        , m_header(static_cast<Nmcm::AdaptiveAvgPool2d::NeuralNetwork_t*>(m_ptrLayer))
         , m_optimizerType(optimizerType)
     {
         AdaptiveAvgPool2D::loadFromFlash();
@@ -154,7 +154,7 @@ public:
 private:
     void* m_ptrLayer;
     void* m_ptrData;
-    Neural_Network_AdaptiveAvgPool2d_t* m_header;
+    Nmcm::AdaptiveAvgPool2d::NeuralNetwork_t* m_header;
     OptimizerID m_optimizerType;
 };
 } // namespace Edgeist

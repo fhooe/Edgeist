@@ -1,7 +1,7 @@
 /**
  * @file
  * @author David Muttenthaler
- * @brief Implements the 1D adaptive average pooling layer.
+ * @brief Implements the 1D adaptive average pooling layer
  */
 
 #ifndef ADAPTIVE_AVG_POOL_1D_H
@@ -15,7 +15,7 @@
 
 namespace Edgeist {
 /**
- * @brief 1D adaptive average pooling layer.
+ * @brief 1D adaptive average pooling layer
  *
  * This layer applies average pooling over a 1D input signal, automatically
  * adjusting the kernel and stride size to produce the specified output size.
@@ -32,7 +32,7 @@ public:
         : Layer<T>(model)
         , m_ptrLayer(headerPointer)
         , m_ptrData(dataPointer)
-        , m_header(static_cast<Neural_Network_AdaptiveAvgPool1d_t*>(m_ptrLayer))
+        , m_header(static_cast<Nmcm::AdaptiveAvgPool1d::NeuralNetwork_t*>(m_ptrLayer))
         , m_optimizerType(optimizerType)
     {
         AdaptiveAvgPool1D::loadFromFlash();
@@ -143,7 +143,7 @@ public:
 private:
     void* m_ptrLayer;
     void* m_ptrData;
-    Neural_Network_AdaptiveAvgPool1d_t* m_header;
+    Nmcm::AdaptiveAvgPool1d::NeuralNetwork_t* m_header;
     OptimizerID m_optimizerType;
 };
 } // namespace Edgeist

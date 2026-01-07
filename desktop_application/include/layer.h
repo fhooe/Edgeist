@@ -1,7 +1,7 @@
 /**
  * @file
  * @author David Muttenthaler
- * @brief Implements the base class for all neural network layers.
+ * @brief Implements the base class for all neural network layers
  */
 
 #ifndef LAYER_H
@@ -9,13 +9,14 @@
 
 #include "nmcf_error_types.h"
 #include "object.h"
+#include <cstdint>
 
 namespace Edgeist {
 template <typename T>
 class Model;
 
 /**
- * @brief Base class for all neural network layers.
+ * @brief Base class for all neural network layers
  *
  * This abstract class defines the common interface and behavior for all neural
  * network layers, including forward and backward passes, weight updates,...
