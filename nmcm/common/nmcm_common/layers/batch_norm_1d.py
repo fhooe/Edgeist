@@ -5,9 +5,11 @@ from nmcm_common.utils.masks import Masks
 
 
 class BatchNorm1d(Layer):
+    #: The ID of the layer.
+    LAYER_ID = 10
+
     def __init__(self, config):
         super().__init__(config)
-        self.LayerId = 10
         self.datatype = object
         self.Offset_Tabel_pos = 0
 
@@ -22,7 +24,7 @@ class BatchNorm1d(Layer):
             is_pruned = True
 
         self.data["LayerNr"] = idx
-        self.data["ID"] = self.LayerId
+        self.data["ID"] = BatchNorm1d.LAYER_ID
         self.data["predecessorNr"] = 1
         self.data["predecessors"] = [idx - 1] if idx != 0 else [0]
         self.data["DimensionInput_x"] = modelinfo["input_shape"][1]  # Input width

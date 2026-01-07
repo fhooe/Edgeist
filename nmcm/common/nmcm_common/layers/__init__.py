@@ -12,3 +12,18 @@ from nmcm_common.layers.linear import Linear
 from nmcm_common.layers.max_pool_2d import MaxPool2d
 from nmcm_common.layers.relu import ReLU
 from nmcm_common.layers.softmax import Softmax
+
+#: Lists all available layers.
+LAYERS = [
+    AdaptiveAvgPool1d,
+    AdaptiveAvgPool2d,
+    BatchNorm1d,
+    BatchNorm2d,
+    Conv2d,
+    Dropout,
+    Flatten,
+    Linear,
+    MaxPool2d,
+    ReLU,
+    Softmax,
+]

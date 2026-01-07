@@ -3,9 +3,11 @@ from nmcm_common.utils.masks import Masks
 
 
 class Dropout(Layer):
+    #: The ID of the layer.
+    LAYER_ID = 4
+
     def __init__(self, config):
         super().__init__(config)
-        self.LayerId = 4
 
     def define_data(self, idx: int, modelinfo, masks: Masks = None):
         dimension = 1
@@ -15,7 +17,7 @@ class Dropout(Layer):
 
         # define all possible values of this layer without order
         self.data["LayerNr"] = idx
-        self.data["ID"] = self.LayerId
+        self.data["ID"] = Dropout.LAYER_ID
         self.data["predecessorNr"] = 1
         self.data["predecessors"] = [idx - 1] if idx != 0 else [0]
         self.data["DimensionInput_x"] = dimension  # Input width

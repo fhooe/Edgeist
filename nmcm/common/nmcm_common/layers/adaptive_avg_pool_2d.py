@@ -3,13 +3,15 @@ from nmcm_common.utils.masks import Masks
 
 
 class AdaptiveAvgPool2d(Layer):
+    #: The ID of the layer.
+    LAYER_ID = 9
+
     def __init__(self, config):
         super().__init__(config)
-        self.LayerId = 9
 
     def define_data(self, idx: int, modelinfo, masks: Masks = None):
         self.data["LayerNr"] = idx
-        self.data["ID"] = self.LayerId
+        self.data["ID"] = AdaptiveAvgPool2d.LAYER_ID
         self.data["predecessorNr"] = 1
         self.data["predecessors"] = [idx - 1] if idx != 0 else [0]
         self.data["DimensionInput_x"] = modelinfo["input_shape"][2]
