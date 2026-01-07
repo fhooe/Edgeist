@@ -156,7 +156,7 @@ def main(args):
     # generate outputs
     model_struct = hex_writer.writeHEX(model_struct)
     json_writer.writeJSON(model_struct)
-    h_writer.writeH(configdata, model_struct)
+    h_writer.write(configdata, model_struct)
 
 
 if __name__ == "__main__":

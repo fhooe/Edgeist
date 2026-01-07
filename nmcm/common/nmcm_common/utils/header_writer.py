@@ -5,9 +5,12 @@ import pathlib
 
 
 class HeaderWriter:
+    #: defines the spaces used instead of a tab as according to the clang-format rules.
+    _TAB = "    "
+
     def __init__(self, typefile: str, structfile: str, enumfile: str):
         """
-        Constructor of the class H_writter
+        Constructor of the class HeaderWriter
 
         Checks fileending is valid .h
 
@@ -36,7 +39,7 @@ class HeaderWriter:
         if self.enum_file.split(".")[-1] != "h":
             raise ValueError(f"Enum-file '{self.enum_file}' is missing the '.h' file extension")
 
-    def writeH(self, config, model_struct):
+    def write(self, config, model_struct):
         """
         Creates or clears the outputfile.
         writes all types and the version from the config
@@ -45,12 +48,12 @@ class HeaderWriter:
         Parameters:
         config (dic): data of the configfile as dictionary
         """
-        self.__write_Typefile(config)
-        self.__write_Structfile(config)
-        self.__write_Enumfile(model_struct)
+        self._write_type_header(config)
+        self._write_struct_header(config)
+        self._write_enum_header(model_struct)
 
     # Helper function to map the typenames to cpp compatible ones
-    def __map_cpp_type(self, typename: str) -> str:
+    def _map_to_cpp_type(self, typename: str) -> str:
         mapping = {
             "float32_t": "float",
             "float64_t": "double",
@@ -65,15 +68,15 @@ class HeaderWriter:
             "uint64_t": "uint64_t",
         }
         if typename not in mapping:
-            print(f"Warnung: unbekannter Typ '{typename}', wird roh verwendet.")
+            raise ValueError(f"Unknown type '{typename}'")
         return mapping.get(typename, typename)
 
-    def __write_Typefile(self, config):
+    def _write_type_header(self, config):
         with open(self.type_file, "w") as outfile:
-            outfile.write("#ifndef " + self.type_filename.upper() + "_H\n")
-            outfile.write("#define " + self.type_filename.upper() + "_H\n")
+            outfile.write(f"#ifndef {self.type_filename.upper()}_H\n")
+            outfile.write(f"#define {self.type_filename.upper()}_H\n")
             outfile.write("\n")
-            outfile.write("#include<stdint.h>\n")
+            outfile.write("#include <cstdint>\n")
 
             for key, _ in config.items():
                 if key == "Offset_Table":
@@ -82,92 +85,72 @@ class HeaderWriter:
                 if key == "Config-Info":
                     # this section has no types but the version string
                     outfile.write("\n")
-                    outfile.write("// " + key + "-Types\n")
-                    outfile.write('#define version_str "' + config[key]["Version"][1] + '"\n')
-                    outfile.write("typedef " + config[key]["ID"][1] + " ID_t;\n")
-                    outfile.write("typedef " + config[key]["Offset_Table"][1] + " Offset_Table_entry;\n")
+                    outfile.write(f"// {key}-Types\n")
+                    outfile.write(f'static constexpr auto* VERSION_STR = "' + config[key]["Version"][1] + '";\n')
+                    outfile.write(f"using ID_t = {config[key]["ID"][1]};\n")
+                    outfile.write(f"using Offset_Table_entry = {config[key]["Offset_Table"][1]};\n")
                     outfile.write("\n")
                 else:
-                    outfile.write("// " + key + "-Types\n")
+                    outfile.write(f"// {key}-Types\n")
                     # write datatypes
                     for name, typeinfo in config[key].items():
-                        mapped_type = self.__map_cpp_type(typeinfo[1])
-                        outfile.write("\ttypedef " + mapped_type + " " + key + "_" + name + "_t;\n")
+                        mapped_type = self._map_to_cpp_type(typeinfo[1])
+                        outfile.write(f"using {key}_{name}_t = {mapped_type};\n")
 
                     outfile.write("\n")
 
-            outfile.write("#endif")
+            outfile.write(f"#endif // {self.type_filename.upper()}_H")
 
-    def __write_Structfile(self, config):
+    def _write_struct_header(self, config):
         with open(self.struct_file, "w") as outfile:
-            outfile.write("#ifndef " + self.struct_filename.upper() + "_H\n")
-            outfile.write("#define " + self.struct_filename.upper() + "_H\n")
+            outfile.write(f"#ifndef {self.struct_filename.upper()}_H\n")
+            outfile.write(f"#define {self.struct_filename.upper()}_H\n")
             outfile.write("\n")
-            outfile.write('#include "' + self.type_filename + '.h"\n')
+            outfile.write(f'#include "{self.type_filename}.h"\n')
             outfile.write("\n")
 
-            for key, value in config.items():
+            for key, _ in config.items():
                 if key != "Config-Info" and key != "Offset_Table":
-                    outfile.write("// " + key + "-Struct\n")
+                    outfile.write(f"// {key}-Struct\n")
                     outfile.write("#pragma pack(push, 1)\n")
-                    outfile.write("typedef struct{\n")
+                    outfile.write("struct Neural_Network_" + key + "_t {\n")
 
                     for name, typeinfo in config[key].items():
                         if typeinfo[0] == 1:
-                            outfile.write("\t" + key + "_" + name + "_t " + name.lower() + ";\n")
+                            outfile.write(f"{HeaderWriter._TAB}{key}_{name}_t {name.lower()};\n")
                         elif typeinfo[0] == 0:
                             # should be a pointer
-                            outfile.write("\t" + key + "_" + name + "_t* " + name.lower() + ";\n")
+                            outfile.write(f"{HeaderWriter._TAB}{key}_{name}_t* {name.lower()};\n")
                         else:
-                            outfile.write(
-                                "\t" + key + "_" + name + "_t " + name.lower() + "[" + str(typeinfo[0]) + "];\n"
-                            )
+                            outfile.write(f"{HeaderWriter._TAB}{key}_{name}_t {name.lower()} [{str(typeinfo[0])}];\n")
 
-                    outfile.write("} Neural_Network_" + key + "_t;\n")
+                    outfile.write("};\n")
                     outfile.write("#pragma pack(pop)\n")
                     outfile.write("\n")
 
             outfile.write("#endif")
 
     # write all IDs of the Layers in ./Layers
-    def __write_Enumfile(self, model_struct):
-        from nmcm_common.layers.layer import Layer
+    def _write_enum_header(self, model_struct):
+        from nmcm_common.layers import LAYERS
         from nmcm_common.utils.datatype import Datatype
 
         types = Datatype.get_all_datatypes()
 
         with open(self.enum_file, "w") as outfile:
-            outfile.write("#ifndef " + self.enum_filename.upper() + "_H\n")
-            outfile.write("#define " + self.enum_filename.upper() + "_H\n\n")
+            outfile.write(f"#ifndef {self.enum_filename.upper()}_H\n")
+            outfile.write(f"#define {self.enum_filename.upper()}_H\n\n")
 
             # DataEncodingIDs
-            outfile.write("enum class DataEncodingIDs\n{\n")
+            outfile.write("enum class DataEncodingIDs {\n")
             for val in types:
-                outfile.write("\t " + Datatype.get_str(val).removesuffix("_t") + "_ID = " + str(val) + ",\n")
+                outfile.write(f"{HeaderWriter._TAB}{Datatype.get_str(val).removesuffix("_t")}_ID = {str(val)},\n")
             outfile.write("};\n\n")
 
-            # LayerIDs – dynamisch aus ./Layers/
-            outfile.write("enum class LayerIDs\n{\n")
+            outfile.write("enum class LayerIDs {\n")
 
-            layer_dir = pathlib.Path("./Layers")
-            for file in layer_dir.glob("*.py"):
-                if file.name == "__init__.py":
-                    continue
-
-                module_name = file.stem
-                spec = importlib.util.spec_from_file_location(module_name, str(file))
-                mod = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(mod)
-
-                for name, obj in inspect.getmembers(mod, inspect.isclass):
-                    if issubclass(obj, Layer) and obj is not Layer:
-                        try:
-                            layer_instance = obj(config={})  # evtl. Dummy config anpassen
-                            layer_id = getattr(layer_instance, "LayerId", None)
-                            if layer_id is not None:
-                                outfile.write(f"\t {name}_ID = {layer_id},\n")
-                        except Exception as e:
-                            print(f"WARNING: Could not initialize class '{name}': '{e}'")
+            for layer in LAYERS:
+                outfile.write(f"{HeaderWriter._TAB}{layer.__name__}_ID = {layer.LAYER_ID},\n")
 
             outfile.write("};\n\n")
             outfile.write("#endif")
