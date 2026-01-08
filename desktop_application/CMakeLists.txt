@@ -7,3 +7,4 @@ if(ENABLE_TESTS_${TARGET_NAME})
 endif()
 
 add_target(${TARGET_NAME} "EXECUTABLE")
+target_link_boost_po(${TARGET_NAME})

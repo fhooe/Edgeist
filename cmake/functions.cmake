@@ -96,7 +96,7 @@ function(add_test_target TEST_NAME TARGET_TYPE TARGET_NAME TESTS_SRC)
             target_include_directories("${TEST_NAME}" PRIVATE "tests" "${fff_SOURCE_DIR}")
             target_compile_options("${TEST_NAME}" PRIVATE "--coverage")
             target_link_options("${TEST_NAME}" PRIVATE "--coverage")
-            set_property(TARGET "${TEST_NAME}" PROPERTY CXX_STANDARD 17)
+            set_property(TARGET "${TEST_NAME}" PROPERTY CXX_STANDARD 23)
             if(NOT ${TARGET_TYPE} STREQUAL "INTERFACE")
                 target_link_libraries("${TARGET_NAME}" PRIVATE "-lgcov")
                 target_compile_options("${TARGET_NAME}" PRIVATE "--coverage")
@@ -164,7 +164,7 @@ function(add_target TARGET_NAME TARGET_TYPE)
         message(FATAL_ERROR "Wrong target type passed!")
     endif()
 
-    set_property(TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 17)
+    set_property(TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 23)
 
     enable_clang_tidy(${TARGET_NAME})
 
@@ -232,7 +232,7 @@ function(add_target TARGET_NAME TARGET_TYPE)
         target_include_directories(${TARGET_NAME} PUBLIC "${PROJECT_BINARY_DIR}")
     endif()
 
-    set_property(TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 17)
+    set_property(TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 23)
 endfunction()
 
 # ! get_version_info : This function gets version info variables with the help of git.
@@ -333,4 +333,25 @@ function(get_version_info prj_version prj_year prj_timestamp prj_revision)
     set(${prj_year} "${YEAR}" PARENT_SCOPE)
     set(${prj_timestamp} "${TODAY}" PARENT_SCOPE)
     set(${prj_revision} "${git_revision}" PARENT_SCOPE)
+endfunction()
+
+#! target_link_boost : Adds target_link_boost as dependency for the target.
+#
+# \arg:TARGET_NAME Name of the target
+# \arg:LINK_TYPE Optional, specify how to link boost (either INTERFACE, PRIVATE or PUBLIC; defaults to PUBLIC).
+function(target_link_boost_po TARGET_NAME)
+    if (${ARGC} EQUAL 2)
+        set(LINK_TYPE ${ARGV1})
+    else ()
+        set(LINK_TYPE "PUBLIC")
+    endif ()
+
+    include(FetchContent)
+    set(BOOST_LIBRARY_VERSION "boost-1.90.0" CACHE STRING "Version of the boost library to use.")
+    FetchContent_Declare(Boost GIT_REPOSITORY https://github.com/boostorg/boost.git GIT_TAG ${BOOST_LIBRARY_VERSION} GIT_SHALLOW TRUE)
+    set(BOOST_ENABLE_CMAKE ON)
+    set(BOOST_INCLUDE_LIBRARIES program_options)
+    set(BUILD_SHARED_LIBS OFF)
+    FetchContent_MakeAvailable(Boost)
+    target_link_libraries(${TARGET_NAME} ${LINK_TYPE} Boost::program_options)
 endfunction()
