@@ -106,9 +106,9 @@ The binary can be run on the host, or, in case of the STM32-examples, flashed an
 
 > Before being able to build `desktop-application`,`mncm_parser` must be run.
 > This generates the required files, which must be copied to [generated](desktop_application/generated):
-> * Modelenums.h
-> * Modelstructs.h
-> * Modeltypes.h
+> * model_enums.h
+> * model_structs.h
+> * model_types.h
 
 ### Python-Projects
 
