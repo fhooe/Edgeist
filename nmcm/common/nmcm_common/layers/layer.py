@@ -81,7 +81,7 @@ class Layer(ABC):
             if not (key in self.data):
                 raise RuntimeError(f"Key: '{key}' is not defined in Layer '{self.name}'")
 
-            if key == next(iter(config["Offset_Table"])):
+            if key == next(iter(config["offsetTable"])):
                 offset_table_pos = len(self.hex_data)
 
             # add data to json
@@ -115,7 +115,7 @@ class Layer(ABC):
                 self.hex_data = data
 
             # write local offset
-            offset_data = HexConverter(offset, self.config["Config-Info"]["Offset_Table"][1])
+            offset_data = HexConverter(offset, self.config["configInfo"]["offsetTable"][1])
             self.hex_data = (
                 self.hex_data[:offset_tabel_pos] + offset_data + self.hex_data[offset_tabel_pos + len(offset_data) :]
             )

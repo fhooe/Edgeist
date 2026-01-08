@@ -27,9 +27,9 @@ def Sizeof(datatype: str) -> int:
 
 
 def update_header_offset_length(model_struct, config):
-    config["Header"]["Layer_Offset_Table"] = (
+    config["Header"]["Layer_offsetTable"] = (
         model_struct[0].data["LayerNrs"],
-        config["Header"]["Layer_Offset_Table"][1],
+        config["Header"]["Layer_offsetTable"][1],
     )
 
     return config

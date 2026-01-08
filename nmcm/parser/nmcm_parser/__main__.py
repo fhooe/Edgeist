@@ -129,18 +129,18 @@ def main(args: argparse.Namespace) -> None:
 
         mask.Weight_Mask = None
 
-        try:
-            # Create correct layer class
-            class_instance = dynamic_class(configdata)
-            class_instance.define_data(idx, value, mask)
-            class_instance.generate_data()
-            model_struct.append(class_instance)
+        #        try:
+        # Create correct layer class
+        class_instance = dynamic_class(configdata)
+        class_instance.define_data(idx, value, mask)
+        class_instance.generate_data()
+        model_struct.append(class_instance)
 
-            print(f"[INFO] Conversion of Layer {idx+1}: {classname} completed")
+        print(f"[INFO] Conversion of Layer {idx+1}: {classname} completed")
 
-        except Exception as e:
-            print(f"[ERROR] Error converting Layer {idx+1} ({classname}): {e}")
-            sys.exit(-1)
+        #        except Exception as e:
+        #            print(f"[ERROR] Error converting Layer {idx+1} ({classname}): {e}")
+        #            sys.exit(-1)
 
         idx += 1
 

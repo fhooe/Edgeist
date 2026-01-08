@@ -37,13 +37,13 @@ class ConfigParser:
                         amount_s = line.split(":")[-1].split("*")[0].strip()
                         amount = int(amount_s) if amount_s.isdigit() else 1
 
-                        if datatype == "Offset_Table_t":
-                            for offset_name, offset_info in configdata["Offset_Table"].items():
+                        if datatype == "OffsetTable":
+                            for offset_name, offset_info in configdata["offsetTable"].items():
                                 configdata[currentSegment][offset_name] = offset_info
-                        elif datatype == "Offset_Table":
+                        elif datatype == "offsetTable":
                             configdata[currentSegment][name] = (
                                 amount,
-                                configdata["Config-Info"]["Offset_Table"][1],
+                                configdata["configInfo"]["offsetTable"][1],
                             )
                         else:
                             configdata[currentSegment][name] = (amount, datatype)
@@ -53,10 +53,10 @@ class ConfigParser:
                         pass
 
         # add ID at the beginning of every Layer
-        for key, value in configdata["Config-Info"].items():
+        for key, value in configdata["configInfo"].items():
             if key == "ID":
                 for name, data in configdata.items():
-                    if name != "Config-Info" and name != "Offset_Table" and name != "Header":
+                    if name != "configInfo" and name != "offsetTable" and name != "Header":
                         data[key] = value
                         data.move_to_end(key, last=False)
 

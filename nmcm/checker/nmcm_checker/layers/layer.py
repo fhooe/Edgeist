@@ -21,12 +21,12 @@ class Layer(ABC):
         pass
 
     def _read_offset_table(self, data, data_read):
-        self.json_data["Offset_Table"] = []
+        self.json_data["offsetTable"] = []
         # read Offset Table
         datasize = Sizeof("uint32_t")
         for i in range(0, 7):
             current_data = data[:datasize]
-            self.json_data["Offset_Table"].append(BinaryConverter(current_data, "uint32_t"))
+            self.json_data["offsetTable"].append(BinaryConverter(current_data, "uint32_t"))
             data = data[datasize:]
             data_read += datasize
 
@@ -51,14 +51,14 @@ class Layer(ABC):
     def _read_data(self, data, name, pos, data_read):
         datasize = Sizeof("float32_t")
         used = self.json_data[name]
-        if self.json_data["Offset_Table"][pos] != 0:
+        if self.json_data["offsetTable"][pos] != 0:
             # trainable weights
             self.json_data[name + "_trainable"] = []
             data, data_read = self.align(data, data_read, datasize)
-            if self.json_data["Offset_Table"][pos + 1] != 0:
+            if self.json_data["offsetTable"][pos + 1] != 0:
                 # split
                 trainable_weights = (
-                    self.json_data["Offset_Table"][pos + 1] - self.json_data["Offset_Table"][pos]
+                    self.json_data["offsetTable"][pos + 1] - self.json_data["offsetTable"][pos]
                 ) // datasize
                 for idx in range(0, trainable_weights):
                     current_data = data[:datasize]
@@ -78,7 +78,7 @@ class Layer(ABC):
                 used = 0
 
         pos += 1
-        if self.json_data["Offset_Table"][pos] != 0:
+        if self.json_data["offsetTable"][pos] != 0:
             # frozen weights
             self.json_data[name + "_frozen"] = []
             data, data_read = self.align(data, data_read, datasize)

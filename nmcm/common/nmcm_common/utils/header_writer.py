@@ -154,15 +154,15 @@ class HeaderWriter:
             outfile.write(HeaderWriter._begin_namespace(HeaderWriter._WRAPPER_NAMESPACE))
 
             for index, (key, _) in enumerate(config.items()):
-                if key == "Offset_Table":
+                if key == "offsetTable":
                     continue
 
-                if key == "Config-Info":
+                if key == "configInfo":
                     # this section has no types but the version string
                     outfile.write(f"// {key}-types\n")
                     outfile.write(f'constexpr auto* VERSION_STR = "' + config[key]["Version"][1] + '";\n')
-                    outfile.write(f"using ID_t = {config[key]["ID"][1]};\n")
-                    outfile.write(f"using Offset_Table_entry = {config[key]["Offset_Table"][1]};\n")
+                    outfile.write(f"using Id = {config[key]["ID"][1]};\n")
+                    outfile.write(f"using OffsetTableEntry = {config[key]["offsetTable"][1]};\n")
                 else:
                     outfile.write(f"// {key}-types\n")
                     # write datatypes
@@ -171,7 +171,7 @@ class HeaderWriter:
                         outfile.write(HeaderWriter._begin_namespace(key))
                         for name, typeinfo in config[key].items():
                             mapped_type = self._map_to_cpp_type(typeinfo[1])
-                            outfile.write(f"{HeaderWriter._TAB}using {name}_t = {mapped_type};\n")
+                            outfile.write(f"{HeaderWriter._TAB}using {name} = {mapped_type};\n")
                         outfile.write(HeaderWriter._end_namespace(key))
                 if index < (len(config) - 1):
                     outfile.write("\n")
@@ -191,21 +191,21 @@ class HeaderWriter:
             outfile.write(HeaderWriter._begin_namespace(HeaderWriter._WRAPPER_NAMESPACE))
 
             for index, (key, _) in enumerate(config.items()):
-                if key != "Config-Info" and key != "Offset_Table":
+                if key != "configInfo" and key != "offsetTable":
                     outfile.write(HeaderWriter._begin_namespace(key))
                     outfile.write(HeaderWriter._generate_brief(f"Defines the required structure for {key}"))
                     outfile.write("#pragma pack(push, 1)\n")
-                    outfile.write(f"{HeaderWriter._TAB}struct NeuralNetwork_t {{\n")
+                    outfile.write(f"{HeaderWriter._TAB}struct NeuralNetwork {{\n")
 
                     for name, typeinfo in config[key].items():
                         if typeinfo[0] == 1:
-                            outfile.write(f"{HeaderWriter._TAB*2}{name}_t {name.lower()};\n")
+                            outfile.write(f"{HeaderWriter._TAB*2}{name} {name.lower()};\n")
                         elif typeinfo[0] == 0:
                             # should be a pointer
-                            outfile.write(f"{HeaderWriter._TAB*2}{name}_t* {name.lower()};\n")
+                            outfile.write(f"{HeaderWriter._TAB*2}{name}* {name.lower()};\n")
                         else:
                             outfile.write(
-                                f"{HeaderWriter._TAB*2}std::array<{name}_t, {str(typeinfo[0])}> {name.lower()};\n"
+                                f"{HeaderWriter._TAB*2}std::array<{name}, {str(typeinfo[0])}> {name.lower()}; // NOLINT(*-magic-numbers)\n"
                             )
 
                     outfile.write(f"{HeaderWriter._TAB} }};\n")

@@ -21,12 +21,12 @@ class Header(Layer):
             datasize = Sizeof(typename)
 
             if key == "Version":
-                version_len = len(config_data["Config-Info"]["Version"])
+                version_len = len(config_data["configInfo"]["Version"])
                 current_data = header[: datasize * version_len]
                 self.json_data[key] = current_data.decode("ascii")
                 header = header[datasize * version_len :]
 
-            elif key == "Offset_Table":
+            elif key == "offsetTable":
                 self.json_data[key] = []
                 for i in range(0, self.json_data["LayerNrs"]):
                     current_data = BinaryConverter(header[:datasize], typename)

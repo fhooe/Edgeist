@@ -40,7 +40,7 @@ class HexWriter:
             for layer in model_struct:
                 if layer.hex_trainable != b"":
                     # Get offset-Table type
-                    offset_table_type = layer.config["Config-Info"]["Offset_Table"]
+                    offset_table_type = layer.config["configInfo"]["offsetTable"]
                     # update local offsets to global offsets
                     if layer.json_data["Weights_amount_trainable"] != 0:
                         pos = list(layer.dataorder.keys()).index("Weights_trainable")
@@ -50,9 +50,9 @@ class HexWriter:
                         )
                         offset_pos = layer.Offset_Tabel_pos + pos * Sizeof(offset_table_type[1])
                         layer.hex_data = (
-                            layer.hex_data[: layer.Offset_Table_pos + offset_pos]
+                            layer.hex_data[: layer.offsetTable_pos + offset_pos]
                             + offset_data
-                            + layer.hex_data[layer.Offset_Table_pos + offset_pos + len(offset_data) :]
+                            + layer.hex_data[layer.offsetTable_pos + offset_pos + len(offset_data) :]
                         )
                         layer.json_data["Weights_trainable_offset"] = (
                             offset + layer.json_data["Weights_trainable_offset"]
@@ -66,9 +66,9 @@ class HexWriter:
                         )
                         offset_pos = layer.Offset_Tabel_pos + pos * Sizeof(offset_table_type[1])
                         layer.hex_data = (
-                            layer.hex_data[: layer.Offset_Table_pos + offset_pos]
+                            layer.hex_data[: layer.offsetTable_pos + offset_pos]
                             + offset_data
-                            + layer.hex_data[layer.Offset_Table_pos + offset_pos + len(offset_data) :]
+                            + layer.hex_data[layer.offsetTable_pos + offset_pos + len(offset_data) :]
                         )
                         layer.json_data["Bias_trainable_offset"] = offset + layer.json_data["Bias_trainable_offset"]
 

@@ -46,13 +46,13 @@ class Conv2d(Layer):
 
         # read data
         pos = 0
-        if self.json_data["Offset_Table"][pos] != 0:
+        if self.json_data["offsetTable"][pos] != 0:
             # pruning mask
             len_pruning_mask = self.json_data["Weights"] + self.json_data["Bias"]
             data, data_read = self._read_mask(data, "Pruning", len_pruning_mask, data_read)
 
         pos += 1
-        if self.json_data["Offset_Table"][pos] != 0:
+        if self.json_data["offsetTable"][pos] != 0:
             # weight mask
             len_weight_mask = self.json_data["Weights"]
             data, data_read = self._read_mask(data, "Weights", len_weight_mask, data_read)
@@ -61,7 +61,7 @@ class Conv2d(Layer):
         data, pos, data_read = self._read_data(data, "Weights", pos, data_read)
 
         pos += 1
-        if self.json_data["Offset_Table"][pos] != 0:
+        if self.json_data["offsetTable"][pos] != 0:
             # bias mask
             len_bias_mask = self.json_data["Bias"]
             data, data_read = self._read_mask(data, "Bias", len_bias_mask, data_read)

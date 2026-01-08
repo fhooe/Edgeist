@@ -30,11 +30,11 @@ def main(args):
     data = header.reconstruct_data(data, config_data)
     model_struct.append(header)
 
-    ID_size = Sizeof(config_data["Config-Info"]["ID"])
+    ID_size = Sizeof(config_data["configInfo"]["ID"])
 
     # Read all Layer
     while data != b"":
-        ID = BinaryConverter(data[:ID_size], config_data["Config-Info"]["ID"])
+        ID = BinaryConverter(data[:ID_size], config_data["configInfo"]["ID"])
 
         match ID:
             case 1:
