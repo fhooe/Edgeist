@@ -4,11 +4,11 @@
  * @brief Implements the 2D convolutional layer
  */
 
-#ifndef CONV_2D_H
-#define CONV_2D_H
+#ifndef EDGEIST_CONV_2D_H
+#define EDGEIST_CONV_2D_H
 
-#include "Modelstructs.h"
 #include "layer.h"
+#include "model_structs.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
 
@@ -412,4 +412,4 @@ private:
 };
 } // namespace Edgeist
 
-#endif // CONV_2D_H
+#endif // EDGEIST_CONV_2D_H

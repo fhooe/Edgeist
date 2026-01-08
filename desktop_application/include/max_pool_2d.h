@@ -4,12 +4,13 @@
  * @brief Implements the 2D max pooling layer
  */
 
-#ifndef MAX_POOL_2D_H
-#define MAX_POOL_2D_H
+#ifndef EDGEIST_MAX_POOL_2D_H
+#define EDGEIST_MAX_POOL_2D_H
+
+#include <limits>
 
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
-#include <limits>
 
 namespace Edgeist {
 template <typename T>
@@ -170,4 +171,4 @@ private:
 };
 } // namespace Edgeist
 
-#endif // MAX_POOL_2D_H
+#endif // EDGEIST_MAX_POOL_2D_H

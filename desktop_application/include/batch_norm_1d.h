@@ -4,11 +4,11 @@
  * @brief Implements the 1D batch normalization layer
  */
 
-#ifndef BATCH_NORM_1D_H
-#define BATCH_NORM_1D_H
+#ifndef EDGEIST_BATCH_NORM_1D_H
+#define EDGEIST_BATCH_NORM_1D_H
 
-#include "Modeltypes.h"
 #include "layer.h"
+#include "model_types.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
 
@@ -354,4 +354,4 @@ private:
 };
 } // namespace Edgeist
 
-#endif // BATCH_NORM_1D_H
+#endif // EDGEIST_BATCH_NORM_1D_H

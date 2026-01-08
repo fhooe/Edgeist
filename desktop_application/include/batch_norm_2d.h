@@ -4,8 +4,8 @@
  * @brief Implements the 2D batch normalization layer
  */
 
-#ifndef BATCH_NORM_2D_H
-#define BATCH_NORM_2D_H
+#ifndef EDGEIST_BATCH_NORM_2D_H
+#define EDGEIST_BATCH_NORM_2D_H
 
 #include "layer.h"
 #include "nmcf_error_types.h"
@@ -390,4 +390,4 @@ private:
 };
 } // namespace Edgeist
 
-#endif // BATCH_NORM_2D_H
+#endif // EDGEIST_BATCH_NORM_2D_H

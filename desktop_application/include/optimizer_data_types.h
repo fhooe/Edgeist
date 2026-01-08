@@ -4,12 +4,13 @@
  * @brief Defines base and derived classes for neural network optimizers
  */
 
-#ifndef OPTIMIZER_DATA_TYPES
-#define OPTIMIZER_DATA_TYPES
+#ifndef EDGEIST_OPTIMIZER_DATA_TYPES
+#define EDGEIST_OPTIMIZER_DATA_TYPES
 
-#include "nmcf_error_types.h"
 #include <cmath>
 #include <cstdint>
+
+#include "nmcf_error_types.h"
 
 namespace Edgeist {
 enum class OptimizerID : std::uint8_t {
@@ -306,4 +307,4 @@ public:
 };
 } // namespace Edgeist
 
-#endif // OPTIMIZER_DATA_TYPES
+#endif // EDGEIST_OPTIMIZER_DATA_TYPES

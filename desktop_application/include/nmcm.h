@@ -4,15 +4,13 @@
  * @brief Implements a template-based neural network model
  */
 
-#ifndef NMCM_H
-#define NMCM_H
+#ifndef EDGEIST_NMCM_H
+#define EDGEIST_NMCM_H
 
 #include <iostream>
 #include <memory>
 #include <vector>
 
-#include "Modelenums.h"
-#include "Modeltypes.h"
 #include "adaptive_avg_pool_1d.h"
 #include "adaptive_avg_pool_2d.h"
 #include "batch_norm_1d.h"
@@ -24,6 +22,7 @@
 #include "linear.h"
 #include "loss_function.h"
 #include "max_pool_2d.h"
+#include "model_enums.h"
 #include "nmcf_error_types.h"
 #include "object.h"
 #include "optimizer_data_types.h"
@@ -379,4 +378,4 @@ private:
 };
 } // namespace Edgeist
 
-#endif // NMCM_H
+#endif // EDGEIST_NMCM_H

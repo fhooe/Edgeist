@@ -3,16 +3,17 @@
  * @brief Entrypoint
  */
 
-#include "loss_function.h"
-#include "mnist_loader.h"
-#include "nmcm.h"
-#include "optimizer_data_types.h"
 #include <chrono>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <string>
 #include <vector>
+
+#include "loss_function.h"
+#include "mnist_loader.h"
+#include "nmcm.h"
+#include "optimizer_data_types.h"
 
 using namespace Edgeist;
 

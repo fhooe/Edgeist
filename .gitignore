@@ -15,7 +15,7 @@
 **build/
 **_version.py
 **.cache
-**Modelenums.h
-**Modelstructs.h
-**Modeltypes.h
+**model_enums.h
+**model_structs.h
+**model_types.h
 **.code-workspace

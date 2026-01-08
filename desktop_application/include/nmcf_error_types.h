@@ -4,8 +4,8 @@
  * @brief Implements the NMCF error types
  */
 
-#ifndef NMCF_ERROR_TYPES_H
-#define NMCF_ERROR_TYPES_H
+#ifndef EDGEIST_NMCF_ERROR_TYPES_H
+#define EDGEIST_NMCF_ERROR_TYPES_H
 
 namespace Edgeist {
 /**
@@ -25,4 +25,4 @@ enum class ErrorType {
 };
 } // namespace Edgeist
 
-#endif // NMCF_ERROR_TYPES_H
+#endif // EDGEIST_NMCF_ERROR_TYPES_H

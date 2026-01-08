@@ -4,8 +4,8 @@
  * @brief Implements helper methods to load MNIST data
  */
 
-#ifndef MNIST_LOADER_H
-#define MNIST_LOADER_H
+#ifndef EDGEIST_MNIST_LOADER_H
+#define EDGEIST_MNIST_LOADER_H
 
 #include <cstdint>
 #include <string>
@@ -23,4 +23,4 @@ struct MNISTImage {
 auto loadMNISTBatch(const std::string& filename) -> std::vector<MNISTImage>;
 } // namespace Edgeist
 
-#endif // MNIST_LOADER_H
+#endif // EDGEIST_MNIST_LOADER_H
