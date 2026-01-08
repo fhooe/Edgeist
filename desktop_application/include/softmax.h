@@ -35,7 +35,7 @@ public:
         : Layer<T>(model)
         , mPtrLayer(headerPointer)
         , mPtrData(dataPointer)
-        , mHeader(static_cast<Nmcm::Softmax::NeuralNetwork_t*>(mPtrLayer))
+        , mHeader(static_cast<Nmcm::Softmax::NeuralNetwork*>(mPtrLayer))
         , mOptimizerType(optimizerType)
     {
         this->m_inputData = nullptr;
@@ -67,7 +67,7 @@ public:
 
         // Find the maximum value of the input for numerical stabilization of the exponential function.
         T maxVal = inputData[0];
-        for (size_t i = 1; i < this->mHeader->dimensioninput_x; i++) {
+        for (size_t i = 1; i < this->mHeader->dimensionInputX; i++) {
             if (inputData[i] > maxVal) {
                 maxVal = inputData[i];
             }
@@ -75,9 +75,9 @@ public:
 
         // Calculate exponential values of the inputs shifted by maxVal and sum them up.
         T sumExponents = T(0);
-        T* mPtrExponents = new T[this->mHeader->dimensioninput_x];
+        T* mPtrExponents = new T[this->mHeader->dimensionInputX];
 
-        for (size_t i = 0; i < this->mHeader->dimensioninput_x; i++) {
+        for (size_t i = 0; i < this->mHeader->dimensionInputX; i++) {
             mPtrExponents[i] = std::exp(inputData[i] - maxVal);
             sumExponents += mPtrExponents[i];
         }
@@ -87,16 +87,16 @@ public:
             if (this->m_inputData != nullptr) {
                 delete[] this->m_inputData;
             }
-            this->m_inputData = new T[this->mHeader->dimensioninput_x];
+            this->m_inputData = new T[this->mHeader->dimensionInputX];
 
             // Normalize exponential values for Softmax output
             if (this->m_inputData != nullptr) {
-                for (size_t i = 0; i < this->mHeader->dimensionoutput_x; i++) {
+                for (size_t i = 0; i < this->mHeader->dimensionOutputX; i++) {
                     this->m_inputData[i] = inputData[i];
                 }
             }
         }
-        for (size_t i = 0; i < this->mHeader->dimensionoutput_x; i++) {
+        for (size_t i = 0; i < this->mHeader->dimensionOutputX; i++) {
             outputData[i] = mPtrExponents[i] / sumExponents;
         }
 
@@ -120,7 +120,7 @@ public:
         }
 
         // Softmax + cross-entropy derivative: p - y
-        for (size_t i = 0; i < this->mHeader->dimensioninput_x; i++) {
+        for (size_t i = 0; i < this->mHeader->dimensionInputX; i++) {
             outputData[i] = inputData[i] - this->m_model->mPtrExpectedOutputData[i];
         }
 
@@ -145,15 +145,15 @@ public:
 
     auto getOutputSize() -> uint32_t override
     {
-        return uint32_t(mHeader->dimensionoutput_x);
+        return uint32_t(mHeader->dimensionOutputX);
     }
 
     auto getInputSize() -> uint32_t override
     {
-        return uint32_t(mHeader->dimensioninput_x);
+        return uint32_t(mHeader->dimensionInputX);
     }
 
-    [[nodiscard]] auto header() const -> const Nmcm::Softmax::NeuralNetwork_t&
+    [[nodiscard]] auto header() const -> const Nmcm::Softmax::NeuralNetwork&
     {
         return *mHeader;
     }
@@ -164,7 +164,7 @@ private:
     void* mPtrData;
 
     // Pointer to the Layer in Flash
-    Nmcm::Softmax::NeuralNetwork_t* mHeader;
+    Nmcm::Softmax::NeuralNetwork* mHeader;
 
     // chosen optimizer
     OptimizerID mOptimizerType;

@@ -36,7 +36,7 @@ class HeaderParser:
                         config[current_config] = OrderedDict(
                             [
                                 (
-                                    "Version",
+                                    "version",
                                     line.split(" ")[-1].removeprefix('"').removesuffix('"'),
                                 )
                             ]

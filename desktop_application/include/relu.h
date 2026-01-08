@@ -31,7 +31,7 @@ public:
         : Layer<T>(model)
         , mPtrLayer(headerPointer)
         , mPtrData(dataPointer)
-        , mHeader(static_cast<Nmcm::ReLU::NeuralNetwork_t*>(mPtrLayer))
+        , mHeader(static_cast<Nmcm::ReLU::NeuralNetwork*>(mPtrLayer))
         , mOptimizerType(optimizerType)
     {
         this->m_inputData = nullptr;
@@ -62,17 +62,17 @@ public:
             }
             // get memory for training
             if (this->m_inputData == nullptr) {
-                this->m_inputData = new T[this->mHeader->dimensioninput_x];
+                this->m_inputData = new T[this->mHeader->dimensionInputX];
             }
 
             if (this->m_inputData != nullptr) {
-                for (size_t i = 0; i < this->mHeader->dimensionoutput_x; i++) {
+                for (size_t i = 0; i < this->mHeader->dimensionOutputX; i++) {
                     this->m_inputData[i] = inputData[i];
                 }
             }
         }
 
-        for (size_t i = 0; i < this->mHeader->dimensionoutput_x; i++) {
+        for (size_t i = 0; i < this->mHeader->dimensionOutputX; i++) {
             outputData[i] = (inputData[i] > T(0)) ? inputData[i] : T(0);
         }
 
@@ -94,7 +94,7 @@ public:
             return ErrorType::UnknownError;
         }
 
-        for (uint32_t i = 0; i < this->mHeader->dimensioninput_x; i++) {
+        for (uint32_t i = 0; i < this->mHeader->dimensionInputX; i++) {
             outputData[i] = (this->m_inputData[i] > T(0)) ? inputData[i] : T(0);
         }
 
@@ -123,15 +123,15 @@ public:
 
     auto getOutputSize() -> uint32_t override
     {
-        return uint32_t(mHeader->dimensionoutput_x);
+        return uint32_t(mHeader->dimensionOutputX);
     }
 
     auto getInputSize() -> uint32_t override
     {
-        return uint32_t(mHeader->dimensioninput_x);
+        return uint32_t(mHeader->dimensionInputX);
     }
 
-    [[nodiscard]] auto header() const -> const Nmcm::ReLU::NeuralNetwork_t&
+    [[nodiscard]] auto header() const -> const Nmcm::ReLU::NeuralNetwork&
     {
         return *mHeader;
     }
@@ -142,7 +142,7 @@ private:
     void* mPtrData;
 
     // pointer to the layer in flash
-    Nmcm::ReLU::NeuralNetwork_t* mHeader;
+    Nmcm::ReLU::NeuralNetwork* mHeader;
 
     // chosen optimizer
     OptimizerID mOptimizerType;

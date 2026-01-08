@@ -52,9 +52,9 @@ class ConfigParser:
                         # line is empty
                         pass
 
-        # add ID at the beginning of every Layer
+        # add id at the beginning of every Layer
         for key, value in configdata["Config-Info"].items():
-            if key == "ID":
+            if key == "id":
                 for name, data in configdata.items():
                     if name != "Config-Info" and name != "Offset_Table" and name != "Header":
                         data[key] = value

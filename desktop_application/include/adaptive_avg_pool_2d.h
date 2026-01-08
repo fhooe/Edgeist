@@ -30,7 +30,7 @@ public:
         : Layer<T>(model)
         , m_ptrLayer(headerPointer)
         , m_ptrData(dataPointer)
-        , m_header(static_cast<Nmcm::AdaptiveAvgPool2d::NeuralNetwork_t*>(m_ptrLayer))
+        , m_header(static_cast<Nmcm::AdaptiveAvgPool2d::NeuralNetwork*>(m_ptrLayer))
         , m_optimizerType(optimizerType)
     {
         AdaptiveAvgPool2D::loadFromFlash();
@@ -45,11 +45,11 @@ public:
             return ErrorType::LayerNotInitialized;
         }
 
-        const int C = m_header->channelsin;
-        const int H_in = m_header->dimensioninput_y;
-        const int W_in = m_header->dimensioninput_x;
-        const int H_out = m_header->dimensionoutput_y;
-        const int W_out = m_header->dimensionoutput_x;
+        const int C = m_header->channelsIn;
+        const int H_in = m_header->dimensionInputY;
+        const int W_in = m_header->dimensionInputX;
+        const int H_out = m_header->dimensionOutputY;
+        const int W_out = m_header->dimensionOutputX;
 
         for (int c = 0; c < C; ++c) {
             for (int oy = 0; oy < H_out; ++oy) {
@@ -90,11 +90,11 @@ public:
             return ErrorType::LayerNotInitialized;
         }
 
-        const int C = m_header->channelsin;
-        const int H_in = m_header->dimensioninput_y;
-        const int W_in = m_header->dimensioninput_x;
-        const int H_out = m_header->dimensionoutput_y;
-        const int W_out = m_header->dimensionoutput_x;
+        const int C = m_header->channelsIn;
+        const int H_in = m_header->dimensionInputY;
+        const int W_in = m_header->dimensionInputX;
+        const int H_out = m_header->dimensionOutputY;
+        const int W_out = m_header->dimensionOutputX;
 
         // init grad_input with 0
         size_t inSize = size_t(C) * H_in * W_in;
@@ -144,18 +144,18 @@ public:
 
     auto getOutputSize() -> uint32_t override
     {
-        return m_header->channelsin * m_header->dimensionoutput_x * m_header->dimensionoutput_y;
+        return m_header->channelsIn * m_header->dimensionOutputX * m_header->dimensionOutputY;
     }
 
     auto getInputSize() -> uint32_t override
     {
-        return m_header->channelsin * m_header->dimensioninput_x * m_header->dimensioninput_y;
+        return m_header->channelsIn * m_header->dimensionInputX * m_header->dimensionInputY;
     }
 
 private:
     void* m_ptrLayer;
     void* m_ptrData;
-    Nmcm::AdaptiveAvgPool2d::NeuralNetwork_t* m_header;
+    Nmcm::AdaptiveAvgPool2d::NeuralNetwork* m_header;
     OptimizerID m_optimizerType;
 };
 } // namespace Edgeist

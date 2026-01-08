@@ -3,7 +3,7 @@ from nmcm_common.utils.masks import Masks
 
 
 class Dropout(Layer):
-    #: The ID of the layer.
+    #: The id of the layer.
     LAYER_ID = 4
 
     def __init__(self, config):
@@ -11,18 +11,17 @@ class Dropout(Layer):
 
     def define_data(self, idx: int, modelinfo, masks: Masks = None):
         dimension = 1
-        DropoutRate = 0.0
         for i in range(1, len(modelinfo["input_shape"])):
             dimension *= modelinfo["input_shape"][i]
 
         # define all possible values of this layer without order
-        self.data["LayerNr"] = idx
-        self.data["ID"] = Dropout.LAYER_ID
+        self.data["layerNr"] = idx
+        self.data["id"] = Dropout.LAYER_ID
         self.data["predecessorNr"] = 1
         self.data["predecessors"] = [idx - 1] if idx != 0 else [0]
-        self.data["DimensionInput_x"] = dimension  # Input width
-        self.data["DimensionOutput_x"] = dimension  # Output width
-        self.data["DropoutRate"] = modelinfo["DropoutRate"]
+        self.data["dimensionInputX"] = dimension  # Input width
+        self.data["dimensionOutputX"] = dimension  # Output width
+        self.data["dropoutRate"] = modelinfo["dropoutRate"]
 
     def generate_data(self):
         if not (self.name in self.config):

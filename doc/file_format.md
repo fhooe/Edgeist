@@ -18,7 +18,7 @@ The format consists of the following elements:
    2. Magic number
       1. 0x4E4D434D (NMCF) (Neural Micro Controller Framework)
    3. Basic information about the network
-      1. Version (not all layer types and activation functions are supported in version 1)
+      1. version (not all layer types and activation functions are supported in version 1)
       2. Feature map: what was used in this network (data types, supported layers, activation functions, etc.)
       3. File size
       4. Number of layers (layers and activation functions are separate layers)
@@ -41,8 +41,8 @@ The format consists of the following elements:
 3. predecessorNo.: int
 4. predecessors[predecessorNo.]: int
 5. Structure
-   1. DimensionInput_x: int
-   2. DimensionOutput_x: int
+   1. dimensionInputX: int
+   2. dimensionOutputX: int
    3. Data encoding: Datatype
    4. pruned: bool
    5. trainableWeights: int
@@ -50,23 +50,23 @@ The format consists of the following elements:
 6. Data:
    1. Data Header
       1. Offset pruneMask
-      2. Offset Weights_mask
-      3. Offset Weights_trainable
-      4. Offset Weights_frozen
-      5. Offset Bias_mask
-      6. Offset Bias_trainable
-      7. Offset Bias_frozen
-   2. if (pruned) Prune_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
-   3. if (trainableWeights>0) Weights_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
-   4. Weights_trainable[ trainableWeights ]: Datatype //loaded into SRAM, empty if all are frozen
-   5. Weights_frozen[size * size * ChannelsOut - trainableWeights]: Datatype //remains in flash, is empty if all are trainable
-   6. if (trainableWeights>0) Bias_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
-   7. Bias_trainable[ trainableBias]: Datatype //loaded into SRAM, empty if all are frozen
-   8. Bias_frozen[ChannelsOut - trainableBias]: Datatype //remains in flash, empty if all are trainable
+      2. Offset weightsMask
+      3. Offset weightsTrainable
+      4. Offset weightsFrozen
+      5. Offset biasMask
+      6. Offset biasTrainable
+      7. Offset biasFrozen
+   2. if (pruned) Prune_mask [kernelSize[0] * kernelSize[1] * channelsOut + dimensionOutputX * dimensionOutputY]: bool
+   3. if (trainableWeights>0) weightsMask [kernelSize[0] * kernelSize[1] * channelsOut + dimensionOutputX * dimensionOutputY]: bool
+   4. weightsTrainable[ trainableWeights ]: Datatype //loaded into SRAM, empty if all are frozen
+   5. weightsFrozen[size * size * channelsOut - trainableWeights]: Datatype //remains in flash, is empty if all are trainable
+   6. if (trainableWeights>0) biasMask [kernelSize[0] * kernelSize[1] * channelsOut + dimensionOutputX * dimensionOutputY]: bool
+   7. biasTrainable[ trainableBias]: Datatype //loaded into SRAM, empty if all are frozen
+   8. biasFrozen[channelsOut - trainableBias]: Datatype //remains in flash, empty if all are trainable
 
 #### Explanation
 
-Depending on the bitmask entry of trainableMask and pruneMask, the respective pointers in Weights_trainable or Weights_frozen are increased or not.
+Depending on the bitmask entry of trainableMask and pruneMask, the respective pointers in weightsTrainable or weightsFrozen are increased or not.
 + Test case
 
 ### Conv1D
@@ -76,11 +76,11 @@ Depending on the bitmask entry of trainableMask and pruneMask, the respective po
 3. predecessorNo.: int
 4. predecessors[predecessorNo.]: int
 5. Dimension
-   1. DimensionInput_x: int
-   2. DimensionOutput_x: int
-   3. ChannelsIn: int
-   4. ChannelsOut: int
-   5. KernelSize: [int,int]
+   1. dimensionInputX: int
+   2. dimensionOutputX: int
+   3. channelsIn: int
+   4. channelsOut: int
+   5. kernelSize: [int,int]
    6. padding: [int,int]
    7. stride: [int,int]
    8. dilation: [int,int]
@@ -95,14 +95,14 @@ Depending on the bitmask entry of trainableMask and pruneMask, the respective po
       2. Offset pruneMask
       3. Offset Kernel_trainable
       4. Offset Kernel_frozen
-      5. Offset Bias_trainable
-      6. Offset Bias_frozen
-   2. if (trainableWeights>0 || trainableBias >0) trainableMask [(KernelSize + DimensionOutput_x]: bool
-   3. if (pruned) pruneMask [(KernelSize + DimensionOutput_x]: bool
-   4. Weights_trainable[ trainableWeights ]: Datatype //loaded into SRAM, empty if all are frozen
-   5. Weights_frozen[KernelSize * ChannelsOut - trainableWeights]: Datatype //remains in flash, is empty if all are trainable
-   6. Bias_trainable[ trainableBias]: Datatype //loaded into SRAM, is empty if all are frozen
-   7. Bias_frozen[ChannelsOut - trainableBias]: Datatype //remains in flash, is empty if all are trainable
+      5. Offset biasTrainable
+      6. Offset biasFrozen
+   2. if (trainableWeights>0 || trainableBias >0) trainableMask [(kernelSize + dimensionOutputX]: bool
+   3. if (pruned) pruneMask [(kernelSize + dimensionOutputX]: bool
+   4. weightsTrainable[ trainableWeights ]: Datatype //loaded into SRAM, empty if all are frozen
+   5. weightsFrozen[kernelSize * channelsOut - trainableWeights]: Datatype //remains in flash, is empty if all are trainable
+   6. biasTrainable[ trainableBias]: Datatype //loaded into SRAM, is empty if all are frozen
+   7. biasFrozen[channelsOut - trainableBias]: Datatype //remains in flash, is empty if all are trainable
 
 ### Conv2D
 
@@ -111,13 +111,13 @@ Depending on the bitmask entry of trainableMask and pruneMask, the respective po
 3. predecessorNo.: int
 4. predecessors[predecessorNo.]: int
 5. Dimension
-   1. DimensionInput_x: int
-   2. DimensionInput_y: int
-   3. DimensionOutput_x: int
-   4. DimensionOutput_x: int
-   5. ChannelsIn: int
-   6. ChannelsOut: int
-   7. KernelSize: [int,int]
+   1. dimensionInputX: int
+   2. dimensionInputY: int
+   3. dimensionOutputX: int
+   4. dimensionOutputX: int
+   5. channelsIn: int
+   6. channelsOut: int
+   7. kernelSize: [int,int]
    8. padding: [int,int]
    9. stride: [int,int]
    10. dilation: [int,int]
@@ -132,19 +132,19 @@ Depending on the bitmask entry of trainableMask and pruneMask, the respective po
       2. Offset pruneMask
       3. Offset Kernel_trainable
       4. Offset Kernel_frozen
-      5. Offset Bias_trainable
-      6. Offset Bias_frozen
-   2. if (pruned) Prune_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
-   3. if (trainableWeights>0) Weights_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
-   4. Weights_trainable[ trainableWeights ]: Datatype //loaded into SRAM, empty if all are frozen
-   5. Weights_frozen[size * size * ChannelsOut - trainableWeights]: Datatype //remains in flash, is empty if all are trainable
-   6. if (trainableWeights>0) Bias_mask [KernelSize[0] * KernelSize[1] * ChannelsOut + DimensionOutput_x * DimensionOutput_y]: bool
-   7. Bias_trainable[ trainableBias]: Datatype //loaded into SRAM, empty when all are frozen
-   8. Bias_frozen[ChannelsOut - trainableBias]: Datatype //remains in flash, empty when all are trainable
+      5. Offset biasTrainable
+      6. Offset biasFrozen
+   2. if (pruned) Prune_mask [kernelSize[0] * kernelSize[1] * channelsOut + dimensionOutputX * dimensionOutputY]: bool
+   3. if (trainableWeights>0) weightsMask [kernelSize[0] * kernelSize[1] * channelsOut + dimensionOutputX * dimensionOutputY]: bool
+   4. weightsTrainable[ trainableWeights ]: Datatype //loaded into SRAM, empty if all are frozen
+   5. weightsFrozen[size * size * channelsOut - trainableWeights]: Datatype //remains in flash, is empty if all are trainable
+   6. if (trainableWeights>0) biasMask [kernelSize[0] * kernelSize[1] * channelsOut + dimensionOutputX * dimensionOutputY]: bool
+   7. biasTrainable[ trainableBias]: Datatype //loaded into SRAM, empty when all are frozen
+   8. biasFrozen[channelsOut - trainableBias]: Datatype //remains in flash, empty when all are trainable
 
 ### Depth-wise Convolution
 
-= conv2D with groups = ChannelsIn
+= conv2D with groups = channelsIn
 
 ### MaxPool2d
 
@@ -153,13 +153,13 @@ Depending on the bitmask entry of trainableMask and pruneMask, the respective po
 3. predecessorNo.: int
 4. predecessors[predecessorNo.]: int
 5. Dimension
-   1. DimensionInput_x: int
-   2. DimensionInput_y: int
-   3. DimensionOutput_x: int
-   4. DimensionOutput_y: int
-   5. ChannelsIn: int
-   6. ChannelsIn: out
-   7. KernelSize: [int,int]
+   1. dimensionInputX: int
+   2. dimensionInputY: int
+   3. dimensionOutputX: int
+   4. dimensionOutputY: int
+   5. channelsIn: int
+   6. channelsIn: out
+   7. kernelSize: [int,int]
    8. padding: [int,int]
    9. stride: [int,int]
    10. dilation: [int,int]
@@ -173,8 +173,8 @@ Depending on the bitmask entry of trainableMask and pruneMask, the respective po
 3. predecessorNo.: int
 4. predecessors[predecessorNo.]: int
 5. Dimension
-   1. DimensionInput_x: int
-   2. DimensionOutput_x: int
+   1. dimensionInputX: int
+   2. dimensionOutputX: int
 6. Data
    1. none
 

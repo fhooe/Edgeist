@@ -29,17 +29,17 @@ public:
         : Layer<T>(model)
         , m_ptrLayer(headerPointer)
         , m_ptrData(dataPointer)
-        , m_header(static_cast<Nmcm::Conv2d::NeuralNetwork_t*>(m_ptrLayer))
+        , m_header(static_cast<Nmcm::Conv2d::NeuralNetwork*>(m_ptrLayer))
         , m_optimizerType(optimizerType)
     {
-        m_ptrWeightFrozen = static_cast<T*>(m_ptrLayer) + m_header->weights_frozen_offset * sizeof(T);
-        m_ptrBiasFrozen = static_cast<T*>(m_ptrLayer) + m_header->bias_frozen_offset * sizeof(T);
+        m_ptrWeightFrozen = static_cast<T*>(m_ptrLayer) + m_header->weightsFrozenOffset * sizeof(T);
+        m_ptrBiasFrozen = static_cast<T*>(m_ptrLayer) + m_header->biasFrozenOffset * sizeof(T);
 
-        m_ptrFlashWeight = (static_cast<T*>(m_ptrData) + (m_header->weights_trainable_offset / sizeof(T)));
-        m_ptrFlashBias = (static_cast<T*>(m_ptrData) + (m_header->bias_trainable_offset / sizeof(T)));
+        m_ptrFlashWeight = (static_cast<T*>(m_ptrData) + (m_header->weightsTrainableOffset / sizeof(T)));
+        m_ptrFlashBias = (static_cast<T*>(m_ptrData) + (m_header->biasTrainableOffset / sizeof(T)));
 
         // Init Output values
-        m_layerOutput = new T[m_header->dimensionoutput_x * m_header->dimensionoutput_y * m_header->channelsout];
+        m_layerOutput = new T[m_header->dimensionOutputX * m_header->dimensionOutputY * m_header->channelsOut];
 
         Conv2D::loadFromFlash();
     }
@@ -102,18 +102,18 @@ public:
 
         // get memory for training
         if (trainingFlag) {
-            this->m_inputData = new T[m_header->dimensioninput_x * m_header->dimensioninput_y * m_header->channelsin];
+            this->m_inputData = new T[m_header->dimensionInputX * m_header->dimensionInputY * m_header->channelsIn];
 
-            for (uint32_t i = 0; i < m_header->dimensioninput_x * m_header->dimensioninput_y * m_header->channelsin; i++) {
+            for (uint32_t i = 0; i < m_header->dimensionInputX * m_header->dimensionInputY * m_header->channelsIn; i++) {
                 this->m_inputData[i] = inputData[i];
             }
         }
 
-        const int H = m_header->dimensioninput_x;
-        const int W = m_header->dimensioninput_y;
-        const int K[2] = { m_header->kernelsize[0], m_header->kernelsize[1] }; // beide dimensionen
-        const int Cin = m_header->channelsin;
-        const int Cout = m_header->channelsout;
+        const int H = m_header->dimensionInputX;
+        const int W = m_header->dimensionInputY;
+        const int K[2] = { m_header->kernelSize[0], m_header->kernelSize[1] }; // beide dimensionen
+        const int Cin = m_header->channelsIn;
+        const int Cout = m_header->channelsOut;
         const int pad = K[0] / 2; // "same" Padding
 
         // Zero-initialize output
@@ -160,11 +160,11 @@ public:
     // Performs the backwardpass and calculates the gradients for the previous layer
     auto backwardPass(const T* inputData, T* outputData) -> ErrorType override
     {
-        const int H = m_header->dimensioninput_x;
-        const int W = m_header->dimensioninput_y;
-        const int K[2] = { m_header->kernelsize[0], m_header->kernelsize[1] };
-        const int Cin = m_header->channelsin;
-        const int Cout = m_header->channelsout;
+        const int H = m_header->dimensionInputX;
+        const int W = m_header->dimensionInputY;
+        const int K[2] = { m_header->kernelSize[0], m_header->kernelSize[1] };
+        const int Cin = m_header->channelsIn;
+        const int Cout = m_header->channelsOut;
         const int pad = K[0] / 2; // same padding
 
         // check if layer is loaded
@@ -249,8 +249,8 @@ public:
         }
 
         // create arrays dynamically and initialize them with 0.0
-        uint32_t sizeWeights = m_header->kernelsize[0] * m_header->kernelsize[1] * m_header->channelsin * m_header->channelsout;
-        uint32_t sizeBias = m_header->channelsout;
+        uint32_t sizeWeights = m_header->kernelSize[0] * m_header->kernelSize[1] * m_header->channelsIn * m_header->channelsOut;
+        uint32_t sizeBias = m_header->channelsOut;
 
         m_ptrWeightGradient = new T[sizeWeights];
         m_ptrBiasGradient = new T[sizeBias];
@@ -291,14 +291,14 @@ public:
         }
 
         // Loop through all filters (output channels)
-        for (int oc = 0; oc < m_header->channelsout; ++oc) {
+        for (int oc = 0; oc < m_header->channelsOut; ++oc) {
             // Loop through all input channels
-            for (int ic = 0; ic < m_header->channelsin; ++ic) {
-                for (int ky = 0; ky < m_header->kernelsize[0]; ++ky) {
-                    for (int kx = 0; kx < m_header->kernelsize[1]; ++kx) {
+            for (int ic = 0; ic < m_header->channelsIn; ++ic) {
+                for (int ky = 0; ky < m_header->kernelSize[0]; ++ky) {
+                    for (int kx = 0; kx < m_header->kernelSize[1]; ++kx) {
 
                         // Linear index calculation for 4D tensor stored flat
-                        int index = (((oc * m_header->channelsin + ic) * m_header->kernelsize[0] + ky) * m_header->kernelsize[1] + kx);
+                        int index = (((oc * m_header->channelsIn + ic) * m_header->kernelSize[0] + ky) * m_header->kernelSize[1] + kx);
 
                         m_ptrWeight->update(index,
                             m_ptrWeightGradient[index] / batchsize,
@@ -324,37 +324,37 @@ public:
         case OptimizerID::SGD:
             // init weights
             m_ptrWeight = new OptimizerSGD<T>;
-            m_ptrWeight->init(m_header->weights_amount_trainable);
+            m_ptrWeight->init(m_header->weightsAmountTrainable);
             // init bias
             m_ptrBias = new OptimizerSGD<T>;
-            m_ptrBias->init(m_header->bias_amount_trainable);
+            m_ptrBias->init(m_header->biasAmountTrainable);
             break;
 
         case OptimizerID::Momentum:
             // init weights
             m_ptrWeight = new OptimizerMomentum<T>;
-            m_ptrWeight->init(m_header->weights_amount_trainable);
+            m_ptrWeight->init(m_header->weightsAmountTrainable);
             // init bias
             m_ptrBias = new OptimizerMomentum<T>;
-            m_ptrBias->init(m_header->bias_amount_trainable);
+            m_ptrBias->init(m_header->biasAmountTrainable);
             break;
 
         case OptimizerID::ADAM:
             // init weights
             m_ptrWeight = new OptimizerAdam<T>;
-            m_ptrWeight->init(m_header->weights_amount_trainable);
+            m_ptrWeight->init(m_header->weightsAmountTrainable);
             // init bias
             m_ptrBias = new OptimizerAdam<T>;
-            m_ptrBias->init(m_header->bias_amount_trainable);
+            m_ptrBias->init(m_header->biasAmountTrainable);
             break;
         }
 
         // init weights and biases
-        for (size_t i = 0; i < m_header->weights_amount_trainable; i++) {
-            m_ptrWeight->setData(i, *(static_cast<T*>(m_ptrData) + (m_header->weights_trainable_offset / sizeof(T)) + i));
+        for (size_t i = 0; i < m_header->weightsAmountTrainable; i++) {
+            m_ptrWeight->setData(i, *(static_cast<T*>(m_ptrData) + (m_header->weightsTrainableOffset / sizeof(T)) + i));
         }
-        for (size_t i = 0; i < m_header->bias_amount_trainable; i++) {
-            m_ptrBias->setData(i, *(static_cast<T*>(m_ptrData) + (m_header->bias_trainable_offset / sizeof(T)) + i));
+        for (size_t i = 0; i < m_header->biasAmountTrainable; i++) {
+            m_ptrBias->setData(i, *(static_cast<T*>(m_ptrData) + (m_header->biasTrainableOffset / sizeof(T)) + i));
         }
 
         this->m_isLoaded = true;
@@ -371,15 +371,15 @@ public:
 
     auto getOutputSize() -> uint32_t override
     {
-        return uint32_t(m_header->dimensionoutput_x * m_header->dimensionoutput_y * m_header->channelsout);
+        return uint32_t(m_header->dimensionOutputX * m_header->dimensionOutputY * m_header->channelsOut);
     }
 
     auto getInputSize() -> uint32_t override
     {
-        return uint32_t(m_header->dimensioninput_x * m_header->dimensioninput_y * m_header->channelsin);
+        return uint32_t(m_header->dimensionInputX * m_header->dimensionInputY * m_header->channelsIn);
     }
 
-    [[nodiscard]] auto header() const -> const Nmcm::Conv2d::NeuralNetwork_t&
+    [[nodiscard]] auto header() const -> const Nmcm::Conv2d::NeuralNetwork&
     {
         return *m_header;
     }
@@ -387,7 +387,7 @@ public:
 private:
     void* m_ptrLayer;
     void* m_ptrData;
-    Nmcm::Conv2d::NeuralNetwork_t* m_header;
+    Nmcm::Conv2d::NeuralNetwork* m_header;
 
     // chosen optimizer
     OptimizerID m_optimizerType;
