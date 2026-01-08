@@ -4,8 +4,8 @@
  * @brief Implements loss functions for neural networks
  */
 
-#ifndef LOSS_FUNCTION_H
-#define LOSS_FUNCTION_H
+#ifndef EDGEIST_LOSS_FUNCTION_H
+#define EDGEIST_LOSS_FUNCTION_H
 
 #include <cmath>
 
@@ -215,4 +215,4 @@ public:
 };
 } // namespace Edgeist
 
-#endif // LOSS_FUNCTION_H
+#endif // EDGEIST_LOSS_FUNCTION_H

@@ -4,8 +4,8 @@
  * @brief Implements the flatten layer
  */
 
-#ifndef FLATTEN_H
-#define FLATTEN_H
+#ifndef EDGEIST_FLATTEN_H
+#define EDGEIST_FLATTEN_H
 
 #include "layer.h"
 #include "nmcf_error_types.h"
@@ -96,4 +96,4 @@ private:
 };
 } // namespace Edgeist
 
-#endif // FLATTEN_H
+#endif // EDGEIST_FLATTEN_H

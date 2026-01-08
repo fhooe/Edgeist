@@ -4,10 +4,10 @@
  * @brief Implements the fully connected (dense) linear layer
  */
 
-#ifndef LINEAR_H
-#define LINEAR_H
+#ifndef EDGEIST_LINEAR_H
+#define EDGEIST_LINEAR_H
 
-#include "Modelstructs.h"
+#include "model_structs.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
 
@@ -322,4 +322,4 @@ private:
 };
 } // namespace Edgeist
 
-#endif // LINEAR_H
+#endif // EDGEIST_LINEAR_H

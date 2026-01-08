@@ -4,12 +4,13 @@
  * @brief Implements the base class for all neural network layers
  */
 
-#ifndef LAYER_H
-#define LAYER_H
+#ifndef EDGEIST_LAYER_H
+#define EDGEIST_LAYER_H
+
+#include <cstdint>
 
 #include "nmcf_error_types.h"
 #include "object.h"
-#include <cstdint>
 
 namespace Edgeist {
 template <typename T>
@@ -76,4 +77,4 @@ protected:
 };
 } // namespace Edgeist
 
-#endif // LAYER_H
+#endif // EDGEIST_LAYER_H

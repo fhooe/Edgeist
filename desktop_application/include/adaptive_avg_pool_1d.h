@@ -4,14 +4,15 @@
  * @brief Implements the 1D adaptive average pooling layer
  */
 
-#ifndef ADAPTIVE_AVG_POOL_1D_H
-#define ADAPTIVE_AVG_POOL_1D_H
+#ifndef EDGEIST_ADAPTIVE_AVG_POOL_1D_H
+#define EDGEIST_ADAPTIVE_AVG_POOL_1D_H
 
-#include "Modelstructs.h"
+#include <cmath>
+
 #include "layer.h"
+#include "model_structs.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
-#include <cmath>
 
 namespace Edgeist {
 /**
@@ -148,4 +149,4 @@ private:
 };
 } // namespace Edgeist
 
-#endif // ADAPTIVE_AVG_POOL_1D_H
+#endif // EDGEIST_ADAPTIVE_AVG_POOL_1D_H

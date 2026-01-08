@@ -82,7 +82,7 @@ from nmcm_common.utils import (
 )
 
 
-def main(args):
+def main(args: argparse.Namespace) -> None:
     # Input Parameter
     filename = args.name
     input_size = args.inputsize
@@ -96,7 +96,7 @@ def main(args):
     try:
         json_writer = JSONWriter(filename + ".json")
         hex_writer = HexWriter(filename + ".hex")
-        h_writer = HeaderWriter("./Modeltypes.h", "./Modelstructs.h", "./Modelenums.h")
+        header_writer = HeaderWriter("model_types.h", "model_structs.h", "model_enums.h")
         config = ConfigParser(configfile)
         header = Header()
     except Exception as e:
@@ -156,24 +156,16 @@ def main(args):
     # generate outputs
     model_struct = hex_writer.writeHEX(model_struct)
     json_writer.writeJSON(model_struct)
-    h_writer.write(configdata)
+    header_writer.write(configdata)
 
 
 if __name__ == "__main__":
-    # Possible arguments:
-    # "args": [
-    #            "--config", "./config.md",
-    #            "--model", "./mnist_model.pth",
-    #            "--inputsize", "(1,28,28)",
-    #            "--name", "./model"
-    #        ]
-
     # Create the argument parser
     parser = argparse.ArgumentParser(description="Generate json-, hex- and header-files from a pytorch model")
 
     # Add arguments
-    parser.add_argument("--config", type=str, help="Path to config-file e.g. ./config.md")
-    parser.add_argument("--model", type=str, help="Path to model-file e.g. ./model.pth")
+    parser.add_argument("--config", type=str, help="Path to config-file e.g. config.md")
+    parser.add_argument("--model", type=str, help="Path to model-file e.g. model.pth")
     parser.add_argument("--inputsize", type=str, help="Input-size of the model e.g. (1,28,28)")
     parser.add_argument("--name", type=str, help="Name of the output-files")
 

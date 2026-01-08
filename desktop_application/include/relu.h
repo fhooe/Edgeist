@@ -4,8 +4,8 @@
  * @brief Implements the Rectified Linear Unit (ReLU) activation layer
  */
 
-#ifndef RELU_H
-#define RELU_H
+#ifndef EDGEIST_RELU_H
+#define EDGEIST_RELU_H
 
 #include "layer.h"
 #include "nmcf_error_types.h"
@@ -149,4 +149,4 @@ private:
 };
 } // namespace Edgeist
 
-#endif // RELU_H
+#endif // EDGEIST_RELU_H

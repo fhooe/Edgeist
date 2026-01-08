@@ -4,9 +4,10 @@
  * @brief Implements helper methods to load MNIST data
  */
 
-#include "mnist_loader.h"
 #include <fstream>
 #include <stdexcept>
+
+#include "mnist_loader.h"
 
 namespace Edgeist {
 auto loadMNISTBatch(const std::string& filename) -> std::vector<MNISTImage>

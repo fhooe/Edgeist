@@ -4,14 +4,15 @@
  * @brief Implements the dropout layer
  */
 
-#ifndef DROPOUT_H
-#define DROPOUT_H
+#ifndef EDGEIST_DROPOUT_H
+#define EDGEIST_DROPOUT_H
+
+#include <random>
+#include <vector>
 
 #include "layer.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
-#include <random>
-#include <vector>
 
 namespace Edgeist {
 /**
@@ -142,4 +143,4 @@ private:
 };
 } // namespace Edgeist
 
-#endif // DROPOUT_H
+#endif // EDGEIST_DROPOUT_H

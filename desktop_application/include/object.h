@@ -3,8 +3,8 @@
  * @brief Implements the base object for all classes
  */
 
-#ifndef OBJECT_H
-#define OBJECT_H
+#ifndef EDGEIST_OBJECT_H
+#define EDGEIST_OBJECT_H
 
 namespace Edgeist {
 /**
@@ -19,4 +19,4 @@ protected:
 };
 } // namespace Edgeist
 
-#endif // OBJECT_H
+#endif // EDGEIST_OBJECT_H

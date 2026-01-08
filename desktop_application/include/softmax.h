@@ -4,14 +4,15 @@
  * @brief Implements the softmax activation layer
  */
 
-#ifndef SOFTMAX_H
-#define SOFTMAX_H
+#ifndef EDGEIST_SOFTMAX_H
+#define EDGEIST_SOFTMAX_H
+
+#include <cmath>
 
 #include "layer.h"
+#include "model_structs.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
-#include <Modelstructs.h>
-#include <cmath>
 
 namespace Edgeist {
 template <typename T>
@@ -170,4 +171,4 @@ private:
 };
 } // namespace Edgeist
 
-#endif // SOFTMAX_H
+#endif // EDGEIST_SOFTMAX_H

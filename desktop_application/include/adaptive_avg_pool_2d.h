@@ -4,13 +4,14 @@
  * @brief Implements the 2D adaptive average pooling layer
  */
 
-#ifndef ADAPTIVE_AVG_POOL_2D_H
-#define ADAPTIVE_AVG_POOL_2D_H
+#ifndef EDGEIST_ADAPTIVE_AVG_POOL_2D_H
+#define EDGEIST_ADAPTIVE_AVG_POOL_2D_H
+
+#include <cmath>
 
 #include "layer.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
-#include <cmath>
 
 namespace Edgeist {
 /**
@@ -158,4 +159,4 @@ private:
     OptimizerID m_optimizerType;
 };
 } // namespace Edgeist
-#endif // ADAPTIVE_AVG_POOL_2D_H
+#endif // EDGEIST_ADAPTIVE_AVG_POOL_2D_H
