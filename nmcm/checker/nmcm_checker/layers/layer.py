@@ -13,7 +13,7 @@ class Layer(ABC):
         self.json_data = {}
 
         # all keys that are pairs
-        self.pairs = ["KernelSize", "padding", "stride", "dilation"]
+        self.pairs = ["kernelSize", "padding", "stride", "dilation"]
 
     @abstractmethod
     def reconstruct_data(self, data: str, config_data):

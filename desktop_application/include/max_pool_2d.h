@@ -32,7 +32,7 @@ public:
         : Layer<T>(model)
         , m_ptrLayer(headerPointer)
         , m_ptrData(dataPointer)
-        , m_header(static_cast<Nmcm::MaxPool2d::NeuralNetwork_t*>(m_ptrLayer))
+        , m_header(static_cast<Nmcm::MaxPool2d::NeuralNetwork*>(m_ptrLayer))
         , m_optimizerType(optimizerType)
         , m_argMax(nullptr)
     {
@@ -56,13 +56,13 @@ public:
             return ErrorType::LayerNotInitialized;
         }
 
-        const int C = m_header->channelsin;
-        const int H_in = m_header->dimensioninput_y;
-        const int W_in = m_header->dimensioninput_x;
-        const int H_out = m_header->dimensionoutput_y;
-        const int W_out = m_header->dimensionoutput_x;
-        const int kH = m_header->kernelsize;
-        const int kW = m_header->kernelsize;
+        const int C = m_header->channelsIn;
+        const int H_in = m_header->dimensionInputY;
+        const int W_in = m_header->dimensionInputX;
+        const int H_out = m_header->dimensionOutputY;
+        const int W_out = m_header->dimensionOutputX;
+        const int kH = m_header->kernelSize;
+        const int kW = m_header->kernelSize;
         const int padH = m_header->padding;
         const int padW = m_header->padding;
         const int strideH = m_header->stride;
@@ -119,11 +119,11 @@ public:
             return ErrorType::UnknownError;
         }
 
-        const int C = m_header->channelsin;
-        const int H_in = m_header->dimensioninput_y;
-        const int W_in = m_header->dimensioninput_x;
-        const int H_out = m_header->dimensionoutput_y;
-        const int W_out = m_header->dimensionoutput_x;
+        const int C = m_header->channelsIn;
+        const int H_in = m_header->dimensionInputY;
+        const int W_in = m_header->dimensionInputX;
+        const int H_out = m_header->dimensionOutputY;
+        const int W_out = m_header->dimensionOutputX;
 
         // zero initialize grad_input
         size_t inSize = size_t(C) * H_in * W_in;
@@ -154,18 +154,18 @@ public:
 
     auto getOutputSize() -> uint32_t override
     {
-        return m_header->channelsin * m_header->dimensionoutput_x * m_header->dimensionoutput_y;
+        return m_header->channelsIn * m_header->dimensionOutputX * m_header->dimensionOutputY;
     }
 
     auto getInputSize() -> uint32_t override
     {
-        return m_header->channelsin * m_header->dimensioninput_x * m_header->dimensioninput_y;
+        return m_header->channelsIn * m_header->dimensionInputX * m_header->dimensionInputY;
     }
 
 private:
     void* m_ptrLayer;
     void* m_ptrData;
-    Nmcm::MaxPool2d::NeuralNetwork_t* m_header;
+    Nmcm::MaxPool2d::NeuralNetwork* m_header;
     OptimizerID m_optimizerType;
     uint32_t* m_argMax;
 };

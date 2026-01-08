@@ -33,7 +33,7 @@ public:
         : Layer<T>(model)
         , m_ptrLayer(headerPointer)
         , m_ptrData(dataPointer)
-        , m_header(static_cast<Nmcm::AdaptiveAvgPool1d::NeuralNetwork_t*>(m_ptrLayer))
+        , m_header(static_cast<Nmcm::AdaptiveAvgPool1d::NeuralNetwork*>(m_ptrLayer))
         , m_optimizerType(optimizerType)
     {
         AdaptiveAvgPool1D::loadFromFlash();
@@ -48,9 +48,9 @@ public:
             return ErrorType::LayerNotInitialized;
         }
 
-        const int C = m_header->channelsin;
-        const int W_in = m_header->dimensioninput_x;
-        const int W_out = m_header->dimensionoutput_x;
+        const int C = m_header->channelsIn;
+        const int W_in = m_header->dimensionInputX;
+        const int W_out = m_header->dimensionOutputX;
 
         for (int c = 0; c < C; ++c) {
             for (int ox = 0; ox < W_out; ++ox) {
@@ -82,9 +82,9 @@ public:
             return ErrorType::LayerNotInitialized;
         }
 
-        const int C = m_header->channelsin;
-        const int W_in = m_header->dimensioninput_x;
-        const int W_out = m_header->dimensionoutput_x;
+        const int C = m_header->channelsIn;
+        const int W_in = m_header->dimensionInputX;
+        const int W_out = m_header->dimensionOutputX;
 
         size_t inSize = size_t(C) * W_in;
         for (size_t i = 0; i < inSize; ++i) {
@@ -137,14 +137,14 @@ public:
         return ErrorType::OK;
     }
 
-    auto getOutputSize() -> uint32_t override { return m_header->channelsin * m_header->dimensionoutput_x; }
+    auto getOutputSize() -> uint32_t override { return m_header->channelsIn * m_header->dimensionOutputX; }
 
-    auto getInputSize() -> uint32_t override { return m_header->channelsin * m_header->dimensioninput_x; }
+    auto getInputSize() -> uint32_t override { return m_header->channelsIn * m_header->dimensionInputX; }
 
 private:
     void* m_ptrLayer;
     void* m_ptrData;
-    Nmcm::AdaptiveAvgPool1d::NeuralNetwork_t* m_header;
+    Nmcm::AdaptiveAvgPool1d::NeuralNetwork* m_header;
     OptimizerID m_optimizerType;
 };
 } // namespace Edgeist

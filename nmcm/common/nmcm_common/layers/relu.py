@@ -3,7 +3,7 @@ from nmcm_common.utils.masks import Masks
 
 
 class ReLU(Layer):
-    #: The ID of the layer.
+    #: The id of the layer.
     LAYER_ID = 6
 
     def __init__(self, config):
@@ -15,12 +15,12 @@ class ReLU(Layer):
             dimension *= modelinfo["input_shape"][i]
 
         # define all possible values of this layer without order
-        self.data["LayerNr"] = idx
-        self.data["ID"] = ReLU.LAYER_ID
+        self.data["layerNr"] = idx
+        self.data["id"] = ReLU.LAYER_ID
         self.data["predecessorNr"] = 1
         self.data["predecessors"] = [idx - 1] if idx != 0 else [0]
-        self.data["DimensionInput_x"] = dimension  # Input width
-        self.data["DimensionOutput_x"] = dimension  # Output width
+        self.data["dimensionInputX"] = dimension  # Input width
+        self.data["dimensionOutputX"] = dimension  # Output width
 
     def generate_data(self):
         if not (self.name in self.config):

@@ -30,7 +30,7 @@ public:
         : Layer<T>(model)
         , m_ptrLayer(headerPointer)
         , m_ptrData(dataPointer)
-        , m_header(static_cast<Nmcm::Flatten::NeuralNetwork_t*>(m_ptrLayer))
+        , m_header(static_cast<Nmcm::Flatten::NeuralNetwork*>(m_ptrLayer))
         , m_optimizerType(optimizerType)
     {
     }
@@ -41,7 +41,7 @@ public:
     // executes forward pass and writes the result to the output
     auto forwardPass(const T* inputData, T* outputData, bool /* trainingflag */) -> ErrorType override
     {
-        for (size_t i = 0; i < m_header->dimensioninput_x; i++) {
+        for (size_t i = 0; i < m_header->dimensionInputX; i++) {
             outputData[i] = inputData[i];
         }
         return ErrorType::OK;
@@ -50,7 +50,7 @@ public:
     // executes the backward pass and calculates the gradient for the layer before
     auto backwardPass(const T* inputData, T* outputData) -> ErrorType override
     {
-        for (size_t i = 0; i < m_header->dimensioninput_x; i++) {
+        for (size_t i = 0; i < m_header->dimensionInputX; i++) {
             outputData[i] = inputData[i];
         }
         return ErrorType::OK;
@@ -70,15 +70,15 @@ public:
 
     auto getOutputSize() -> uint32_t override
     {
-        return uint32_t(m_header->dimensionoutput_x);
+        return uint32_t(m_header->dimensionOutputX);
     }
 
     auto getInputSize() -> uint32_t override
     {
-        return uint32_t(m_header->dimensioninput_x);
+        return uint32_t(m_header->dimensionInputX);
     }
 
-    [[nodiscard]] auto header() const -> const Nmcm::Flatten::NeuralNetwork_t&
+    [[nodiscard]] auto header() const -> const Nmcm::Flatten::NeuralNetwork&
     {
         return *m_header;
     }
@@ -89,7 +89,7 @@ private:
     void* m_ptrData;
 
     // Pointer to the Layer in Flash
-    Nmcm::Flatten::NeuralNetwork_t* m_header;
+    Nmcm::Flatten::NeuralNetwork* m_header;
 
     // chosen optimizer
     OptimizerID m_optimizerType;

@@ -80,6 +80,18 @@ class HeaderWriter:
  */
 """
 
+    @staticmethod
+    def _camel_to_pascal_case(value: str) -> str:
+        """Converts a camel case string to a pascal case string.
+
+        :param value: The string to convert
+        :returns: The converted string
+        """
+        if len(value) == 0:
+            return ""
+
+        return value[0].upper() + value[1:]
+
     def __init__(self, typefile: str, structfile: str, enumfile: str):
         """
         Constructor of the class HeaderWriter
@@ -160,9 +172,9 @@ class HeaderWriter:
                 if key == "Config-Info":
                     # this section has no types but the version string
                     outfile.write(f"// {key}-types\n")
-                    outfile.write(f'constexpr auto* VERSION_STR = "' + config[key]["Version"][1] + '";\n')
-                    outfile.write(f"using ID_t = {config[key]["ID"][1]};\n")
-                    outfile.write(f"using Offset_Table_entry = {config[key]["Offset_Table"][1]};\n")
+                    outfile.write(f'constexpr auto* VERSION_STR = "' + config[key]["version"][1] + '";\n')
+                    outfile.write(f"using Id = {config[key]["id"][1]};\n")
+                    outfile.write(f"using OffsetTableEntry = {config[key]["Offset_Table"][1]};\n")
                 else:
                     outfile.write(f"// {key}-types\n")
                     # write datatypes
@@ -171,7 +183,9 @@ class HeaderWriter:
                         outfile.write(HeaderWriter._begin_namespace(key))
                         for name, typeinfo in config[key].items():
                             mapped_type = self._map_to_cpp_type(typeinfo[1])
-                            outfile.write(f"{HeaderWriter._TAB}using {name}_t = {mapped_type};\n")
+                            outfile.write(
+                                f"{HeaderWriter._TAB}using {HeaderWriter._camel_to_pascal_case(name)} = {mapped_type};\n"
+                            )
                         outfile.write(HeaderWriter._end_namespace(key))
                 if index < (len(config) - 1):
                     outfile.write("\n")
@@ -186,7 +200,7 @@ class HeaderWriter:
                 HeaderWriter._generate_header_doc("Defines the required structs for interfacing the neural network")
             )
             outfile.write(HeaderWriter._begin_include_guards(guard_name))
-            outfile.write(f"#include <array>\n")
+            outfile.write(f"#include <array>\n\n")
             outfile.write(f'#include "{self.type_filename}.h"\n\n')
             outfile.write(HeaderWriter._begin_namespace(HeaderWriter._WRAPPER_NAMESPACE))
 
@@ -195,17 +209,18 @@ class HeaderWriter:
                     outfile.write(HeaderWriter._begin_namespace(key))
                     outfile.write(HeaderWriter._generate_brief(f"Defines the required structure for {key}"))
                     outfile.write("#pragma pack(push, 1)\n")
-                    outfile.write(f"{HeaderWriter._TAB}struct NeuralNetwork_t {{\n")
+                    outfile.write(f"{HeaderWriter._TAB}struct NeuralNetwork {{\n")
 
                     for name, typeinfo in config[key].items():
+                        pascal_case = HeaderWriter._camel_to_pascal_case(name)
                         if typeinfo[0] == 1:
-                            outfile.write(f"{HeaderWriter._TAB*2}{name}_t {name.lower()};\n")
+                            outfile.write(f"{HeaderWriter._TAB*2}{pascal_case} {name};\n")
                         elif typeinfo[0] == 0:
                             # should be a pointer
-                            outfile.write(f"{HeaderWriter._TAB*2}{name}_t* {name.lower()};\n")
+                            outfile.write(f"{HeaderWriter._TAB*2}{pascal_case}* {name};\n")
                         else:
                             outfile.write(
-                                f"{HeaderWriter._TAB*2}std::array<{name}_t, {str(typeinfo[0])}> {name.lower()};\n"
+                                f"{HeaderWriter._TAB*2}std::array<{pascal_case}, {str(typeinfo[0])}> {name}; // NOLINT(*-magic-numbers)\n"
                             )
 
                     outfile.write(f"{HeaderWriter._TAB} }};\n")

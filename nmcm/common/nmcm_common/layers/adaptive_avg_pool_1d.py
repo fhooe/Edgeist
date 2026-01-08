@@ -3,21 +3,21 @@ from nmcm_common.utils.masks import Masks
 
 
 class AdaptiveAvgPool1d(Layer):
-    #: The ID of the layer.
+    #: The id of the layer.
     LAYER_ID = 8
 
     def __init__(self, config):
         super().__init__(config)
 
     def define_data(self, idx: int, modelinfo, masks: Masks = None):
-        self.data["LayerNr"] = idx
-        self.data["ID"] = AdaptiveAvgPool1d.LAYER_ID
+        self.data["layerNr"] = idx
+        self.data["id"] = AdaptiveAvgPool1d.LAYER_ID
         self.data["predecessorNr"] = 1
         self.data["predecessors"] = [idx - 1] if idx != 0 else [0]
-        self.data["DimensionInput_x"] = modelinfo["input_shape"][2]
-        self.data["DimensionOutput_x"] = modelinfo["output_shape"][2]
-        self.data["ChannelsIn"] = modelinfo["input_shape"][1]
-        self.data["ChannelsOut"] = modelinfo["output_shape"][1]
+        self.data["dimensionInputX"] = modelinfo["input_shape"][2]
+        self.data["dimensionOutputX"] = modelinfo["output_shape"][2]
+        self.data["channelsIn"] = modelinfo["input_shape"][1]
+        self.data["channelsOut"] = modelinfo["output_shape"][1]
 
     def generate_data(self):
         if not (self.name in self.config):

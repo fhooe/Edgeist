@@ -17,31 +17,31 @@ class Header:
         if len(model_stuct) == 0:
             raise RuntimeError("Model is empty")
 
-        self.data["Header_Size"] = 0  # placeholder
-        self.data["Magic_Number"] = 0x46434D4E
-        self.data["Version"] = "00.00.00"  # placeholder
-        self.data["LayerNrs"] = len(model_stuct)
-        self.data["ChannelsIn"] = 1 if not ("ChannelsIn" in model_stuct[0].data) else model_stuct[0].data["ChannelsIn"]
-        self.data["DimensionInput_x"] = (
-            1 if not ("DimensionInput_x" in model_stuct[0].data) else model_stuct[0].data["DimensionInput_x"]
+        self.data["headerSize"] = 0  # placeholder
+        self.data["magicNumber"] = 0x46434D4E
+        self.data["version"] = "00.00.00"  # placeholder
+        self.data["layerNrs"] = len(model_stuct)
+        self.data["channelsIn"] = 1 if not ("channelsIn" in model_stuct[0].data) else model_stuct[0].data["channelsIn"]
+        self.data["dimensionInputX"] = (
+            1 if not ("dimensionInputX" in model_stuct[0].data) else model_stuct[0].data["dimensionInputX"]
         )
-        self.data["DimensionInput_y"] = (
-            1 if not ("DimensionInput_y" in model_stuct[0].data) else model_stuct[0].data["DimensionInput_y"]
+        self.data["dimensionInputY"] = (
+            1 if not ("dimensionInputY" in model_stuct[0].data) else model_stuct[0].data["dimensionInputY"]
         )
-        self.data["ChannelsOut"] = (
-            1 if not ("ChannelsOut" in model_stuct[-1].data) else model_stuct[-1].data["ChannelsOut"]
+        self.data["channelsOut"] = (
+            1 if not ("channelsOut" in model_stuct[-1].data) else model_stuct[-1].data["channelsOut"]
         )
-        self.data["DimensionOutput_x"] = (
-            1 if not ("DimensionOutput_x" in model_stuct[-1].data) else model_stuct[-1].data["DimensionOutput_x"]
+        self.data["dimensionOutputX"] = (
+            1 if not ("dimensionOutputX" in model_stuct[-1].data) else model_stuct[-1].data["dimensionOutputX"]
         )
-        self.data["DimensionOutput_y"] = (
-            1 if not ("DimensionOutput_y" in model_stuct[-1].data) else model_stuct[-1].data["DimensionOutput_y"]
+        self.data["dimensionOutputY"] = (
+            1 if not ("dimensionOutputY" in model_stuct[-1].data) else model_stuct[-1].data["dimensionOutputY"]
         )
-        self.data["Layer_Offset_Table"] = []
+        self.data["layerOffsetTable"] = []
 
         offset = 0
         for layer in model_stuct:
-            self.data["Layer_Offset_Table"].append(offset)
+            self.data["layerOffsetTable"].append(offset)
             offset += len(layer.hex_data)
 
     def generate_data(self, config):
@@ -49,8 +49,8 @@ class Header:
             raise RuntimeError("No 'Config-Info' section found config file")
 
         for key, value in config["Config-Info"].items():
-            if key == "Version":
-                self.data["Version"] = value[1]
+            if key == "version":
+                self.data["version"] = value[1]
 
         if not ("Header" in config):
             raise RuntimeError("No 'Header' section found in config file")
@@ -59,9 +59,9 @@ class Header:
             if not (key in self.data):
                 raise RuntimeError(f"'Header' section missing key '{key}'")
 
-            if key == "Header_Size":
+            if key == "headerSize":
                 self.Header_Size_info = (len(self.hex_data), datatype)
-            if key == "Layer_Offset_Table":
+            if key == "layerOffsetTable":
                 self.Offset_Table_info = (len(self.hex_data), datatype)
 
             # add data to json
@@ -73,7 +73,7 @@ class Header:
         # Update Headersize
         header_len = len(self.hex_data)
         hex_header_len = HexConverter(header_len, self.Header_Size_info[1][1])
-        self.json_data["Header_Size"] = header_len
+        self.json_data["headerSize"] = header_len
         self.hex_data = hex_header_len + self.hex_data[self.Header_Size_info[0] + len(hex_header_len) :]
 
         # get type offset
@@ -88,9 +88,9 @@ class Header:
         # Update Offset Table
         offset_pos = self.Offset_Table_info[0]
         idx = 0
-        for elem in self.json_data["Layer_Offset_Table"]:
+        for elem in self.json_data["layerOffsetTable"]:
             elem += header_len
-            self.json_data["Layer_Offset_Table"][idx] = elem
+            self.json_data["layerOffsetTable"][idx] = elem
             new_offset = HexConverter(elem, self.Offset_Table_info[1][1])
             self.hex_data = self.hex_data[:offset_pos] + new_offset + self.hex_data[offset_pos + len(new_offset) :]
             offset_pos += offset_step

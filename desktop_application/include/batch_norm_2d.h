@@ -31,14 +31,14 @@ public:
         : Layer<T>(model)
         , m_ptrLayer(headerPointer)
         , m_ptrData(dataPointer)
-        , m_header(static_cast<Nmcm::BatchNorm2d::NeuralNetwork_t*>(m_ptrLayer))
+        , m_header(static_cast<Nmcm::BatchNorm2d::NeuralNetwork*>(m_ptrLayer))
         , m_optimizerType(optimizerType)
     {
-        m_runningMean = new double[m_header->channelsin];
-        m_runningVar = new double[m_header->channelsin];
+        m_runningMean = new double[m_header->channelsIn];
+        m_runningVar = new double[m_header->channelsIn];
 
-        m_ptrFlashWeight = (static_cast<T*>(m_ptrData) + (m_header->weights_trainable_offset / sizeof(T)));
-        m_ptrFlashBias = (static_cast<T*>(m_ptrData) + (m_header->bias_trainable_offset / sizeof(T)));
+        m_ptrFlashWeight = (static_cast<T*>(m_ptrData) + (m_header->weightsTrainableOffset / sizeof(T)));
+        m_ptrFlashBias = (static_cast<T*>(m_ptrData) + (m_header->biasTrainableOffset / sizeof(T)));
 
         BatchNorm2D::loadFromFlash();
     }
@@ -74,8 +74,8 @@ public:
             m_initRunningStats = false;
         }
 
-        const int nrOfInputs = m_header->dimensioninput_x;
-        const int nrOfChannels = m_header->channelsin;
+        const int nrOfInputs = m_header->dimensionInputX;
+        const int nrOfChannels = m_header->channelsIn;
         const int elemsPerChannel = nrOfInputs / nrOfChannels;
         float const eps = 1e-5f;
 
@@ -108,8 +108,8 @@ public:
         if (!m_initRunningStats) {
             // initialize with the values from buffer
             for (int c = 0; c < nrOfChannels; c++) {
-                m_runningMean[c] = ptrWeight[c + m_header->channelsin];
-                m_runningVar[c] = ptrBias[c + m_header->channelsin];
+                m_runningMean[c] = ptrWeight[c + m_header->channelsIn];
+                m_runningVar[c] = ptrBias[c + m_header->channelsIn];
             }
             m_initRunningStats = true;
         }
@@ -174,8 +174,8 @@ public:
             return ErrorType::MissingCachedInputs;
         }
 
-        const int nrOfInputs = m_header->dimensioninput_x;
-        const int nrOfChannels = m_header->channelsin;
+        const int nrOfInputs = m_header->dimensionInputX;
+        const int nrOfChannels = m_header->channelsIn;
         int ElemsPerChannel = nrOfInputs / nrOfChannels; // ElemsPerChannel
         float eps = 1e-5f;
 
@@ -252,8 +252,8 @@ public:
         }
 
         // create arrays dynamically and initialize them with 0.0
-        const uint32_t sizeWeights = m_header->dimensioninput_x;
-        const uint32_t sizeBias = m_header->dimensioninput_x;
+        const uint32_t sizeWeights = m_header->dimensionInputX;
+        const uint32_t sizeBias = m_header->dimensionInputX;
 
         m_ptrWeightGradient = new T[sizeWeights];
         m_ptrBiasGradient = new T[sizeBias];
@@ -291,7 +291,7 @@ public:
         }
 
         // SGD-Update of W and b
-        for (size_t i = 0; i < m_header->dimensioninput_x; ++i) {
+        for (size_t i = 0; i < m_header->dimensionInputX; ++i) {
             m_ptrWeight->update(i, m_ptrWeightGradient[i] / batchsize, this->m_model->m_learningRate, m_timestep);
             m_ptrBias->update(i, m_ptrBiasGradient[i] / batchsize, this->m_model->m_learningRate, m_timestep);
         }
@@ -306,37 +306,37 @@ public:
         case OptimizerID::SGD:
             // init weights
             m_ptrWeight = new OptimizerSGD<T>;
-            m_ptrWeight->init(m_header->weights_amount_trainable);
+            m_ptrWeight->init(m_header->weightsAmountTrainable);
             // init bias
             m_ptrBias = new OptimizerSGD<T>;
-            m_ptrBias->init(m_header->bias_amount_trainable);
+            m_ptrBias->init(m_header->biasAmountTrainable);
             break;
 
         case OptimizerID::Momentum:
             // init weights
             m_ptrWeight = new OptimizerMomentum<T>;
-            m_ptrWeight->init(m_header->weights_amount_trainable);
+            m_ptrWeight->init(m_header->weightsAmountTrainable);
             // init bias
             m_ptrBias = new OptimizerMomentum<T>;
-            m_ptrBias->init(m_header->bias_amount_trainable);
+            m_ptrBias->init(m_header->biasAmountTrainable);
             break;
 
         case OptimizerID::ADAM:
             // init weights
             m_ptrWeight = new OptimizerAdam<T>;
-            m_ptrWeight->init(m_header->weights_amount_trainable);
+            m_ptrWeight->init(m_header->weightsAmountTrainable);
             // init bias
             m_ptrBias = new OptimizerAdam<T>;
-            m_ptrBias->init(m_header->bias_amount_trainable);
+            m_ptrBias->init(m_header->biasAmountTrainable);
             break;
         }
 
         // init weights and biases
-        for (size_t i = 0; i < m_header->weights_amount_trainable; i++) {
-            m_ptrWeight->setData(i, *(static_cast<T*>(m_ptrData) + (m_header->weights_trainable_offset / sizeof(T)) + i));
+        for (size_t i = 0; i < m_header->weightsAmountTrainable; i++) {
+            m_ptrWeight->setData(i, *(static_cast<T*>(m_ptrData) + (m_header->weightsTrainableOffset / sizeof(T)) + i));
         }
-        for (size_t i = 0; i < m_header->bias_amount_trainable; i++) {
-            m_ptrBias->setData(i, *(static_cast<T*>(m_ptrData) + (m_header->bias_trainable_offset / sizeof(T)) + i));
+        for (size_t i = 0; i < m_header->biasAmountTrainable; i++) {
+            m_ptrBias->setData(i, *(static_cast<T*>(m_ptrData) + (m_header->biasTrainableOffset / sizeof(T)) + i));
         }
 
         this->m_isLoaded = true;
@@ -351,18 +351,18 @@ public:
 
     auto getOutputSize() -> uint32_t override
     {
-        return m_header->dimensionoutput_x;
+        return m_header->dimensionOutputX;
     }
 
     auto getInputSize() -> uint32_t override
     {
-        return m_header->dimensioninput_x;
+        return m_header->dimensionInputX;
     }
 
 private:
     void* m_ptrLayer;
     void* m_ptrData;
-    Nmcm::BatchNorm2d::NeuralNetwork_t* m_header;
+    Nmcm::BatchNorm2d::NeuralNetwork* m_header;
     OptimizerID m_optimizerType;
 
     double* m_runningMean = nullptr;

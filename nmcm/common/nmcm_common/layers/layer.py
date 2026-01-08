@@ -19,13 +19,13 @@ class Layer(ABC):
 
         # a empty type uses the type of the layer self.datatype.get_str()
         self.dataorder = OrderedDict(
-            Pruning_mask="bit",
-            Weights_mask="bit",
+            pruningMask="bit",
+            weightsMask="bit",
             Weights_trainable="",
-            Weights_frozen="",
-            Bias_mask="bit",
-            Bias_trainable="",
-            Bias_frozen="",
+            weightsFrozen="",
+            biasMask="bit",
+            biasTrainable="",
+            biasFrozen="",
         )
         # dataalignement to 8 byte
         self.dataalignement = "uint32_t"

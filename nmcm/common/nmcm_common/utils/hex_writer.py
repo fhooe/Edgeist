@@ -42,10 +42,10 @@ class HexWriter:
                     # Get offset-Table type
                     offset_table_type = layer.config["Config-Info"]["Offset_Table"]
                     # update local offsets to global offsets
-                    if layer.json_data["Weights_amount_trainable"] != 0:
+                    if layer.json_data["weightsAmountTrainable"] != 0:
                         pos = list(layer.dataorder.keys()).index("Weights_trainable")
                         offset_data = HexConverter(
-                            offset + layer.json_data["Weights_trainable_offset"],
+                            offset + layer.json_data["weightsTrainableOffset"],
                             offset_table_type[1],
                         )
                         offset_pos = layer.Offset_Tabel_pos + pos * Sizeof(offset_table_type[1])
@@ -54,14 +54,12 @@ class HexWriter:
                             + offset_data
                             + layer.hex_data[layer.Offset_Table_pos + offset_pos + len(offset_data) :]
                         )
-                        layer.json_data["Weights_trainable_offset"] = (
-                            offset + layer.json_data["Weights_trainable_offset"]
-                        )
+                        layer.json_data["weightsTrainableOffset"] = offset + layer.json_data["weightsTrainableOffset"]
 
-                    if layer.json_data["Bias_amount_trainable"] != 0:
-                        pos = list(layer.dataorder.keys()).index("Bias_trainable")
+                    if layer.json_data["biasAmountTrainable"] != 0:
+                        pos = list(layer.dataorder.keys()).index("biasTrainable")
                         offset_data = HexConverter(
-                            offset + layer.json_data["Bias_trainable_offset"],
+                            offset + layer.json_data["biasTrainableOffset"],
                             offset_table_type[1],
                         )
                         offset_pos = layer.Offset_Tabel_pos + pos * Sizeof(offset_table_type[1])
@@ -70,7 +68,7 @@ class HexWriter:
                             + offset_data
                             + layer.hex_data[layer.Offset_Table_pos + offset_pos + len(offset_data) :]
                         )
-                        layer.json_data["Bias_trainable_offset"] = offset + layer.json_data["Bias_trainable_offset"]
+                        layer.json_data["biasTrainableOffset"] = offset + layer.json_data["biasTrainableOffset"]
 
                     # write trainable file
                     outfile.write(layer.hex_trainable)

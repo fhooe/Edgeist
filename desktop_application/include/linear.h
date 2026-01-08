@@ -27,14 +27,14 @@ public:
         : Layer<T>(model)
         , m_ptrLayer(headerPointer)
         , m_ptrData(dataPointer)
-        , m_header(static_cast<Nmcm::Linear::NeuralNetwork_t*>(m_ptrLayer))
+        , m_header(static_cast<Nmcm::Linear::NeuralNetwork*>(m_ptrLayer))
         , m_optimizerType(optimizerType)
     {
-        m_ptrWeightFrozen = static_cast<T*>(m_ptrLayer) + m_header->weights_frozen_offset * sizeof(T);
-        m_ptrBiasFrozen = static_cast<T*>(m_ptrLayer) + m_header->bias_frozen_offset * sizeof(T);
+        m_ptrWeightFrozen = static_cast<T*>(m_ptrLayer) + m_header->weightsFrozenOffset * sizeof(T);
+        m_ptrBiasFrozen = static_cast<T*>(m_ptrLayer) + m_header->biasFrozenOffset * sizeof(T);
 
-        m_ptrFlashWeight = (static_cast<T*>(m_ptrData) + (m_header->weights_trainable_offset / sizeof(T)));
-        m_ptrFlashBias = (static_cast<T*>(m_ptrData) + (m_header->bias_trainable_offset / sizeof(T)));
+        m_ptrFlashWeight = (static_cast<T*>(m_ptrData) + (m_header->weightsTrainableOffset / sizeof(T)));
+        m_ptrFlashBias = (static_cast<T*>(m_ptrData) + (m_header->biasTrainableOffset / sizeof(T)));
 
         Linear::loadFromFlash();
     }
@@ -94,19 +94,19 @@ public:
         if (trainingFlag) {
             // get memory for training
             if (this->m_inputData == nullptr) {
-                this->m_inputData = new T[m_header->dimensioninput_x];
+                this->m_inputData = new T[m_header->dimensionInputX];
             }
-            for (uint32_t i = 0; i < m_header->dimensioninput_x; i++) {
+            for (uint32_t i = 0; i < m_header->dimensionInputX; i++) {
                 this->m_inputData[i] = inputData[i];
             }
         }
 
         // calc result
         // step through outputs
-        for (uint32_t b = 0; b < m_header->dimensionoutput_x; b++) {
+        for (uint32_t b = 0; b < m_header->dimensionOutputX; b++) {
             auto temp = T(0);
-            for (uint32_t i = 0; i < m_header->dimensioninput_x; i++) {
-                temp += inputData[i] * ptrWeight[(b * (m_header->dimensioninput_x)) + i];
+            for (uint32_t i = 0; i < m_header->dimensionInputX; i++) {
+                temp += inputData[i] * ptrWeight[(b * (m_header->dimensionInputX)) + i];
             }
 
             temp = ptrBias[b] + temp;
@@ -128,31 +128,31 @@ public:
         }
 
         // do backward pass
-        T* dL_dW = new T[m_header->dimensionoutput_x * m_header->dimensioninput_x];
-        for (size_t i = 0; i < m_header->dimensionoutput_x; ++i) {
-            for (size_t j = 0; j < m_header->dimensioninput_x; ++j) {
-                dL_dW[i * m_header->dimensioninput_x + j] = inputData[i] * this->m_inputData[j];
+        T* dL_dW = new T[m_header->dimensionOutputX * m_header->dimensionInputX];
+        for (size_t i = 0; i < m_header->dimensionOutputX; ++i) {
+            for (size_t j = 0; j < m_header->dimensionInputX; ++j) {
+                dL_dW[i * m_header->dimensionInputX + j] = inputData[i] * this->m_inputData[j];
             }
         }
 
         // 2. gradient for bias
-        T* dL_db = new T[m_header->dimensionoutput_x];
-        for (size_t i = 0; i < m_header->dimensionoutput_x; ++i) {
+        T* dL_db = new T[m_header->dimensionOutputX];
+        for (size_t i = 0; i < m_header->dimensionOutputX; ++i) {
             dL_db[i] = inputData[i];
         }
 
         // 3. gradient for input x (backprop through layer)
-        for (size_t j = 0; j < m_header->dimensioninput_x; ++j) {
+        for (size_t j = 0; j < m_header->dimensionInputX; ++j) {
             outputData[j] = 0.0f;
-            for (size_t i = 0; i < m_header->dimensionoutput_x; ++i) {
-                outputData[j] += m_ptrWeight->getData((i * (m_header->dimensioninput_x)) + j) * inputData[i];
+            for (size_t i = 0; i < m_header->dimensionOutputX; ++i) {
+                outputData[j] += m_ptrWeight->getData((i * (m_header->dimensionInputX)) + j) * inputData[i];
             }
         }
 
         // update gradients
-        for (size_t i = 0; i < m_header->dimensionoutput_x; ++i) {
-            for (size_t j = 0; j < m_header->dimensioninput_x; ++j) {
-                m_ptrWeightGradient[i * m_header->dimensioninput_x + j] += dL_dW[i * m_header->dimensioninput_x + j];
+        for (size_t i = 0; i < m_header->dimensionOutputX; ++i) {
+            for (size_t j = 0; j < m_header->dimensionInputX; ++j) {
+                m_ptrWeightGradient[i * m_header->dimensionInputX + j] += dL_dW[i * m_header->dimensionInputX + j];
             }
             m_ptrBiasGradient[i] += dL_db[i];
         }
@@ -178,8 +178,8 @@ public:
         }
 
         // create arrays dynamically and initialize them with 0.0
-        uint32_t sizeWeights = m_header->dimensionoutput_x * m_header->dimensioninput_x;
-        uint32_t sizeBias = m_header->dimensionoutput_x;
+        uint32_t sizeWeights = m_header->dimensionOutputX * m_header->dimensionInputX;
+        uint32_t sizeBias = m_header->dimensionOutputX;
 
         m_ptrWeightGradient = new T[sizeWeights];
         m_ptrBiasGradient = new T[sizeBias];
@@ -219,9 +219,9 @@ public:
         }
 
         // SGD-Update of W and b
-        for (size_t i = 0; i < m_header->dimensionoutput_x; ++i) {
-            for (size_t j = 0; j < m_header->dimensioninput_x; ++j) {
-                m_ptrWeight->update((i * (m_header->dimensioninput_x)) + j, m_ptrWeightGradient[i * m_header->dimensioninput_x + j] / batchsize, this->m_model->m_learningRate, m_timestep);
+        for (size_t i = 0; i < m_header->dimensionOutputX; ++i) {
+            for (size_t j = 0; j < m_header->dimensionInputX; ++j) {
+                m_ptrWeight->update((i * (m_header->dimensionInputX)) + j, m_ptrWeightGradient[i * m_header->dimensionInputX + j] / batchsize, this->m_model->m_learningRate, m_timestep);
             }
             m_ptrBias->update(i, m_ptrBiasGradient[i] / batchsize, this->m_model->m_learningRate, m_timestep);
         }
@@ -236,37 +236,37 @@ public:
         case OptimizerID::SGD:
             // init weights
             m_ptrWeight = new OptimizerSGD<T>;
-            m_ptrWeight->init(m_header->weights_amount_trainable);
+            m_ptrWeight->init(m_header->weightsAmountTrainable);
             // init bias
             m_ptrBias = new OptimizerSGD<T>;
-            m_ptrBias->init(m_header->bias_amount_trainable);
+            m_ptrBias->init(m_header->biasAmountTrainable);
             break;
 
         case OptimizerID::Momentum:
             // init weights
             m_ptrWeight = new OptimizerMomentum<T>;
-            m_ptrWeight->init(m_header->weights_amount_trainable);
+            m_ptrWeight->init(m_header->weightsAmountTrainable);
             // init bias
             m_ptrBias = new OptimizerMomentum<T>;
-            m_ptrBias->init(m_header->bias_amount_trainable);
+            m_ptrBias->init(m_header->biasAmountTrainable);
             break;
 
         case OptimizerID::ADAM:
             // init weights
             m_ptrWeight = new OptimizerAdam<T>;
-            m_ptrWeight->init(m_header->weights_amount_trainable);
+            m_ptrWeight->init(m_header->weightsAmountTrainable);
             // init bias
             m_ptrBias = new OptimizerAdam<T>;
-            m_ptrBias->init(m_header->bias_amount_trainable);
+            m_ptrBias->init(m_header->biasAmountTrainable);
             break;
         }
 
         // init weights and biases
-        for (size_t i = 0; i < m_header->weights_amount_trainable; i++) {
-            m_ptrWeight->setData(i, *(static_cast<T*>(m_ptrData) + (m_header->weights_trainable_offset / sizeof(T)) + i));
+        for (size_t i = 0; i < m_header->weightsAmountTrainable; i++) {
+            m_ptrWeight->setData(i, *(static_cast<T*>(m_ptrData) + (m_header->weightsTrainableOffset / sizeof(T)) + i));
         }
-        for (size_t i = 0; i < m_header->bias_amount_trainable; i++) {
-            m_ptrBias->setData(i, *(static_cast<T*>(m_ptrData) + (m_header->bias_trainable_offset / sizeof(T)) + i));
+        for (size_t i = 0; i < m_header->biasAmountTrainable; i++) {
+            m_ptrBias->setData(i, *(static_cast<T*>(m_ptrData) + (m_header->biasTrainableOffset / sizeof(T)) + i));
         }
 
         this->m_isLoaded = true;
@@ -283,15 +283,15 @@ public:
 
     auto getOutputSize() -> uint32_t override
     {
-        return uint32_t(m_header->dimensionoutput_x);
+        return uint32_t(m_header->dimensionOutputX);
     }
 
     auto getInputSize() -> uint32_t override
     {
-        return uint32_t(m_header->dimensioninput_x);
+        return uint32_t(m_header->dimensionInputX);
     }
 
-    [[nodiscard]] auto header() const -> const Nmcm::Linear::NeuralNetwork_t&
+    [[nodiscard]] auto header() const -> const Nmcm::Linear::NeuralNetwork&
     {
         return *m_header;
     }
@@ -300,7 +300,7 @@ private:
     void* m_ptrLayer;
     void* m_ptrData;
 
-    Nmcm::Linear::NeuralNetwork_t* m_header;
+    Nmcm::Linear::NeuralNetwork* m_header;
 
     // chosen optimizer
     OptimizerID m_optimizerType;

@@ -31,7 +31,7 @@ public:
         : Layer<T>(model)
         , m_ptrLayer(headerPointer)
         , m_ptrData(dataPointer)
-        , m_header(static_cast<Nmcm::Dropout::NeuralNetwork_t*>(m_ptrLayer))
+        , m_header(static_cast<Nmcm::Dropout::NeuralNetwork*>(m_ptrLayer))
         , m_optimizerType(optimizerType)
         , m_rng(std::random_device {}())
     {
@@ -47,7 +47,7 @@ public:
             return ErrorType::LayerNotInitialized;
         }
 
-        const size_t size = m_header->dimensioninput_x;
+        const size_t size = m_header->dimensionInputX;
 
         if (trainingFlag) {
             if (m_dropoutMask.size() != size) {
@@ -75,7 +75,7 @@ public:
             return ErrorType::LayerNotInitialized;
         }
 
-        const size_t size = m_header->dimensioninput_x;
+        const size_t size = m_header->dimensionInputX;
 
         if (m_dropoutMask.size() != size) {
             return ErrorType::DropoutMaskMissing;
@@ -90,8 +90,8 @@ public:
 
     auto initGradients() -> ErrorType override
     {
-        const auto size = static_cast<size_t>(m_header->dimensioninput_x);
-        const float rate = m_header->dropoutrate;
+        const auto size = static_cast<size_t>(m_header->dimensionInputX);
+        const float rate = m_header->dropoutRate;
 
         std::uniform_real_distribution<float> dist(0.0F, 1.0F);
         m_dropoutMask.resize(size);
@@ -124,18 +124,18 @@ public:
 
     auto getOutputSize() -> uint32_t override
     {
-        return m_header->dimensionoutput_x;
+        return m_header->dimensionOutputX;
     }
 
     auto getInputSize() -> uint32_t override
     {
-        return m_header->dimensioninput_x;
+        return m_header->dimensionInputX;
     }
 
 private:
     void* m_ptrLayer;
     void* m_ptrData;
-    Nmcm::Dropout::NeuralNetwork_t* m_header;
+    Nmcm::Dropout::NeuralNetwork* m_header;
     OptimizerID m_optimizerType;
 
     std::vector<T> m_dropoutMask;
