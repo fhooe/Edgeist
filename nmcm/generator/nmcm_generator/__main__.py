@@ -63,4 +63,4 @@ if __name__ == "__main__":
     print(f"Execution time: {duration:.6f}s for {num_epochs} epochs")
 
     print(summary(model, input_size=(1, 28, 28)))
-    torch.save(model, "./mnist_model.pth")
+    torch.save(model, "../parser/mnist_model.pth")

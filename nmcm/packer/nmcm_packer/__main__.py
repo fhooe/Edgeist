@@ -7,8 +7,8 @@ from torchvision import datasets, transforms
 # generates train and test data (the mnist_samples ar in a random order) to use with the Desktop_Application
 
 # output files
-output_file_train = "mnist_train_all_random.bin"
-output_file_test = "mnist_test_all_random.bin"
+output_file_train = "../parser/mnist_train_all_random.bin"
+output_file_test = "../parser/mnist_test_all_random.bin"
 
 # MNIST dataset with ToTensor ([0.0, 1.0])
 transform = transforms.ToTensor()

@@ -8,7 +8,12 @@
             "module": "nmcm_checker",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
-            "args": []
+            "args": [
+                "--model_types_header",
+                "../parser/model_types.h",
+                "--hex_file",
+                "../parser/model.hex"
+            ]
         }
     ]
 }

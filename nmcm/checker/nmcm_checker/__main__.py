@@ -9,18 +9,18 @@ from nmcm_checker.utils import BinaryConverter, HeaderParser
 
 
 def main(args):
-    filename = args.name
-    configfile = args.config
+    hex_file = args.hex_file
+    model_types_header = args.model_types_header
 
-    json_writer = JSONWriter(r"./NMCN_Checker/test.json")
+    json_writer = JSONWriter("test.json")
     model_struct = []
 
     # Read Config File
-    conf = HeaderParser(configfile)
+    conf = HeaderParser(model_types_header)
     config_data = conf.ReadHfile()
 
     # Read Hex File
-    with open(filename, "rb") as hexfile:
+    with open(hex_file, "rb") as hexfile:
         data = b""
         for line in hexfile:
             data += line
@@ -55,17 +55,11 @@ def main(args):
 
 
 if __name__ == "__main__":
-    # possible arguments:
-    # "args": [
-    #            "--config", "./NMCN_Parser/Modeltypes.h",
-    #            "--name", "./NMCN_Parser/test.hex"
-    #        ]
-
     parser = argparse.ArgumentParser(description="Generate a json from a hex file")
 
     # Add arguments
-    parser.add_argument("--config", type=str, help="Path to configfile e.g. ./config.md")
-    parser.add_argument("--name", type=str, help="Name of the input hex file")
+    parser.add_argument("--model_types_header", type=str, help="Path to the generated model_types.h file")
+    parser.add_argument("--hex_file", type=str, help="Path to the generated model *.hex file")
 
     # Parse the arguments
     args = parser.parse_args()
