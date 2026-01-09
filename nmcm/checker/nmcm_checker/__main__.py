@@ -1,6 +1,6 @@
-import argparse
 import os
 import sys
+from argparse import ArgumentParser
 
 from nmcm_common.utils import JSONWriter, Sizeof
 
@@ -55,13 +55,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    # possible arguments:
-    # "args": [
-    #            "--config", "./NMCN_Parser/Modeltypes.h",
-    #            "--name", "./NMCN_Parser/test.hex"
-    #        ]
-
-    parser = argparse.ArgumentParser(description="Generate a json from a hex file")
+    parser = ArgumentParser(description="Generates a json from a hex-file")
 
     # Add arguments
     parser.add_argument("--config", type=str, help="Path to configfile e.g. ./config.md")

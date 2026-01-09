@@ -13,46 +13,25 @@ This script converts a PyTorch model into a format that is compatible with the N
 It extracts model structure and weights, processes each layer
 using custom classes, and generates the following outputs:
 
-- .hex            Contains the model configuration and frozen weights and biases in a hex format
-- _trainable.hex  Contains the model weights and biases that are trainable in a serialiced hex format
-- .h files:       C header files defining model layers, types, and structures
-- .json file:     (Optional) JSON representation of the model structure (currently disabled)
+- model.hex                         Contains the model configuration and frozen weights and biases in a hex format
+- model_trainable.hex               Contains the model weights and biases that are trainable in a serialized hex format
+- model_[types | enums | structs].h C++ header files defining model layers, types, and structures
+- model.json file:                  JSON representation of the model structure
 
 The script is intended for deployment of neural networks to embedded systems,
 where PyTorch cannot be used directly.
 
-Usage Example:
-    python script.py
-        --config ./config.md
-        --model ./mnist_model.pth
-        --inputsize "(1,28,28)"
-        --name ./output/test_model
-
-Inputs:
-    --config     Path to the configuration file (e.g., ./config.md)
-    --model      Path to the saved PyTorch model (e.g., .pth file)
-    --inputsize  Input shape of the model as a tuple string (e.g., "(1,28,28)")
-    --name       Base name for output files
-
-Outputs:
-    - <name>.hex
-    - <name>_trainable.hex
-    - Modeltypes.h
-    - Modelstructs.h
-    - Modelenums.h
-    - (Optional) <name>.json
-
 Notes:
-    - The model must match the structure defined in `generatePytorchModel.py`
-    - Only supported layers (defined in ./Layers) can be parsed
+    - The model must match the structure defined in `simple_nn.py`
+    - Only supported layers can be parsed
     - Configuration and conversion are driven by the `config.md` file
 
 ===============================================================================
 """
 
-import argparse
 import os
 import sys
+from argparse import ArgumentParser
 
 import numpy as np
 import torch
@@ -84,27 +63,30 @@ from nmcm_common.utils import (
 
 def main(args: argparse.Namespace) -> None:
     # Input Parameter
-    filename = args.name
-    input_size = args.inputsize
-    model_path = args.model
-    configfile = args.config
+    input_size = args.input_size
+    model = args.model
+    config = args.config
 
     # load pytorch model
-    model = torch.load(os.path.abspath(model_path), weights_only=False)
+    model = torch.load(os.path.abspath(model), weights_only=False)
 
     # Construct all classes
     try:
-        json_writer = JSONWriter(filename + ".json")
-        hex_writer = HexWriter(filename + ".hex")
-        header_writer = HeaderWriter("model_types.h", "model_structs.h", "model_enums.h")
-        config = ConfigParser(configfile)
+        json_writer = JSONWriter(os.path.join(args.hex_out_dir, "model.json"))
+        hex_writer = HexWriter(os.path.join(args.hex_out_dir, "model.hex"))
+        header_writer = HeaderWriter(
+            os.path.join(args.header_out_dir, "model_types.h"),
+            os.path.join(args.header_out_dir, "model_structs.h"),
+            os.path.join(args.header_out_dir, "model_enums.h"),
+        )
+        config_parser = ConfigParser(config)
         header = Header()
     except Exception as e:
         print(e)
         sys.exit(-1)
 
     # Parse config file
-    configdata = config.ReadConfigfile()
+    config_data = config_parser.ReadConfigfile()
 
     # Variable from optimizer
     mask = Masks()
@@ -131,7 +113,7 @@ def main(args: argparse.Namespace) -> None:
 
         try:
             # Create correct layer class
-            class_instance = dynamic_class(configdata)
+            class_instance = dynamic_class(config_data)
             class_instance.define_data(idx, value, mask)
             class_instance.generate_data()
             model_struct.append(class_instance)
@@ -145,42 +127,47 @@ def main(args: argparse.Namespace) -> None:
         idx += 1
 
     header.define_data(model_struct)
-    header.generate_data(configdata)
+    header.generate_data(config_data)
 
     # insert header at the front
     model_struct.insert(0, header)
 
     # update modular array-sizes
-    configdata = update_header_offset_length(model_struct, configdata)
+    config_data = update_header_offset_length(model_struct, config_data)
 
     # generate outputs
     model_struct = hex_writer.writeHEX(model_struct)
     json_writer.writeJSON(model_struct)
-    header_writer.write(configdata)
+    header_writer.write(config_data)
 
 
 if __name__ == "__main__":
     # Create the argument parser
-    parser = argparse.ArgumentParser(description="Generate json-, hex- and header-files from a pytorch model")
+    parser = ArgumentParser(description="Generates json-, hex- and header-files from a pytorch models")
 
     # Add arguments
-    parser.add_argument("--config", type=str, help="Path to config-file e.g. config.md")
-    parser.add_argument("--model", type=str, help="Path to model-file e.g. model.pth")
-    parser.add_argument("--inputsize", type=str, help="Input-size of the model e.g. (1,28,28)")
-    parser.add_argument("--name", type=str, help="Name of the output-files")
+    parser.add_argument("--config", type=str, help="path to the config-file", default="config.md")
+    parser.add_argument("--model", type=str, help="path to the model", required=True)
+    parser.add_argument("--input_size", type=str, help="input-size of the model", default="(1,28,28)")
+    parser.add_argument(
+        "--header_out_dir", type=str, help="destination directory of generated header-files", default="output"
+    )
+    parser.add_argument(
+        "--hex_out_dir", type=str, help="destination directory of generated hex- (+json-) files", default="output"
+    )
 
     # Parse the arguments
     args = parser.parse_args()
 
     # convert inputsize str to tuple of int
-    if not (str(args.inputsize).endswith(")")) or not (str(args.inputsize).startswith("(")):
+    if not (str(args.input_size).endswith(")")) or not (str(args.input_size).startswith("(")):
         raise RuntimeError("Invalid input-size format")
-    args.inputsize = str(args.inputsize).removeprefix("(").removesuffix(")")
+    args.input_size = str(args.input_size).removeprefix("(").removesuffix(")")
 
     input = ()
-    for value in str(args.inputsize).split(","):
+    for value in str(args.input_size).split(","):
         input = input + (int(value, 10),)
 
-    args.inputsize = input
+    args.input_size = input
 
     main(args)

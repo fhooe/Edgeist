@@ -9,13 +9,11 @@
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
             "args": [
-                "--config",
-                "config.md",
                 "--model",
-                "../generator/mnist_model.pth",
-                "--inputsize",
-                "(1,28,28)",
-                "--name",
+                "../generator/output/model.pth",
+                "--header_out_dir",
+                "../../desktop_application/generated",
+                "--hex_out_dir",
                 "output"
             ]
         }

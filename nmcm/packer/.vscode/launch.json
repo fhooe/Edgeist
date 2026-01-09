@@ -8,7 +8,10 @@
             "module": "nmcm_packer",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
-            "args": []
+            "args": [
+                "--mnist_dir",
+                "../generator/data"
+            ]
         }
     ]
 }
