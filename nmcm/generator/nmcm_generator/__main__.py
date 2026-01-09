@@ -1,4 +1,5 @@
 import time
+from argparse import ArgumentParser
 
 import torch
 import torch.nn as nn
@@ -9,14 +10,23 @@ from torchsummary import summary
 from torchvision import datasets, transforms
 
 if __name__ == "__main__":
+    parser = ArgumentParser(description="Trains a pytorch model")
+
+    parser.add_argument(
+        "--out_model", type=str, help="file-name to save the trained model to", default="output/model.pth"
+    )
+    parser.add_argument("--mnist_dir", type=str, help="directory where to download MNIST-data to", default="data")
+
+    args = parser.parse_args()
+
     transform = transforms.Compose(
         [
             transforms.ToTensor(),
         ]
     )
 
-    train_dataset = datasets.MNIST(root="../data", train=True, download=True, transform=transform)
-    test_dataset = datasets.MNIST(root="../data", train=False, download=True, transform=transform)
+    train_dataset = datasets.MNIST(root=args.mnist_dir, train=True, download=True, transform=transform)
+    test_dataset = datasets.MNIST(root=args.mnist_dir, train=False, download=True, transform=transform)
     train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
 
@@ -63,4 +73,4 @@ if __name__ == "__main__":
     print(f"Execution time: {duration:.6f}s for {num_epochs} epochs")
 
     print(summary(model, input_size=(1, 28, 28)))
-    torch.save(model, "./mnist_model.pth")
+    torch.save(model, args.out_model)
