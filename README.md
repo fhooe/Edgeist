@@ -1,6 +1,8 @@
 # Edgeist
 
-A framework for deploying and continuously training neural networks on resource limited devices.
+A framework for deploying and continuously training neural networks on resource-limited devices.
+
+This work was carried out with our partner companies as part of the Josef Ressel Centre for Artificial Intelligence for Resource-Constrained Devices. We would like to express our gratitude for the financial support provided by the Federal Ministry of Labour and Economy, the National Foundation for Research, Technology and Development, and the Christian Doppler Research Association.
 
 ## Partners
 <table style="margin-left: auto; margin-right: auto">
