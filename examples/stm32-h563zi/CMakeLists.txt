@@ -42,12 +42,25 @@ add_subdirectory(cmake/stm32cubemx)
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE # Add user defined library search paths
 )
 
+file(GLOB_RECURSE MIDDLEWARE_SRC
+    "Third_Party/LwIP/*.c"
+    "Drivers/BSP/*.c"
+)
+
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE # Add user sources here
+    ${MIDDLEWARE_SRC}
+    "Core/Src/ethernetif.c"
+    "Core/Src/lwip.c"
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE # Add user defined include paths
+    "Drivers/BSP"
+    "Drivers/BSP/STM32H5xx_Nucleo"
+    "Third_Party/LwIP/system"
+    "Third_Party/LwIP/src/include"
+    "Third_Party/LwIP/src/core"
 )
 
 # Add project symbols (macros)

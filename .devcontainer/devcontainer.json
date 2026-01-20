@@ -20,8 +20,9 @@
                 "ms-vscode.cpptools-extension-pack",
                 "cheshirekow.cmake-format",
                 "ms-azuretools.vscode-docker",
-                "cheshirekow.cmake-format",
-                "llvm-vs-code-extensions.vscode-clangd"
+                "ms-vscode-remote.remote-containers",
+                "mcu-debug.debug-tracker-vscode",
+                "marus25.cortex-debug"
             ]
         }
     },

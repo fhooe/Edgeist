@@ -15,7 +15,6 @@
         "cheshirekow.cmake-format",
         "ms-azuretools.vscode-docker",
         "ms-vscode-remote.remote-containers",
-        "cheshirekow.cmake-format",
         "mcu-debug.debug-tracker-vscode",
         "marus25.cortex-debug"
     ]
