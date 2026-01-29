@@ -7,6 +7,7 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <chrono>
+#include <filesystem>
 #include <format>
 #include <fstream>
 #include <iomanip>
@@ -33,20 +34,17 @@ constexpr float LEARNING_RATE = 0.001F;
  * @param filename The file to load
  * @return The content of the entire file
  */
-auto loadFileToBuffer(const std::string& filename) -> char*
+auto loadFileToBuffer(const std::string& filename) -> std::vector<uint8_t>
 {
     std::ifstream file(filename, std::ios::binary);
     if (!file) {
         throw std::runtime_error(std::format("Failed to open file: {}", filename));
     }
+    const auto size = std::filesystem::file_size(filename);
 
-    file.seekg(0, std::ios::end);
-    const auto size = file.tellg();
-    file.seekg(0, std::ios::beg);
+    std::vector<uint8_t> buffer(size);
 
-    auto* buffer = new char[size];
-    if (!file.read(buffer, size)) {
-        delete[] buffer;
+    if (!file.read(reinterpret_cast<char*>(buffer.data()), size)) {
         throw std::runtime_error(std::format("Failed to read file: {}", filename));
     }
     return buffer;
@@ -96,8 +94,8 @@ auto main(int argc, char** argv) -> int
     namespace Po = boost::program_options;
 
     auto desc = Po::options_description("allowed options");
-    auto* modelFixed = static_cast<char*>(nullptr);
-    auto* modelTrainable = static_cast<char*>(nullptr);
+    std::vector<uint8_t> modelFixed;
+    std::vector<uint8_t> modelTrainable;
 
     try {
         auto vMap = Po::variables_map();
@@ -131,7 +129,7 @@ auto main(int argc, char** argv) -> int
         auto trainImages = Edgeist::loadMNISTBatch(trainImagesPath);
         auto testImages = Edgeist::loadMNISTBatch(testImagesPath);
 
-        auto myModel = Edgeist::Model<float>(modelFixed, modelTrainable, Edgeist::OptimizerID::SGD, LEARNING_RATE);
+        auto myModel = Edgeist::Model<float>(modelFixed.data(), modelTrainable.data(), Edgeist::OptimizerID::SGD, LEARNING_RATE);
         auto loss = Edgeist::SoftmaxCrossEntropyLoss<float>();
 
         myModel.init();
@@ -168,9 +166,6 @@ auto main(int argc, char** argv) -> int
         std::chrono::duration<double> const duration = end - start;
         std::cout << "Program runtime: " << duration.count() << " seconds for " << TRAINING_EPOCHS << "epochs";
 
-        delete[] modelFixed;
-        delete[] modelTrainable;
-
         return EXIT_SUCCESS;
     } catch (const Po::error& error) {
         std::cerr << error.what() << "\n";
@@ -181,7 +176,5 @@ auto main(int argc, char** argv) -> int
         std::cerr << "unknown error occurred\n";
     }
 
-    delete[] modelFixed;
-    delete[] modelTrainable;
     return EXIT_FAILURE;
 }

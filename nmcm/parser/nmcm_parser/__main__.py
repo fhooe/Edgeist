@@ -31,7 +31,7 @@ Notes:
 
 import os
 import sys
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 
 import numpy as np
 import torch
@@ -61,7 +61,7 @@ from nmcm_common.utils import (
 )
 
 
-def main(args: argparse.Namespace) -> None:
+def main(args: Namespace) -> None:
     # Input Parameter
     input_size = args.input_size
     model = args.model
