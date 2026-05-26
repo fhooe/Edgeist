@@ -82,6 +82,22 @@ Commits must follow the rules of [Conventional Commits](https://www.conventional
 [Gitflow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) is used.
 
 ## Build Instructions
+### Build project
+Make script executable:
+chmod +x ./build.sh
+
+This builds the entire Project
+./build.sh all
+
+This runs Project with all .bin and .hex necessary
+./build.sh run
+
+
+This cleans the entire Project
+./build.sh clean
+
+This cleans and rebuilds the Project with all .bin and .hex necessary
+./build.sh force
 
 ### C++-Projects
 
