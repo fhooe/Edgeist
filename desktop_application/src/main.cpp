@@ -56,19 +56,20 @@ auto evaluateModel(Edgeist::Model<float>& myModel, const std::vector<Edgeist::MN
 {
     float output[NUM_OUTPUTS] = { 0.0F };
     float expected[NUM_OUTPUTS] = { 0.0F };
-
+    volatile bool trainFlag = true;
     uint32_t correct = 0;
     float totalLoss = 0.0F;
-
+    std::cerr << "Before Outer Loop\n";
     for (const auto& img : images) {
         const auto* input = reinterpret_cast<const float*>(img.data);
-        myModel.inferenceSram(input, output);
-
+        myModel.inferenceSram(input, output,trainFlag);
+        
         expected[img.label] = 1.0f;
 
         // prediction & loss
         int maxIdx = 0;
         float maxVal = output[0];
+        
         for (int i = 0; i < NUM_OUTPUTS; ++i) {
             if (output[i] > maxVal) {
                 maxVal = output[i];
@@ -115,33 +116,36 @@ auto main(int argc, char** argv) -> int
 
         Po::store(Po::parse_command_line(argc, argv, desc), vMap);
         Po::notify(vMap);
-
+        std::cerr << "=== Parsed command    ===\n";
         if (vMap.contains("help")) {
             std::cout << desc << '\n';
             return EXIT_SUCCESS;
         }
-
+        
         if (vMap.contains("version")) {
             std::cout << std::format("version {}.{}.{}\n", Edgeist::Edgeist::VERSION_MAJOR, Edgeist::Edgeist::VERSION_MINOR, Edgeist::Edgeist::VERSION_PATCH);
             return EXIT_SUCCESS;
         }
-
+        std::cerr << "=== Before Load===\n";
         modelFixed = loadFileToBuffer(modelPath);
         modelTrainable = loadFileToBuffer(modelTrainablePath);
         auto trainImages = Edgeist::loadMNISTBatch(trainImagesPath);
         auto testImages = Edgeist::loadMNISTBatch(testImagesPath);
-
+        
+        std::cerr << "=== After Load===\n";
         auto myModel = Edgeist::Model<float>(modelFixed, modelTrainable, Edgeist::OptimizerID::SGD, LEARNING_RATE);
         auto loss = Edgeist::SoftmaxCrossEntropyLoss<float>();
+        std::cerr << "=== Before init===\n";
 
         myModel.init();
+        std::cerr << "=== After init===\n";
         evaluateModel(myModel, testImages, loss, "before training");
 
         float expected[NUM_OUTPUTS] = { 0.0F };
-        std::cout << "=== Training started ===\n";
+        std::cerr << "=== Training started ===\n";
 
         auto start = std::chrono::steady_clock::now();
-
+        std::cerr << "=== before epoch ===\n";
         for (int epoch = 0; epoch < TRAINING_EPOCHS; ++epoch) {
             std::cout << "Epoch " << epoch + 1 << " started...\n";
 

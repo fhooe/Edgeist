@@ -20,7 +20,7 @@ struct MNISTImage {
     uint8_t label;
 };
 
-auto loadMNISTBatch(const std::string& filename) -> std::vector<MNISTImage>;
+std::vector<MNISTImage> loadMNISTBatch(const std::string& filename);
 } // namespace Edgeist
 
 #endif // EDGEIST_MNIST_LOADER_H

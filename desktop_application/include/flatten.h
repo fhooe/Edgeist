@@ -39,7 +39,7 @@ public:
     ~Flatten() override = default;
 
     // executes forward pass and writes the result to the output
-    auto forwardPass(const T* inputData, T* outputData, bool /* trainingflag */) -> ErrorType override
+    ErrorType forwardPass(const T* inputData, T* outputData, bool /* trainingflag */) override
     {
         for (size_t i = 0; i < m_header->dimensionInputX; i++) {
             outputData[i] = inputData[i];
@@ -48,7 +48,7 @@ public:
     }
 
     // executes the backward pass and calculates the gradient for the layer before
-    auto backwardPass(const T* inputData, T* outputData) -> ErrorType override
+    ErrorType backwardPass(const T* inputData, T* outputData) override
     {
         for (size_t i = 0; i < m_header->dimensionInputX; i++) {
             outputData[i] = inputData[i];
@@ -57,23 +57,23 @@ public:
     }
 
     // loads the training data from flash to SRAM
-    auto loadFromFlash() -> ErrorType override
+    ErrorType loadFromFlash() override
     {
         return ErrorType::OK;
     }
 
     // saves the trained values from SRAM to flash
-    auto storeToFlash() -> ErrorType override
+    ErrorType storeToFlash() override
     {
         return ErrorType::OK;
     }
 
-    auto getOutputSize() -> uint32_t override
+    uint32_t getOutputSize() override
     {
         return uint32_t(m_header->dimensionOutputX);
     }
 
-    auto getInputSize() -> uint32_t override
+    uint32_t getInputSize() override
     {
         return uint32_t(m_header->dimensionInputX);
     }

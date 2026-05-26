@@ -132,13 +132,13 @@ public:
         T* ptrLayerInputData = nullptr;
 
         // Find largest needed Buffer
-        size_t buffersize = 0;
-        for (int i = 0; i < m_header->layerNrs; i++) {
-            size_t size = m_layersInSRAM[i]->getOutputSize();
-            if (size > buffersize) {
-                buffersize = size;
-            }
-        }
+         size_t buffersize = 0;
+         for (int i = 0; i < m_header->layerNrs; i++) {
+             size_t size = m_layersInSRAM[i]->getOutputSize();
+             if (size > buffersize) {
+                 buffersize = size;
+             }
+         }
 
         // allocate buffers
         ptrLayerOutputData = new T[buffersize];
@@ -147,25 +147,29 @@ public:
         // Make a forward Pass through all the Layers
         for (int i = 0; i < m_header->layerNrs; i++) {
             // First Layer gets input from Method argument
+            //assert(m_layersInSRAM != m_layersInSRAM.empty());
+            assert(m_layersInSRAM[i] != nullptr);
             if (i == 0) {
                 m_layersInSRAM[i]->forwardPass(m_ptrInputData, ptrLayerOutputData, trainingFlag);
             }
             // Other Layers get Input from Previous Layer
             else {
-
                 m_layersInSRAM[i]->forwardPass(ptrLayerInputData, ptrLayerOutputData, trainingFlag);
             }
 
             T* ptrswap = ptrLayerInputData;
             ptrLayerInputData = ptrLayerOutputData;
             ptrLayerOutputData = ptrswap;
+
         }
+
 
         for (size_t i = 0; i < m_header->dimensionOutputX; i++) {
             // the last output was moved to the input ptr, copy the values to the output registers
             m_ptrOutputData[i] = ptrLayerInputData[i];
         }
 
+        
         delete[] ptrLayerInputData;
         ptrLayerInputData = nullptr;
         delete[] ptrLayerOutputData;
@@ -173,6 +177,7 @@ public:
 
         return ErrorType::OK;
     }
+
 
     // Train Method
     auto train(const T* input, T* expectedOutput, const LossFunction<T>& lossFn) -> ErrorType
@@ -321,13 +326,26 @@ public:
         m_ptrLayerPointers.resize(m_header->layerNrs, nullptr);
 
         // populate the layer Pointer array
-        for (int i = 0; i < m_header->layerNrs; i++) {
-            // Add offset to the pointer address of header
-            size_t offset = (sizeof(Nmcm::Header::NeuralNetwork) - m_header->layerNrs * 4) / sizeof(uint32_t) + i;
-            uint32_t* targetAddressOffset = static_cast<uint32_t*>(m_ptrModel) + offset;
+        //for (int i = 0; i < m_header->layerNrs; i++) {
+        //    // Add offset to the pointer address of header
+        //    size_t offset = (sizeof(Nmcm::Header::NeuralNetwork) - m_header->layerNrs * 4) / sizeof(uint32_t) + i;
+        //    uint32_t* targetAddressOffset = static_cast<uint32_t*>(m_ptrModel) + offset;
+//
+        //    m_ptrLayerPointers[i] = std::shared_ptr<uint8_t>(static_cast<uint8_t*>(m_ptrModel) + *targetAddressOffset);
+        //}
+        // populate the layer Pointer array
+  // populate the layer Pointer array
+    for (int i = 0; i < m_header->layerNrs; i++) {
+        // Add offset to the pointer address of header
+        size_t offset = (sizeof(Nmcm::Header::NeuralNetwork) - m_header->layerNrs * 4) / sizeof(uint32_t) + i;
+        uint32_t* targetAddressOffset = static_cast<uint32_t*>(m_ptrModel) + offset;
 
-            m_ptrLayerPointers[i] = std::shared_ptr<uint8_t>(static_cast<uint8_t*>(m_ptrModel) + *targetAddressOffset);
-        }
+        // FIXED: Added a custom no-op deleter so shared_ptr doesn't try to free this memory
+        m_ptrLayerPointers[i] = std::shared_ptr<uint8_t>(
+            static_cast<uint8_t*>(m_ptrModel) + *targetAddressOffset,
+            [](uint8_t*) { /* Do nothing, memory is managed externally */ }
+        );
+    }
     };
 
     float m_learningRate;

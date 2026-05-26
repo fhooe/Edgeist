@@ -49,7 +49,7 @@ public:
     }
 
     // executes forward pass and writes the result to the output
-    auto forwardPass(const T* inputData, T* outputData, const bool trainingFlag) -> ErrorType override
+    ErrorType forwardPass(const T* inputData, T* outputData, const bool trainingFlag) override
     {
         if (inputData == nullptr || outputData == nullptr) {
             return ErrorType::UnknownError;
@@ -80,7 +80,7 @@ public:
     }
 
     // executes the backward pass and calculates the gradient for the layer before
-    auto backwardPass(const T* inputData, T* outputData) -> ErrorType override
+    ErrorType backwardPass(const T* inputData, T* outputData) override
     {
         if (inputData == nullptr || outputData == nullptr) {
             return ErrorType::UnknownError;
@@ -107,26 +107,26 @@ public:
     }
 
     // loads the training data from flash to SRAM
-    auto loadFromFlash() -> ErrorType override
+    ErrorType loadFromFlash() override
     {
         this->m_isLoaded = true;
         return ErrorType::OK;
     }
 
     // saves the trained values from SRAM to flash
-    auto storeToFlash() -> ErrorType override
+    ErrorType storeToFlash() override
     {
         this->m_isLoaded = false;
         // Not implemented in this version, will only become relevant on the uController
         return ErrorType::UnknownError;
     }
 
-    auto getOutputSize() -> uint32_t override
+    uint32_t getOutputSize() override
     {
         return uint32_t(mHeader->dimensionOutputX);
     }
 
-    auto getInputSize() -> uint32_t override
+    uint32_t getInputSize() override
     {
         return uint32_t(mHeader->dimensionInputX);
     }

@@ -55,7 +55,7 @@ public:
     // Performs the forward pass; calculates softmax output from input data
     // input_data: output of the previous layer
     // output_Data: output of this layer
-    auto forwardPass(const T* inputData, T* outputData, const bool trainingFlag) -> ErrorType override
+    ErrorType forwardPass(const T* inputData, T* outputData, const bool trainingFlag) override
     {
         if (inputData == nullptr || outputData == nullptr) {
             return ErrorType::UnknownError;
@@ -109,7 +109,7 @@ public:
     // Performs the backward pass; calculates the error gradient of the softmax layer
     // input_data: output from forwardPass
     // output_Data: is gradient
-    auto backwardPass(const T* inputData, T* outputData) -> ErrorType override
+    ErrorType backwardPass(const T* inputData, T* outputData) override
     {
         if (inputData == nullptr || outputData == nullptr) {
             return ErrorType::UnknownError;
@@ -128,7 +128,7 @@ public:
     }
 
     // Loads the trainable values from Flash into SRAM
-    auto loadFromFlash() -> ErrorType override
+    ErrorType loadFromFlash() override
     {
         this->m_isLoaded = true;
         // Not relevant for ReLU, as there are no weights and biases
@@ -136,19 +136,19 @@ public:
     }
 
     // Stores the trainable values from SRAM in flash memory
-    auto storeToFlash() -> ErrorType override
+    ErrorType storeToFlash() override
     {
         this->m_isLoaded = false;
         // Not implemented in this version, will only become relevant on the uController
         return ErrorType::UnknownError;
     }
 
-    auto getOutputSize() -> uint32_t override
+    uint32_t getOutputSize() override
     {
         return uint32_t(mHeader->dimensionOutputX);
     }
 
-    auto getInputSize() -> uint32_t override
+    uint32_t getInputSize() override
     {
         return uint32_t(mHeader->dimensionInputX);
     }

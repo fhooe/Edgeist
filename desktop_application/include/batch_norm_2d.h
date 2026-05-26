@@ -10,7 +10,10 @@
 #include "layer.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
-
+#include <cstdint>
+#include <memory.h>
+#include <memory>
+#include <vector>
 namespace Edgeist {
 template <typename T>
 class Model;
@@ -29,45 +32,32 @@ class BatchNorm2D : public Layer<T> {
 public:
     BatchNorm2D(Model<T>* model, void* headerPointer, void* dataPointer, const OptimizerID optimizerType)
         : Layer<T>(model)
-        , m_ptrLayer(headerPointer)
-        , m_ptrData(dataPointer)
-        , m_header(static_cast<Nmcm::BatchNorm2d::NeuralNetwork*>(m_ptrLayer))
+        , m_ptrData(static_cast<const T*> (dataPointer))
+        , m_header(static_cast<Nmcm::BatchNorm2d::NeuralNetwork*>(headerPointer))
         , m_optimizerType(optimizerType)
     {
-        m_runningMean = new double[m_header->channelsIn];
-        m_runningVar = new double[m_header->channelsIn];
+	    m_runningMean = std::make_unique<double[]>(m_header->channelsIn);
+	    m_runningVar = std::make_unique<double[]>(m_header->channelsIn);
 
-        m_ptrFlashWeight = (static_cast<T*>(m_ptrData) + (m_header->weightsTrainableOffset / sizeof(T)));
-        m_ptrFlashBias = (static_cast<T*>(m_ptrData) + (m_header->biasTrainableOffset / sizeof(T)));
+        m_ptrFlashWeight = (m_ptrData + (m_header->weightsTrainableOffset / sizeof(T)));
+        m_ptrFlashBias = (m_ptrData + (m_header->biasTrainableOffset / sizeof(T)));
 
         BatchNorm2D::loadFromFlash();
     }
 
-    ~BatchNorm2D() override
-    {
-        delete[] m_ptrWeight;
-        m_ptrWeight = nullptr;
-        delete[] m_ptrBias;
-        m_ptrBias = nullptr;
-
-        delete[] m_runningMean;
-        m_runningMean = nullptr;
-        delete[] m_runningVar;
-        m_runningVar = nullptr;
-    }
-
-    auto forwardPass(const T* inputData, T* outputData, const bool trainingFlag) -> ErrorType override
+    ErrorType forwardPass(const T* inputData, T* outputData, const bool trainingFlag) override
     {
         // Use ether data from flash or SRAM based on trainingflag
-        T* ptrWeight = nullptr;
-        T* ptrBias = nullptr;
+        const T* ptrWeight = nullptr;
+        const T* ptrBias = nullptr;
+
         if (trainingFlag) {
             // check if layer is loaded
             if (!this->m_isLoaded) {
                 return ErrorType::LayerNotInitialized;
             }
-            ptrWeight = m_ptrWeight->m_data;
-            ptrBias = m_ptrBias->m_data;
+            ptrWeight = m_ptrWeight->m_data.data();
+            ptrBias = m_ptrBias->m_data.data();
         } else {
             ptrWeight = m_ptrFlashWeight;
             ptrBias = m_ptrFlashBias;
@@ -78,9 +68,10 @@ public:
         const int nrOfChannels = m_header->channelsIn;
         const int elemsPerChannel = nrOfInputs / nrOfChannels;
         float const eps = 1e-5f;
+	
+	    std::vector<double> mean(nrOfChannels,0.0);
+	    std::vector<double> var(nrOfChannels,1.0);
 
-        double* mean = new double[nrOfChannels];
-        double* var = new double[nrOfChannels];
         for (int i = 0; i < nrOfChannels; i++) {
             mean[i] = double(0.0);
             var[i] = double(1.0);
@@ -122,8 +113,9 @@ public:
                 m_runningVar[c] = (1 - momentum) * m_runningVar[c] + momentum * var[c];
             }
 
-            m_normalizedInput = new T[nrOfInputs];
-            m_input = new T[nrOfInputs];
+            m_normalizedInput = std::make_unique<T[]>(nrOfInputs);
+            m_input = std::make_unique<T[]>(nrOfInputs);
+
             // normalize + scale + move
             for (int i = 0; i < nrOfChannels; i++) {
 
@@ -157,14 +149,14 @@ public:
             }
         }
 
-        delete[] mean;
-        mean = nullptr;
-        delete[] var;
-        var = nullptr;
+//        delete[] mean;
+//        mean = nullptr;
+//        delete[] var;
+//        var = nullptr;
         return ErrorType::OK;
     }
 
-    auto backwardPass(const T* inputData, T* outputData) -> ErrorType override
+    ErrorType backwardPass(const T* inputData, T* outputData) override
     {
         if (inputData == nullptr || outputData == nullptr) {
             return ErrorType::InvalidPointer;
@@ -236,16 +228,14 @@ public:
         delete[] sum_dnorm;
         delete[] sum_dnorm_norm;
 
-        delete[] m_input;
-        m_input = nullptr;
-        delete[] m_normalizedInput;
-        m_normalizedInput = nullptr;
+	    m_input.reset();	
+        m_normalizedInput.reset();
 
         return ErrorType::OK;
     }
 
     // initializes mean and variance before a mini batch
-    auto initGradients() -> ErrorType override
+    ErrorType initGradients() override
     {
         if (m_ptrWeightGradient != nullptr || m_ptrBiasGradient != nullptr) {
             return ErrorType::UnknownError;
@@ -255,8 +245,9 @@ public:
         const uint32_t sizeWeights = m_header->dimensionInputX;
         const uint32_t sizeBias = m_header->dimensionInputX;
 
-        m_ptrWeightGradient = new T[sizeWeights];
-        m_ptrBiasGradient = new T[sizeBias];
+        m_ptrWeightGradient = std::make_unique<T[]>(sizeWeights);
+        m_ptrBiasGradient = std::make_unique<T[]>(sizeBias);
+        //m_ptrBiasGradient = new T[sizeBias];
 
         for (uint32_t i = 0; i < sizeWeights; ++i) {
             m_ptrWeightGradient[i] = T(1.0);
@@ -269,21 +260,14 @@ public:
     }
 
     // delete mean and variance after minibatch
-    auto deleteGradients() -> ErrorType override
+    ErrorType deleteGradients() override
     {
-        if (m_ptrWeightGradient != nullptr) {
-            delete[] m_ptrWeightGradient;
-            m_ptrWeightGradient = nullptr;
-        }
-
-        if (m_ptrBiasGradient != nullptr) {
-            delete[] m_ptrBiasGradient;
-            m_ptrBiasGradient = nullptr;
-        }
+	m_ptrWeightGradient.reset();
+	m_ptrBiasGradient.reset();
         return ErrorType::OK;
     }
 
-    auto update(uint32_t batchsize) -> ErrorType override
+    ErrorType update(uint32_t batchsize) override
     {
 
         if (m_ptrWeightGradient == nullptr || m_ptrBiasGradient == nullptr) {
@@ -300,93 +284,85 @@ public:
         return ErrorType::OK;
     }
 
-    auto loadFromFlash() -> ErrorType override
+    ErrorType loadFromFlash() override
     {
-        switch (m_optimizerType) {
-        case OptimizerID::SGD:
-            // init weights
-            m_ptrWeight = new OptimizerSGD<T>;
-            m_ptrWeight->init(m_header->weightsAmountTrainable);
-            // init bias
-            m_ptrBias = new OptimizerSGD<T>;
-            m_ptrBias->init(m_header->biasAmountTrainable);
-            break;
-
-        case OptimizerID::Momentum:
-            // init weights
-            m_ptrWeight = new OptimizerMomentum<T>;
-            m_ptrWeight->init(m_header->weightsAmountTrainable);
-            // init bias
-            m_ptrBias = new OptimizerMomentum<T>;
-            m_ptrBias->init(m_header->biasAmountTrainable);
-            break;
-
-        case OptimizerID::ADAM:
-            // init weights
-            m_ptrWeight = new OptimizerAdam<T>;
-            m_ptrWeight->init(m_header->weightsAmountTrainable);
-            // init bias
-            m_ptrBias = new OptimizerAdam<T>;
-            m_ptrBias->init(m_header->biasAmountTrainable);
-            break;
-        }
+	switch (m_optimizerType) {
+	case OptimizerID::SGD:
+	    m_ptrWeight = std::make_unique<OptimizerSGD<T>>();
+	    m_ptrWeight->init(m_header->weightsAmountTrainable);
+	    m_ptrBias   = std::make_unique<OptimizerSGD<T>>();
+	    m_ptrBias->init(m_header->biasAmountTrainable);
+	    break;
+	
+	case OptimizerID::Momentum:
+	    m_ptrWeight = std::make_unique<OptimizerMomentum<T>>();
+	    m_ptrWeight->init(m_header->weightsAmountTrainable);
+	    m_ptrBias   = std::make_unique<OptimizerMomentum<T>>();
+	    m_ptrBias->init(m_header->biasAmountTrainable);
+	    break;
+	
+	case OptimizerID::ADAM:
+	    m_ptrWeight = std::make_unique<OptimizerAdam<T>>();
+	    m_ptrWeight->init(m_header->weightsAmountTrainable);
+	    m_ptrBias   = std::make_unique<OptimizerAdam<T>>();
+	    m_ptrBias->init(m_header->biasAmountTrainable);
+	    break;
+	}
 
         // init weights and biases
         for (size_t i = 0; i < m_header->weightsAmountTrainable; i++) {
-            m_ptrWeight->setData(i, *(static_cast<T*>(m_ptrData) + (m_header->weightsTrainableOffset / sizeof(T)) + i));
+         //   m_ptrWeight->setData(i, *m_ptrData + (m_header->weightsTrainableOffset / sizeof(T)) + i);
+        	m_ptrWeight->setData(i, m_ptrFlashWeight[i]);
         }
         for (size_t i = 0; i < m_header->biasAmountTrainable; i++) {
-            m_ptrBias->setData(i, *(static_cast<T*>(m_ptrData) + (m_header->biasTrainableOffset / sizeof(T)) + i));
+        //    m_ptrBias->setData(i, *m_ptrData + (m_header->biasTrainableOffset / sizeof(T)) + i);
+        	m_ptrBias->setData(i, m_ptrFlashBias[i]);
         }
 
         this->m_isLoaded = true;
         return ErrorType::OK;
     }
 
-    auto storeToFlash() -> ErrorType override
+    ErrorType storeToFlash() override
     {
         // not implemented for this version
         return ErrorType::OK;
     }
 
-    auto getOutputSize() -> uint32_t override
+    uint32_t getOutputSize() override
     {
         return m_header->dimensionOutputX;
     }
 
-    auto getInputSize() -> uint32_t override
+    uint32_t getInputSize() override
     {
         return m_header->dimensionInputX;
     }
 
 private:
-    void* m_ptrLayer;
-    void* m_ptrData;
-    Nmcm::BatchNorm2d::NeuralNetwork* m_header;
-    OptimizerID m_optimizerType;
+    const T*                          m_ptrData;               // non-owning, typisiert
+    Nmcm::BatchNorm2d::NeuralNetwork* m_header;                // non-owning
+    OptimizerID                       m_optimizerType;
+	
+    //why not float?
+    std::unique_ptr<double[]>          m_runningMean;
+    std::unique_ptr<double[]>          m_runningVar;
 
-    double* m_runningMean = nullptr;
-    double* m_runningVar = nullptr;
+    std::unique_ptr<T[]>              m_normalizedInput;
+    std::unique_ptr<T[]>              m_input;
 
-    int m_batchIndex = 0;
+    const T*                          m_ptrFlashWeight = nullptr; // non-owning (Flash)
+    const T*                          m_ptrFlashBias   = nullptr; // non-owning (Flash)
 
-    // TODO fix datatypes
-    T* m_normalizedInput = nullptr;
-    T* m_input = nullptr;
+    std::unique_ptr<T[]>              m_ptrWeightGradient;
+    std::unique_ptr<T[]>              m_ptrBiasGradient;
 
-    // flag for first run, to init running mean/var
-    bool m_initRunningStats = false;
+    std::unique_ptr<OptimizerBase<T>> m_ptrWeight;
+    std::unique_ptr<OptimizerBase<T>> m_ptrBias;
 
-    T* m_ptrFlashWeight = nullptr;
-    T* m_ptrFlashBias = nullptr;
-
-    T* m_ptrWeightGradient = nullptr;
-    T* m_ptrBiasGradient = nullptr;
-
-    OptimizerBase<T>* m_ptrWeight;
-    OptimizerBase<T>* m_ptrBias;
-
-    uint32_t m_timestep = 1;
+    bool     m_initRunningStats = false;
+    int      m_batchIndex       = 0;
+    uint32_t m_timestep         = 1;
 };
 } // namespace Edgeist
 

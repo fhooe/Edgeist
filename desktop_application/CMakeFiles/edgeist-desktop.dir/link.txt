@@ -1,0 +1,1 @@
+/usr/bin/c++ -O2 -g -DNDEBUG -pie -Wl,-z,relro,-z,now -Wl,--dependency-file=CMakeFiles/edgeist-desktop.dir/link.d "CMakeFiles/edgeist-desktop.dir/src/main.cpp.o" "CMakeFiles/edgeist-desktop.dir/src/mnist_loader.cpp.o" -o ../RelWithDebInfo/edgeist-desktop  ../RelWithDebInfo/libboost_program_options.a ../RelWithDebInfo/libboost_container.a

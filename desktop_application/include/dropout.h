@@ -66,7 +66,7 @@ public:
         return ErrorType::OK;
     }
 
-    auto backwardPass(const T* gradOutput, T* gradInput) -> ErrorType override
+    ErrorType backwardPass(const T* gradOutput, T* gradInput) override
     {
         if (gradOutput == nullptr || gradInput == nullptr) {
             return ErrorType::UnknownError;
@@ -88,7 +88,7 @@ public:
         return ErrorType::OK;
     }
 
-    auto initGradients() -> ErrorType override
+    ErrorType initGradients() override
     {
         const auto size = static_cast<size_t>(m_header->dimensionInputX);
         const float rate = m_header->dropoutRate;
@@ -104,30 +104,30 @@ public:
         return ErrorType::OK;
     }
 
-    auto deleteGradients() -> ErrorType override
+    ErrorType deleteGradients() override
     {
         m_dropoutMask.clear();
         return ErrorType::OK;
     }
 
-    auto loadFromFlash() -> ErrorType override
+    ErrorType loadFromFlash()  override
     {
         this->m_isLoaded = true;
         return ErrorType::OK;
     }
 
-    auto storeToFlash() -> ErrorType override
+    ErrorType storeToFlash() override
     {
         // Not implemented
         return ErrorType::OK;
     }
 
-    auto getOutputSize() -> uint32_t override
+    uint32_t getOutputSize() override
     {
         return m_header->dimensionOutputX;
     }
 
-    auto getInputSize() -> uint32_t override
+    uint32_t getInputSize() override
     {
         return m_header->dimensionInputX;
     }

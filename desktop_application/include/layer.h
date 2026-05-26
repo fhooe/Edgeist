@@ -39,29 +39,29 @@ public:
     // executes the backward pass and calculates the gradient for the layer before
     virtual auto backwardPass(const T* inputData, T* outputData) -> ErrorType = 0;
 
-    virtual auto initGradients() -> ErrorType
+    virtual ErrorType initGradients()
     {
         return ErrorType::OK;
     }
 
-    virtual auto deleteGradients() -> ErrorType
+    virtual ErrorType deleteGradients()
     {
         return ErrorType::OK;
     }
 
     // Update weights and biases
-    virtual auto update(uint32_t /* batchsize */) -> ErrorType
+    virtual ErrorType update(uint32_t /* batchsize */)
     {
         return ErrorType::OK;
     }
 
-    virtual auto loadFromFlash() -> ErrorType = 0;
+    virtual ErrorType loadFromFlash() = 0;
 
-    virtual auto storeToFlash() -> ErrorType = 0;
+    virtual ErrorType storeToFlash() = 0;
 
-    virtual auto getOutputSize() -> uint32_t = 0;
+    virtual uint32_t getOutputSize() = 0;
 
-    virtual auto getInputSize() -> uint32_t = 0;
+    virtual uint32_t getInputSize() = 0;
 
 protected:
     // Flag that represents if the Layer has been loaded
@@ -73,7 +73,7 @@ protected:
     // pointer to Array with Input Data
     // Used for Layers like ReLU, softMax, Maxpool, ...
     // To have the Data for Backwardspass available
-    T* m_inputData;
+    T* m_inputData = nullptr;
 };
 } // namespace Edgeist
 

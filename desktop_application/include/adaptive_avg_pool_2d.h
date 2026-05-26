@@ -36,7 +36,7 @@ public:
         AdaptiveAvgPool2D::loadFromFlash();
     }
 
-    auto forwardPass(const T* inputData, T* outputData, bool /* trainingflag */) -> ErrorType override
+    ErrorType forwardPass(const T* inputData, T* outputData, bool /* trainingflag */) override
     {
         if (inputData == nullptr || outputData == nullptr) {
             return ErrorType::UnknownError;
@@ -81,7 +81,8 @@ public:
         return ErrorType::OK;
     }
 
-    auto backwardPass(const T* gradOutput, T* gradInput) -> ErrorType override
+
+    ErrorType backwardPass(const T* gradOutput, T* gradInput) override
     {
         if ((gradOutput == nullptr) || (gradInput == nullptr)) {
             return ErrorType::UnknownError;
@@ -130,24 +131,24 @@ public:
         return ErrorType::OK;
     }
 
-    auto loadFromFlash() -> ErrorType override
+    ErrorType loadFromFlash() override
     {
         this->m_isLoaded = true;
         return ErrorType::OK;
     }
 
-    auto storeToFlash() -> ErrorType override
+    ErrorType storeToFlash() override
     {
         // not implemented
         return ErrorType::OK;
     }
 
-    auto getOutputSize() -> uint32_t override
+    uint32_t getOutputSize() override
     {
         return m_header->channelsIn * m_header->dimensionOutputX * m_header->dimensionOutputY;
     }
 
-    auto getInputSize() -> uint32_t override
+    uint32_t getInputSize() override
     {
         return m_header->channelsIn * m_header->dimensionInputX * m_header->dimensionInputY;
     }

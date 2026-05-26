@@ -11,6 +11,8 @@
 #include "model_structs.h"
 #include "nmcf_error_types.h"
 #include "optimizer_data_types.h"
+#include <cstdint>
+#include <sys/types.h>
 
 namespace Edgeist {
 /**
@@ -27,38 +29,35 @@ class Conv2D : public Layer<T> {
 public:
     Conv2D(Model<T>* model, void* headerPointer, void* dataPointer, const OptimizerID optimizerType)
         : Layer<T>(model)
-        , m_ptrLayer(headerPointer)
+        , m_ptrLayer(static_cast<T*>(headerPointer))
         , m_ptrData(dataPointer)
-        , m_header(static_cast<Nmcm::Conv2d::NeuralNetwork*>(m_ptrLayer))
+        , m_header(static_cast<Nmcm::Conv2d::NeuralNetwork*>(headerPointer))
         , m_optimizerType(optimizerType)
     {
-        m_ptrWeightFrozen = static_cast<T*>(m_ptrLayer) + m_header->weightsFrozenOffset * sizeof(T);
-        m_ptrBiasFrozen = static_cast<T*>(m_ptrLayer) + m_header->biasFrozenOffset * sizeof(T);
+        m_ptrWeightFrozen = m_ptrLayer + m_header->weightsFrozenOffset * sizeof(T);
+        m_ptrBiasFrozen = m_ptrLayer + m_header->biasFrozenOffset * sizeof(T);
 
         m_ptrFlashWeight = (static_cast<T*>(m_ptrData) + (m_header->weightsTrainableOffset / sizeof(T)));
         m_ptrFlashBias = (static_cast<T*>(m_ptrData) + (m_header->biasTrainableOffset / sizeof(T)));
 
         // Init Output values
-        m_layerOutput = new T[m_header->dimensionOutputX * m_header->dimensionOutputY * m_header->channelsOut];
+        m_layerOutput.reserve(m_header->dimensionOutputX * m_header->dimensionOutputY * m_header->channelsOut);
+        //m_layerOutput = new T[m_header->dimensionOutputX * m_header->dimensionOutputY * m_header->channelsOut];
 
         Conv2D::loadFromFlash();
     }
 
     ~Conv2D() override
     {
-        // Free memory
-        if (m_layerOutput != nullptr) {
-            delete[] m_layerOutput;
-            m_layerOutput = nullptr;
-        }
+        
 
         if (m_ptrWeight != nullptr) {
-            delete[] m_ptrWeight;
+            delete m_ptrWeight;
             m_ptrWeight = nullptr;
         }
 
         if (m_ptrBias != nullptr) {
-            delete[] m_ptrBias;
+            delete m_ptrBias;
             m_ptrBias = nullptr;
         }
 
@@ -66,35 +65,28 @@ public:
             delete[] this->m_inputData;
             this->m_inputData = nullptr;
         }
+        m_ptrWeightGradient.reset();
+	    m_ptrBiasGradient.reset();
 
-        if (m_ptrWeightGradient != nullptr) {
-            delete[] m_ptrWeightGradient;
-            m_ptrWeightGradient = nullptr;
-        }
-
-        if (m_ptrBiasGradient != nullptr) {
-            delete[] m_ptrBiasGradient;
-            m_ptrBiasGradient = nullptr;
-        }
     }
 
     // executes forward pass and writes the result to the output
-    auto forwardPass(const T* inputData, T* outputData, const bool trainingFlag) -> ErrorType override
+    ErrorType forwardPass(const T* inputData, T* outputData, const bool trainingFlag) override
     {
         if (inputData == nullptr || outputData == nullptr) {
             return ErrorType::UnknownError;
         }
 
         // Use ether data from flash or SRAM based on trainingflag
-        T* ptrWeight = nullptr;
-        T* ptrBias = nullptr;
+        const T* ptrWeight = nullptr;
+        const T* ptrBias = nullptr;
         if (trainingFlag) {
             // check if layer is loaded
             if (!this->m_isLoaded) {
                 return ErrorType::LayerNotInitialized;
             }
-            ptrWeight = m_ptrWeight->m_data;
-            ptrBias = m_ptrBias->m_data;
+            ptrWeight = m_ptrWeight->m_data.data();
+            ptrBias = m_ptrBias->m_data.data();
         } else {
             ptrWeight = m_ptrFlashWeight;
             ptrBias = m_ptrFlashBias;
@@ -158,7 +150,7 @@ public:
     }
 
     // Performs the backwardpass and calculates the gradients for the previous layer
-    auto backwardPass(const T* inputData, T* outputData) -> ErrorType override
+    ErrorType backwardPass(const T* inputData, T* outputData) override
     {
         const int H = m_header->dimensionInputX;
         const int W = m_header->dimensionInputY;
@@ -171,7 +163,8 @@ public:
         if (!this->m_isLoaded) {
             return ErrorType::LayerNotInitialized;
         }
-        T* ptrWeight = m_ptrWeight->m_data;
+
+        //T* ptrWeight = m_ptrWeight->m_data;
 
         // calc dL/dW and dL/db
         for (int oc = 0; oc < Cout; ++oc) {
@@ -221,7 +214,7 @@ public:
                                     int weight_idx = (((oc * Cin + ic) * K[0] + ky) * K[1] + kx);
 
                                     // dL/dinput = SUM dL/doutput * W^T
-                                    sum += inputData[out_idx] * ptrWeight[weight_idx];
+                                    sum += inputData[out_idx] * m_ptrWeight->m_data[weight_idx];
                                 }
                             }
                         }
@@ -241,7 +234,7 @@ public:
     }
 
     // init gradient, reserve and init memory
-    auto initGradients() -> ErrorType override
+    ErrorType initGradients() override
     {
 
         if (m_ptrWeightGradient != nullptr || m_ptrBiasGradient != nullptr) {
@@ -252,8 +245,10 @@ public:
         uint32_t sizeWeights = m_header->kernelSize[0] * m_header->kernelSize[1] * m_header->channelsIn * m_header->channelsOut;
         uint32_t sizeBias = m_header->channelsOut;
 
-        m_ptrWeightGradient = new T[sizeWeights];
-        m_ptrBiasGradient = new T[sizeBias];
+        //m_ptrWeightGradient = new T[sizeWeights];
+        //m_ptrBiasGradient = new T[sizeBias];
+        m_ptrWeightGradient = std::make_unique<T[]>(sizeWeights);
+        m_ptrBiasGradient = std::make_unique<T[]>(sizeBias);
 
         for (uint32_t i = 0; i < sizeWeights; ++i) {
             m_ptrWeightGradient[i] = T(0.0);
@@ -267,23 +262,16 @@ public:
     }
 
     // delete gradient and free memory
-    auto deleteGradients() -> ErrorType override
+    ErrorType deleteGradients() override
     {
-        if (m_ptrWeightGradient != nullptr) {
-            delete[] m_ptrWeightGradient;
-            m_ptrWeightGradient = nullptr;
-        }
-
-        if (m_ptrBiasGradient != nullptr) {
-            delete[] m_ptrBiasGradient;
-            m_ptrBiasGradient = nullptr;
-        }
+    m_ptrWeightGradient.reset();
+	m_ptrBiasGradient.reset();
 
         return ErrorType::OK;
     }
 
     // update weights and biases
-    auto update(uint32_t batchsize) -> ErrorType override
+    ErrorType update(uint32_t batchsize) override
     {
 
         if (m_ptrWeightGradient == nullptr || m_ptrBiasGradient == nullptr) {
@@ -318,7 +306,7 @@ public:
     }
 
     // Loads the trainable values from Flash into SRAM
-    auto loadFromFlash() -> ErrorType override
+    ErrorType loadFromFlash() override
     {
         switch (m_optimizerType) {
         case OptimizerID::SGD:
@@ -362,19 +350,19 @@ public:
     }
 
     // Stores the trainable values from SRAM to Flash
-    auto storeToFlash() -> ErrorType override
+    ErrorType storeToFlash() override
     {
         this->m_isLoaded = false;
         // Not implemented in this version, will only become relevant on the uController
         return ErrorType::UnknownError;
     }
 
-    auto getOutputSize() -> uint32_t override
+	uint32_t getOutputSize() override
     {
         return uint32_t(m_header->dimensionOutputX * m_header->dimensionOutputY * m_header->channelsOut);
     }
 
-    auto getInputSize() -> uint32_t override
+    uint32_t getInputSize() override
     {
         return uint32_t(m_header->dimensionInputX * m_header->dimensionInputY * m_header->channelsIn);
     }
@@ -385,7 +373,7 @@ public:
     }
 
 private:
-    void* m_ptrLayer;
+    T* m_ptrLayer;
     void* m_ptrData;
     Nmcm::Conv2d::NeuralNetwork* m_header;
 
@@ -398,11 +386,11 @@ private:
     T* m_ptrFlashWeight;
     T* m_ptrFlashBias;
 
-    T* m_ptrWeightGradient = nullptr;
-    T* m_ptrBiasGradient = nullptr;
+    std::unique_ptr<T[]>  m_ptrWeightGradient = nullptr;
+    std::unique_ptr<T[]>  m_ptrBiasGradient = nullptr;
 
     // vector with output Values
-    T* m_layerOutput;
+    std::vector<T> m_layerOutput;
 
     // vector with the trainable weights in SRAM
     OptimizerBase<T>* m_ptrWeight;
