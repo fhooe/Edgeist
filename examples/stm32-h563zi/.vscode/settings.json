@@ -1,7 +1,0 @@
-{
-    "cmakeFormat.args": [
-        "-c",
-        "${workspaceFolder}/../../.cmake-format"
-    ],
-    "C_Cpp.default.compileCommands": "${containerWorkspaceFolder}/build/compile_commands.json",
-}

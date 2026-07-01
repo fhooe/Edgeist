@@ -1,134 +1,195 @@
-# Edgeist
+# edgeist_V2
 
-A framework for deploying and continuously training neural networks on resource-limited devices.
+`edgeist_V2` is a production-oriented refactor of Edgeist for neural-network inference and constrained on-device training. It separates the reusable C++ runtime from examples, tests, Python tooling, and documentation.
 
-This work was carried out with our partner companies as part of the Josef Ressel Centre for Artificial Intelligence for Resource-Constrained Devices. We would like to express our gratitude for the financial support provided by the Federal Ministry of Labour and Economy, the National Foundation for Research, Technology and Development, and the Christian Doppler Research Association.
+## Repository layout
 
-## Partners
-<table style="margin-left: auto; margin-right: auto">
-  <tbody>
-    <tr>
-      <td>
-        <a href="https://www.cdg.ac.at/">
-          <img src="doc/readme/logo_cdg.svg" alt="Christian Doppler Forschungsgesellschaft" style="width: 100vw; height: 100px">
-        </a>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <a href="https://www.danube-dynamics.at/">
-          <img src="doc/readme/logo_danube_dynamics.svg" alt="Danube Dynamics Embedded Solutions GmbH" style="width: 100vw; height: 100px">
-        </a>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <a href="https://www.fronius.com/">
-          <img src="doc/readme/logo_fronius.svg" alt="Fronius International GmbH" style="width: 100vw; height: 100px">
-        </a>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-## Structure
-
-The repository is split into the framework itself, examples and its tooling.
-
-The framework is written in C++ and its source code can be found in [desktop_application](desktop_application).
-Examples can be found in both [desktop_application](desktop_application) and [examples](examples). 
-They are written in C++ as well.
-> The code of the framework is currently bundled with the example in [desktop_application](desktop_application).
-> 
-> The framework will be refactored into its own linkable library at a later point.
-> [desktop_application](desktop_application) will then be moved to [examples](examples).
-
-The tooling is written in Python and can be found in [nmcm](nmcm).
-Its main purpose is to autogenerate files required for the framework. 
-
-## Development
-
-### Devcontainer
-
-The project is set up with a devcontainer.
-Open the [Visual Studio Code](https://code.visualstudio.com/)
--Workspace([edgeist.code-workspace](edgeist.code-workspace)) via: `code edgeist.code-workspace`.
-
-Install the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
--extensions from the `Visual Studio Code`-marketplace, then press `F1` and type
-`Dev Containers: Rebuild and Reopen in Container`. After pressing `Enter`, the project will load in the devcontainer.
-
-The devcontainer contains everything required to further develop and debug this project.
-This includes compilers, embedded debuggers and a fully set-up `venv`.
-However, `Visual Studio Code` might not always respect the `venv` as `defaultInterpreter`.
-Thus, if packages are missing, first check whether `Visual Studio Code` actually uses the `venv`.
-
-### Debugging and Running Projects
-
-Each project can be debugged by clicking `Start Debugging (F5)` within the `Run and Debug`-menu of `Visual Studio Code`.
-
-### Contributing
-
-Each C++-project enforces the code-style laid out in the `.clang-format` and `.clang-tidy` files.
-These are based on the `WebKit`-style and enforce strict lints.
-Documentation is required, must conform to and is generated via [Doxygen](https://www.doxygen.nl/).
-
-Likewise, each Python-project enforces the code-style laid out in their `pyproject.toml`.
-The style is based on PEP-recommendations, but slightly altered in parts.
-Documentation is required, must conform to and is generated with [Sphinx](https://www.sphinx-doc.org/en/master/).
-
-Commits must follow the rules of [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
-
-[Gitflow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) is used.
-
-## Build Instructions
-
-### C++-Projects
-
-This project contains a number of C++-projects:
-
-* [desktop-application](desktop_application)
-* [stm32-h563zi](examples/stm32-h563zi)
-* [STM32F413](examples/legacy/MC-Code/STM32F413) (legacy)
-* [STM32H7A3](examples/legacy/MC-Code/STM32H7A3) (legacy)
-
-All but the legacy projects are [CMake](https://cmake.org/)-based.
-Each has its own standalone `CMakeLists.txt`.
-
-`CMake`-projects can be built using the [build_cpp.sh](scripts/build_cpp.sh)-script.
-The `build_cpp.sh` has a single argument:
-The path to the directory containing the given projects `CMakeLists.txt`:
-
-```bash
-./build_cpp.sh /path/to/cmake/lists/
+```text
+runtime/                 Reusable C++20 runtime library
+  include/edgeist/       Public API headers
+  src/                   Runtime implementation
+examples/desktop/        Host CLI example for validation and memory reports
+examples/embedded/       Fixed-buffer embedded integration example
+tests/                   C++ tests that execute the Python golden model
+tools/                   Model validation, Python golden model, packaging helpers
+nmcm/                    Python model tooling
 ```
 
-This creates a binary.
-The binary can be run on the host, or, in case of the STM32-examples, flashed and run on an STM32-microcontroller.
+## Devcontainer
 
-> Before being able to build `desktop-application`,`mncm_parser` must be run.
-> This generates the required files, which must be copied to [generated](desktop_application/generated):
-> * model_enums.h
-> * model_structs.h
-> * model_types.h
+Open the folder in VS Code and choose **Dev Containers: Reopen in Container**. The devcontainer is named `edgeist_V2` and opens the project under:
 
-### Python-Projects
+```bash
+/workspaces/edgeist_V2
+```
 
-This project contains a number of python projects:
+The devcontainer installs the host compiler, CMake, Ninja, Python tooling, ARM embedded tools, OpenOCD, and sanitizer-capable build support. Its `postCreateCommand` installs `nmcm/common` and configures the host-debug preset. The Python package version is static so the container also works from a ZIP checkout without `.git` metadata.
 
-* [nmcm_checker](nmcm/checker)
-* [nmcm_common](nmcm/checker)
-* [nmcm_generator](nmcm/generator)
-* [nmcm_packer](nmcm/packer)
-* [nmcm_parser](nmcm/parser)
-* [legacy tests](examples/legacy/MC-Code/Tests)
+## Build and test
 
-All projects but `legacy tests` are set up with a `pyproject.toml`.
-Each of those projects with a `pyproject.toml` can be built by following these steps:
+```bash
+cmake --preset host-debug
+cmake --build --preset host-debug
+ctest --preset host-debug --output-on-failure
+```
 
-* Change directory to the one containing the given `pyproject.toml`
-* Run `python -m build -n`
+Run the wider validation matrix:
 
-This creates an installable wheel.
+```bash
+cmake --preset host-release
+cmake --build --preset host-release
+ctest --preset host-release --output-on-failure
 
-> All projects but `legacy tests` and `nmcm_packer` depend on `nmcm_common`.
+cmake --preset asan
+cmake --build --preset asan
+ctest --preset asan --output-on-failure
+
+cmake --preset ubsan
+cmake --build --preset ubsan
+ctest --preset ubsan --output-on-failure
+
+cmake --preset inference-only
+cmake --build --preset inference-only
+```
+
+## Python golden validation
+
+The C++ test binary loads a Python-generated golden bundle and every test group compares against its own Python reference data. This keeps Python in the loop while avoiding repeated subprocess startup in small devcontainers. It compares:
+
+- Softmax and CrossEntropy values
+- Linear forward/backward/optimizer behavior
+- Conv2D forward/backward behavior
+- ReLU, pooling, and BatchNorm behavior
+- fp16/int8/fp32 precision behavior
+- binary model inference and activation trace values
+- full-network training losses and updated weights
+
+The golden model can also be run manually:
+
+```bash
+python3 tools/python_golden_model.py --case network_forward
+python3 tools/python_golden_model.py --case full_training
+python3 tools/python_golden_model.py --case all
+```
+
+## Desktop example
+
+Validate a generated NMCF model and print memory usage:
+
+```bash
+./build/host-debug/examples/desktop/edgeist-desktop \
+  --model path/to/model.hex \
+  --trainable path/to/model_trainable.hex \
+  --inference-type fp32
+```
+
+Use last-layer training mode and lower-precision execution policies. The selected runtime data type must match the model's exported parameter encoding; for example, use `--inference-type int8` only with an int8-encoded NMCF/trainable image.
+
+```bash
+./build/host-debug/examples/desktop/edgeist-desktop \
+  --model path/to/int8_model.hex \
+  --trainable path/to/int8_model_trainable.hex \
+  --train \
+  --inference-type int8 \
+  --training-type int8
+```
+
+## Embedded example
+
+The embedded example now builds and runs a small fixed-buffer model image, validates it, runs traced inference, performs one training update when training is enabled, and prints scratch peak usage.
+
+```bash
+./build/host-debug/examples/embedded/edgeist-embedded-skeleton
+```
+
+## Runtime API sketch
+
+The runtime stores activations and trainable parameters in the selected type. It does not keep a float32 copy of int8/fp16 weights inside the layer kernels. Public input/output and activation traces are decoded to float32 at API boundaries for diagnostics.
+Runtime initialization rejects models whose exported parameter encoding does not match the selected inference/training data type.
+
+
+```cpp
+#include "edgeist/edgeist.hpp"
+
+std::array<std::byte, 8192> scratch_bytes{};
+edgeist::ScratchArena arena{edgeist::ByteSpan(scratch_bytes)};
+
+edgeist::ModelView view{edgeist::ConstByteSpan(model_image), edgeist::ConstByteSpan(trainable_image)};
+edgeist::SramStorage trainable_storage{edgeist::ByteSpan(trainable_image)};
+
+edgeist::TrainingConfig config{};
+config.mode = edgeist::RuntimeMode::InferenceOnly;
+config.inference_data_type = edgeist::NumericDataType::Int8;
+config.training_data_type = edgeist::NumericDataType::Float32;
+
+edgeist::ModelRuntime runtime;
+auto status = runtime.init(view, trainable_storage, arena, config);
+```
+
+Capture activations without heap allocation:
+
+```cpp
+std::array<float, 128> trace_values{};
+std::array<std::uint32_t, 16> trace_offsets{};
+edgeist::ActivationTraceBuffer trace{
+    edgeist::Span<float>(trace_values),
+    edgeist::Span<std::uint32_t>(trace_offsets)
+};
+runtime.inference_with_trace(input, output, trace);
+```
+
+## Runtime configuration
+
+`edgeist::TrainingConfig` supports:
+
+- `RuntimeMode::InferenceOnly`
+- `RuntimeMode::FullTraining`
+- `RuntimeMode::LastLayerTraining`
+- `RuntimeMode::FrozenLayerTraining`
+- inference data type: `int8`, `fp16`, `fp32`
+- training data type: `int8`, `fp16`, `fp32`
+- deterministic int8 scales via `QuantizationConfig`
+- micro-batch gradient accumulation via `micro_batch_size`
+- optimizer selection: SGD, Momentum, Adam
+- trainable storage selection: SRAM, Flash, External
+- deterministic seed and deterministic math settings
+
+Softmax, CrossEntropy, and optimizer state intentionally remain float32 by default to avoid unstable training on constrained devices.
+
+## Model validation
+
+All model images are checked before runtime initialization. Validation covers:
+
+- magic number, header size, layer count, and version field presence
+- layer offset table bounds and ordering
+- known layer IDs and supported data encodings
+- layer dimensions, tensor element counts, and adjacent tensor compatibility
+- trainable and frozen parameter offsets and byte ranges
+- predecessor table bounds
+- malformed/truncated model inputs
+
+## Packaging
+
+Create a clean source archive:
+
+```bash
+python3 tools/package_refactored_repo.py --output edgeist_V2.zip
+```
+
+The package helper excludes build directories, `.git`, caches, bytecode, and compiled artifacts.
+
+## Important docs
+
+- [edgeist_V2 report](docs/EDGEIST_V2_REPORT.md)
+- [Refactor report](docs/REFACTOR_REPORT.md)
+- [Migration guide](docs/MIGRATION.md)
+- [Numerical validation](docs/NUMERICAL_VALIDATION.md)
+- [On-device training](docs/ON_DEVICE_TRAINING.md)
+- [Memory strategies](docs/MEMORY_STRATEGIES.md)
+
+## Current limitations
+
+- Int8/fp16 model images are supported through the NMCF data-encoding field, but the current format still lacks explicit per-tensor/per-channel quantization metadata; default deterministic scales are used by the runtime configuration.
+- Int8 training stores parameters/activations in int8 and quantizes gradients deterministically, while loss and optimizer state remain float32 for stability.
+- Generic binary-model full training supports Linear/ReLU/Flatten/Softmax graphs with contiguous trainable parameter blocks.
+- Conv2D and BatchNorm kernels are tested, but graph-level training for arbitrary Conv/BatchNorm networks remains future work.
