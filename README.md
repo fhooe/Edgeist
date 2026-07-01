@@ -1,3 +1,36 @@
+# Edgeist
+
+A framework for deploying and continuously training neural networks on resource-limited devices.
+
+This work was carried out with our partner companies as part of the Josef Ressel Centre for Artificial Intelligence for Resource-Constrained Devices. We would like to express our gratitude for the financial support provided by the Federal Ministry of Labour and Economy, the National Foundation for Research, Technology and Development, and the Christian Doppler Research Association.
+
+## Partners
+<table style="margin-left: auto; margin-right: auto">
+  <tbody>
+    <tr>
+      <td>
+        <a href="https://www.cdg.ac.at/">
+          <img src="doc/readme/logo_cdg.svg" alt="Christian Doppler Forschungsgesellschaft" style="width: 100vw; height: 100px">
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="https://www.danube-dynamics.at/">
+          <img src="doc/readme/logo_danube_dynamics.svg" alt="Danube Dynamics Embedded Solutions GmbH" style="width: 100vw; height: 100px">
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="https://www.fronius.com/">
+          <img src="doc/readme/logo_fronius.svg" alt="Fronius International GmbH" style="width: 100vw; height: 100px">
+        </a>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 # edgeist_V2
 
 `edgeist_V2` is a production-oriented refactor of Edgeist for neural-network inference and constrained on-device training. It separates the reusable C++ runtime from examples, tests, Python tooling, and documentation.
@@ -177,15 +210,6 @@ python3 tools/package_refactored_repo.py --output edgeist_V2.zip
 ```
 
 The package helper excludes build directories, `.git`, caches, bytecode, and compiled artifacts.
-
-## Important docs
-
-- [edgeist_V2 report](docs/EDGEIST_V2_REPORT.md)
-- [Refactor report](docs/REFACTOR_REPORT.md)
-- [Migration guide](docs/MIGRATION.md)
-- [Numerical validation](docs/NUMERICAL_VALIDATION.md)
-- [On-device training](docs/ON_DEVICE_TRAINING.md)
-- [Memory strategies](docs/MEMORY_STRATEGIES.md)
 
 ## Current limitations
 
