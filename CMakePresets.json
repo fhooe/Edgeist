@@ -1,0 +1,116 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "host-debug",
+      "displayName": "Host Debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/host-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "EDGEIST_BUILD_TESTS": "ON",
+        "EDGEIST_BUILD_EXAMPLES": "ON",
+        "EDGEIST_DETERMINISTIC_MATH": "ON"
+      }
+    },
+    {
+      "name": "host-release",
+      "displayName": "Host Release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/host-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "EDGEIST_BUILD_TESTS": "ON",
+        "EDGEIST_BUILD_EXAMPLES": "ON",
+        "EDGEIST_DETERMINISTIC_MATH": "ON"
+      }
+    },
+    {
+      "name": "asan",
+      "inherits": "host-debug",
+      "displayName": "Host Debug + AddressSanitizer",
+      "binaryDir": "${sourceDir}/build/asan",
+      "cacheVariables": {
+        "EDGEIST_ENABLE_ASAN": "ON"
+      }
+    },
+    {
+      "name": "ubsan",
+      "inherits": "host-debug",
+      "displayName": "Host Debug + UndefinedBehaviorSanitizer",
+      "binaryDir": "${sourceDir}/build/ubsan",
+      "cacheVariables": {
+        "EDGEIST_ENABLE_UBSAN": "ON"
+      }
+    },
+    {
+      "name": "inference-only",
+      "inherits": "host-release",
+      "displayName": "Inference-only runtime",
+      "binaryDir": "${sourceDir}/build/inference-only",
+      "cacheVariables": {
+        "EDGEIST_ENABLE_TRAINING": "OFF",
+        "EDGEIST_BUILD_TESTS": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "host-debug",
+      "configurePreset": "host-debug"
+    },
+    {
+      "name": "host-release",
+      "configurePreset": "host-release"
+    },
+    {
+      "name": "asan",
+      "configurePreset": "asan"
+    },
+    {
+      "name": "ubsan",
+      "configurePreset": "ubsan"
+    },
+    {
+      "name": "inference-only",
+      "configurePreset": "inference-only"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "host-debug",
+      "configurePreset": "host-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "host-release",
+      "configurePreset": "host-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "inference-only",
+      "configurePreset": "inference-only",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "asan",
+      "configurePreset": "asan",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ubsan",
+      "configurePreset": "ubsan",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}
