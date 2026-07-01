@@ -173,8 +173,8 @@ class HeaderWriter:
                     # this section has no types but the version string
                     outfile.write(f"// {key}-types\n")
                     outfile.write(f'constexpr auto* VERSION_STR = "' + config[key]["version"][1] + '";\n')
-                    outfile.write(f"using Id = {config[key]["id"][1]};\n")
-                    outfile.write(f"using OffsetTableEntry = {config[key]["Offset_Table"][1]};\n")
+                    outfile.write(f"using Id = {config[key]['id'][1]};\n")
+                    outfile.write(f"using OffsetTableEntry = {config[key]['Offset_Table'][1]};\n")
                 else:
                     outfile.write(f"// {key}-types\n")
                     # write datatypes
