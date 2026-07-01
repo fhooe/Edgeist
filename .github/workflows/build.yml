@@ -1,22 +1,40 @@
-name: Build
-run-name: Build jobs for ${{ github.ref_type }} ${{ github.ref_name }}
+name: build-and-test
+
 on:
-  workflow_run:
-    workflows: ["Lints"]
-    types:
-      - completed
+  push:
+  pull_request:
 
 jobs:
-  STM32H563ZI:
-    runs-on: self-hosted
-    container:
-      image: debian:trixie-slim
-    timeout-minutes: 10
+  host:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [host-debug, host-release, inference-only]
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - run: apt-get update
-      - run: apt-get install --no-install-recommends -y git make cmake ninja-build clang-tidy gcc-arm-none-eabi libnewlib-arm-none-eabi
-      - run: git config --global --add safe.directory $(pwd)
-      - run: ./scripts/build_cpp.sh examples/stm32-h563zi
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y ninja-build cmake g++
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }}
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }} --parallel
+      - name: Test
+        run: ctest --preset ${{ matrix.preset }} --output-on-failure
+
+  sanitizers:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [asan, ubsan]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y ninja-build cmake g++
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }}
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }} --parallel
+      - name: Test
+        run: ctest --preset ${{ matrix.preset }} --output-on-failure

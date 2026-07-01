@@ -1,38 +1,4 @@
 {
-    "folders": [
-        {
-            "path": ".",
-            "name": "Project Root"
-        },
-        {
-            "path": "examples/stm32-h563zi",
-            "name": "STM32H563ZI"
-        },
-        {
-            "path": "examples/legacy",
-            "name": "Legacy Examples"
-        },
-        {
-            "path": "nmcm/checker",
-            "name": "Checker Tool"
-        },
-        {
-            "path": "nmcm/common",
-            "name": "Common Python Code"
-        },
-        {
-            "path": "nmcm/generator",
-            "name": "Generator Tool"
-        },
-        {
-            "path": "nmcm/packer",
-            "name": "Packer Tool"
-        },
-        {
-            "path": "nmcm/parser",
-            "name": "Parser Tool"
-        }
-    ],
     "settings": {
         "peacock.remoteColor": "#61dafb",
         "peacock.color": "#61dafb",
@@ -71,6 +37,30 @@
         },
         "cmake.generator": "Ninja",
         "cmake.configureOnOpen": true,
-        "cmake.options.statusBarVisibility": "visible"
-    }
+        "cmake.options.statusBarVisibility": "visible",
+        "workbench.colorCustomizations": {
+            "activityBar.activeBackground": "#93e6fc",
+            "activityBar.background": "#93e6fc",
+            "activityBar.foreground": "#15202b",
+            "activityBar.inactiveForeground": "#15202b99",
+            "activityBarBadge.background": "#fa45d4",
+            "activityBarBadge.foreground": "#15202b",
+            "commandCenter.border": "#15202b99",
+            "sash.hoverBorder": "#93e6fc",
+            "statusBar.background": "#61dafb",
+            "statusBar.foreground": "#15202b",
+            "statusBarItem.hoverBackground": "#2fcefa",
+            "statusBarItem.remoteBackground": "#61dafb",
+            "statusBarItem.remoteForeground": "#15202b",
+            "titleBar.activeBackground": "#61dafb",
+            "titleBar.activeForeground": "#15202b",
+            "titleBar.inactiveBackground": "#61dafb99",
+            "titleBar.inactiveForeground": "#15202b99"
+        }
+    },
+    "folders": [
+        {
+            "path": "."
+        }
+    ]
 }

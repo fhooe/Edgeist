@@ -61,7 +61,7 @@ from nmcm_common.utils import (
 )
 
 
-def main(args: argparse.Namespace) -> None:
+def main(args) -> None:
     # Input Parameter
     input_size = args.input_size
     model = args.model

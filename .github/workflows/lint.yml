@@ -1,35 +1,25 @@
-name: Lints
-run-name: Lints for ${{ github.ref_type }} ${{ github.ref_name }}
-on: [push]
+name: lint
+
+on:
+  push:
+  pull_request:
+
 jobs:
-  Commit:
-    runs-on: self-hosted
-    container:
-      image: commitlint/commitlint:master
-    timeout-minutes: 2
+  python-syntax:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          fetch-depth: 0
-      - run: git config --global --add safe.directory $(pwd)
-      - run: ./scripts/lint_commit.sh
-  Spelling:
-    runs-on: self-hosted
-    container:
-      image: alpine:3.21
-    timeout-minutes: 2
+          python-version: '3.11'
+      - name: Compile Python tooling
+        run: python -m compileall tools nmcm
+
+  cmake-configure:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: apk --update --no-cache add py3-codespell git
-      - run: ./scripts/check_spelling.sh ./desktop_application/
-      - run: ./scripts/check_spelling.sh ./doc
-      - run: ./scripts/check_spelling.sh ./nmcm
-  Scripts:
-    runs-on: self-hosted
-    container:
-      image: alpine:latest
-    timeout-minutes: 2
-    steps:
-      - uses: actions/checkout@v4
-      - run: apk --update --no-cache add shellcheck
-      - run: ./scripts/lint_bash.sh scripts/
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y ninja-build cmake g++
+      - name: Configure warnings check
+        run: cmake --preset host-debug

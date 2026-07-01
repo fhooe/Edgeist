@@ -1,8 +1,10 @@
 {
+    "name": "edgeist_V2",
     "build": {
         "dockerfile": "Dockerfile",
         "context": ".."
     },
+    "workspaceFolder": "/workspaces/edgeist_V2",
     "customizations": {
         "vscode": {
             "extensions": [
@@ -23,7 +25,11 @@
                 "ms-vscode-remote.remote-containers",
                 "mcu-debug.debug-tracker-vscode",
                 "marus25.cortex-debug"
-            ]
+            ],
+            "settings": {
+                "cmake.useCMakePresets": "always",
+                "cmake.configureOnOpen": false
+            }
         }
     },
     "mounts": [
@@ -33,5 +39,6 @@
         "--privileged",
         "--init"
     ],
-    "postCreateCommand": "pip install -e nmcm/common"
+    "postCreateCommand": "SETUPTOOLS_SCM_PRETEND_VERSION_FOR_NMCM_COMMON=0.2.0 SETUPTOOLS_SCM_PRETEND_VERSION=0.2.0 pip install -e nmcm/common && cmake --preset host-debug",
+    "remoteUser": "developer"
 }
