@@ -253,7 +253,7 @@ class HeaderWriter:
             outfile.write(HeaderWriter._generate_brief("Defines all data encoding IDs"))
             outfile.write("enum class DataEncodingId : uint8_t {\n")
             for val in types:
-                outfile.write(f"{HeaderWriter._TAB}{Datatype.get_str(val).removesuffix("_t").title()} = {str(val)},\n")
+                outfile.write(f"{HeaderWriter._TAB}{Datatype.get_str(val).removesuffix('_t').title()} = {str(val)},\n")
             outfile.write("};\n\n")
 
             outfile.write(HeaderWriter._generate_brief("Defines all layer IDs"))
