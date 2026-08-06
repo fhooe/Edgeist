@@ -82,10 +82,14 @@ private:
     Span<float> opt_state_1_ {};
     Span<float> opt_state_2_ {};
     Span<std::uint32_t> argmax_ {};
+    Span<std::uint8_t> dropout_masks_ {};
 
     std::vector<std::size_t> saved_offsets_;      // byte offsets into saved_activations_
     std::vector<std::size_t> gradient_offsets_;   // float element offsets into gradients_
     std::vector<std::size_t> optimizer_offsets_;  // float element offsets into optimizer state
+    std::vector<std::size_t> argmax_offsets_;      // uint32 element offsets into retained max-pool indices
+    std::vector<std::size_t> dropout_offsets_;     // byte offsets into retained dropout masks
+    std::uint32_t rng_state_ { 0 };
     bool initialized_ { false };
 };
 

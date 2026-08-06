@@ -238,7 +238,8 @@ auto ModelView::validate() -> Status
             info.bias_frozen = header.biasAmountFrozen;
             info.bias_trainable = header.biasAmountTrainable;
             info.offsets = header.offsets;
-            info.kernel = { header.kernelSize[0], header.kernelSize[1], header.padding[0], header.stride[0] };
+            info.kernel = { header.kernelSize[0], header.kernelSize[1], header.padding[0], header.padding[1],
+                header.stride[0], header.stride[1] };
             info.dilation = { header.dilation[0], header.dilation[1] };
             info.groups = header.groups == 0U ? 1U : header.groups;
             EDGEIST_RETURN_IF_ERROR(info.input.elements(ignored));
@@ -268,7 +269,8 @@ auto ModelView::validate() -> Status
             info.predecessor_count = header.predecessorNr;
             info.input = TensorShape { header.channelsIn, header.dimensionInputY, header.dimensionInputX };
             info.output = TensorShape { header.channelsOut, header.dimensionOutputY, header.dimensionOutputX };
-            info.kernel = { header.kernelSize, header.kernelSize, header.padding, header.stride == 0U ? 1U : header.stride };
+            const auto stride = header.stride == 0U ? 1U : header.stride;
+            info.kernel = { header.kernelSize, header.kernelSize, header.padding, header.padding, stride, stride };
             info.dilation = { header.dilation == 0U ? 1U : header.dilation, header.dilation == 0U ? 1U : header.dilation };
             EDGEIST_RETURN_IF_ERROR(info.input.elements(ignored));
             EDGEIST_RETURN_IF_ERROR(info.output.elements(ignored));
@@ -296,8 +298,17 @@ auto ModelView::validate() -> Status
             info.bias_frozen = header.biasAmountFrozen;
             info.bias_trainable = header.biasAmountTrainable;
             info.offsets = header.offsets;
+            EDGEIST_RETURN_IF_ERROR(validate_nonzero(header.dimensionInputX, "batchnorm1d input dimension is zero"));
+            if (header.dimensionInputX != header.dimensionOutputX) {
+                return make_status(ErrorCode::ShapeMismatch, "batchnorm1d input/output dimensions must match");
+            }
             if (!is_supported_runtime_encoding(info.data_encoding)) {
                 return make_status(ErrorCode::UnsupportedDataEncoding, "batchnorm parameter encoding must be int8, fp16, or fp32");
+            }
+            const auto expected_params = static_cast<std::size_t>(header.dimensionOutputX) * 2U;
+            if (expected_params != static_cast<std::size_t>(info.weights_frozen) + info.weights_trainable
+                || expected_params != static_cast<std::size_t>(info.bias_frozen) + info.bias_trainable) {
+                return make_status(ErrorCode::ShapeMismatch, "batchnorm1d parameter blocks must contain affine and running-stat values");
             }
             EDGEIST_RETURN_IF_ERROR(validate_param_offsets(info, model_.size(), trainable_.size()));
             break;
@@ -319,8 +330,16 @@ auto ModelView::validate() -> Status
             if (header.channelsIn == 0U || header.channelsOut == 0U || header.dimensionInputX % header.channelsIn != 0U || header.dimensionOutputX % header.channelsOut != 0U) {
                 return make_status(ErrorCode::ShapeMismatch, "batchnorm2d flattened dimensions are not divisible by channels");
             }
+            if (header.channelsIn != header.channelsOut || header.dimensionInputX != header.dimensionOutputX) {
+                return make_status(ErrorCode::ShapeMismatch, "batchnorm2d input/output shapes must match");
+            }
             if (!is_supported_runtime_encoding(info.data_encoding)) {
                 return make_status(ErrorCode::UnsupportedDataEncoding, "batchnorm parameter encoding must be int8, fp16, or fp32");
+            }
+            const auto expected_params = static_cast<std::size_t>(header.channelsOut) * 2U;
+            if (expected_params != static_cast<std::size_t>(info.weights_frozen) + info.weights_trainable
+                || expected_params != static_cast<std::size_t>(info.bias_frozen) + info.bias_trainable) {
+                return make_status(ErrorCode::ShapeMismatch, "batchnorm2d parameter blocks must contain affine and running-stat values");
             }
             EDGEIST_RETURN_IF_ERROR(validate_param_offsets(info, model_.size(), trainable_.size()));
             break;

@@ -51,7 +51,8 @@ auto MemoryPlanner::estimate(const ModelInfo& info, const TrainingConfig& config
     std::size_t saved_activation_elements = 0;
     std::size_t gradient_parameter_elements = 0;
     std::size_t optimizer_parameter_elements = 0;
-    std::size_t max_argmax_elements = 0;
+    std::size_t argmax_elements = 0;
+    std::size_t dropout_mask_elements = 0;
 
     for (std::size_t i = 0; i < info.layers.size(); ++i) {
         const auto& layer = info.layers[i];
@@ -72,10 +73,13 @@ auto MemoryPlanner::estimate(const ModelInfo& info, const TrainingConfig& config
                 || (config.mode == RuntimeMode::FrozenLayerTraining && i >= config.frozen_prefix_layers)
                 || (config.mode == RuntimeMode::LastLayerTraining && layer.has_trainable_params());
             if (strategy_trains_layer && layer.has_trainable_params()) {
-                gradient_parameter_elements += static_cast<std::size_t>(layer.weights_trainable) + layer.bias_trainable;
+                gradient_parameter_elements += layer.training_parameter_elements();
             }
             if (layer.id == LayerId::MaxPool2d) {
-                max_argmax_elements = max_argmax_elements > out_elems ? max_argmax_elements : out_elems;
+                argmax_elements += out_elems;
+            }
+            if (layer.id == LayerId::Dropout) {
+                dropout_mask_elements += in_elems;
             }
         }
     }
@@ -84,7 +88,7 @@ auto MemoryPlanner::estimate(const ModelInfo& info, const TrainingConfig& config
         gradient_parameter_elements = 0;
         for (auto it = info.layers.rbegin(); it != info.layers.rend(); ++it) {
             if (it->has_trainable_params()) {
-                gradient_parameter_elements = static_cast<std::size_t>(it->weights_trainable) + it->bias_trainable;
+                gradient_parameter_elements = it->training_parameter_elements();
                 break;
             }
         }
@@ -105,6 +109,9 @@ auto MemoryPlanner::estimate(const ModelInfo& info, const TrainingConfig& config
         if (!checked_mul(saved_activation_elements, report.training_element_bytes, report.persistent_sram_bytes)) {
             return make_status(ErrorCode::OutOfBounds, "saved activation memory estimate overflow");
         }
+        if (!checked_add(report.persistent_sram_bytes, dropout_mask_elements, report.persistent_sram_bytes)) {
+            return make_status(ErrorCode::OutOfBounds, "dropout mask memory estimate overflow");
+        }
         if (!checked_mul(gradient_parameter_elements, sizeof(float), report.gradient_bytes)) {
             return make_status(ErrorCode::OutOfBounds, "gradient memory estimate overflow");
         }
@@ -112,7 +119,7 @@ auto MemoryPlanner::estimate(const ModelInfo& info, const TrainingConfig& config
             return make_status(ErrorCode::OutOfBounds, "optimizer state memory estimate overflow");
         }
         std::size_t argmax_bytes = 0;
-        if (!checked_mul(max_argmax_elements, sizeof(std::uint32_t), argmax_bytes)) {
+        if (!checked_mul(argmax_elements, sizeof(std::uint32_t), argmax_bytes)) {
             return make_status(ErrorCode::OutOfBounds, "argmax memory estimate overflow");
         }
         report.temporary_bytes += argmax_bytes;

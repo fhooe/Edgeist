@@ -11,7 +11,7 @@ public:
 
     [[nodiscard]] static auto backward(ConstTypedTensorView input, ConstSpan<float> grad_output, ConstTypedTensorView weights,
         Span<float> grad_input, Span<float> grad_weights, Span<float> grad_bias,
-        const Conv2DParams& params, bool accumulate) noexcept -> Status;
+        const Conv2DParams& params, bool accumulate, bool compute_parameter_gradients = true) noexcept -> Status;
 };
 
 } // namespace edgeist::layers
