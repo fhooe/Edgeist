@@ -38,17 +38,51 @@ constexpr std::size_t npos = std::numeric_limits<std::size_t>::max();
 
 [[nodiscard]] auto trainable_parameter_count(const LayerInfo& layer) noexcept -> std::size_t
 {
-    return static_cast<std::size_t>(layer.weights_trainable) + layer.bias_trainable;
+    return layer.training_parameter_elements();
 }
 
 [[nodiscard]] auto supports_runtime_training(LayerId id) noexcept -> bool
 {
-    return id == LayerId::Linear || id == LayerId::ReLU || id == LayerId::Softmax || id == LayerId::Flatten;
+    switch (id) {
+    case LayerId::Linear:
+    case LayerId::Flatten:
+    case LayerId::Conv2d:
+    case LayerId::Dropout:
+    case LayerId::MaxPool2d:
+    case LayerId::ReLU:
+    case LayerId::Softmax:
+    case LayerId::AdaptiveAvgPool1d:
+    case LayerId::AdaptiveAvgPool2d:
+    case LayerId::BatchNorm1d:
+    case LayerId::BatchNorm2d:
+        return true;
+    }
+    return false;
 }
 
 [[nodiscard]] auto span_bytes_for_elements(std::size_t elements, NumericDataType type) noexcept -> std::size_t
 {
     return elements * numeric_data_type_bytes(type);
+}
+
+[[nodiscard]] auto const_tensor_subview(ConstTypedTensorView tensor, std::size_t offset, std::size_t elements) noexcept -> ConstTypedTensorView
+{
+    return ConstTypedTensorView {
+        tensor.bytes.subspan(typed_tensor_bytes(offset, tensor.type), typed_tensor_bytes(elements, tensor.type)),
+        tensor.type,
+        elements,
+        tensor.scale,
+    };
+}
+
+[[nodiscard]] auto mutable_tensor_subview(MutableTypedTensorView tensor, std::size_t offset, std::size_t elements) noexcept -> MutableTypedTensorView
+{
+    return MutableTypedTensorView {
+        tensor.bytes.subspan(typed_tensor_bytes(offset, tensor.type), typed_tensor_bytes(elements, tensor.type)),
+        tensor.type,
+        elements,
+        tensor.scale,
+    };
 }
 
 #if EDGEIST_ENABLE_TRAINING
@@ -116,10 +150,14 @@ auto ModelRuntime::init(ModelView view, StorageBackend& trainable_storage, Scrat
     std::size_t gradient_total = 0;
     std::size_t optimizer_total_per_state = 0;
     std::size_t max_argmax_elements = 0;
+    std::size_t retained_argmax_elements = 0;
+    std::size_t dropout_mask_elements = 0;
 
     saved_offsets_.assign(view_.info().layers.size(), npos);
     gradient_offsets_.assign(view_.info().layers.size(), npos);
     optimizer_offsets_.assign(view_.info().layers.size(), npos);
+    argmax_offsets_.assign(view_.info().layers.size(), npos);
+    dropout_offsets_.assign(view_.info().layers.size(), npos);
 
     for (std::size_t i = 0; i < view_.info().layers.size(); ++i) {
         const auto& layer = view_.info().layers[i];
@@ -131,9 +169,17 @@ auto ModelRuntime::init(ModelView view, StorageBackend& trainable_storage, Scrat
         if (config_.mode != RuntimeMode::InferenceOnly) {
             saved_offsets_[i] = saved_total_bytes;
             saved_total_bytes += span_bytes_for_elements(layer_elements(layer, false), config_.training_data_type);
+            if (layer.id == LayerId::MaxPool2d) {
+                argmax_offsets_[i] = retained_argmax_elements;
+                retained_argmax_elements += layer_elements(layer, true);
+            }
+            if (layer.id == LayerId::Dropout) {
+                dropout_offsets_[i] = dropout_mask_elements;
+                dropout_mask_elements += layer_elements(layer, false);
+            }
             if (should_train_layer(i) && layer.has_trainable_params()) {
                 if (!supports_runtime_training(layer.id)) {
-                    return make_status(ErrorCode::UnsupportedLayer, "runtime training currently supports Linear/ReLU/Flatten/Softmax graphs");
+                    return make_status(ErrorCode::UnsupportedLayer, "runtime training does not support this parameterized layer");
                 }
                 if (layer.weights_frozen != 0U || layer.bias_frozen != 0U) {
                     return make_status(ErrorCode::UnsupportedLayer, "runtime training currently requires fully trainable parameter blocks");
@@ -187,6 +233,7 @@ auto ModelRuntime::init(ModelView view, StorageBackend& trainable_storage, Scrat
         float* opt1 = nullptr;
         float* opt2 = nullptr;
         std::uint32_t* argmax = nullptr;
+        std::uint8_t* dropout_masks = nullptr;
         EDGEIST_RETURN_IF_ERROR(arena_->allocate(max_activation_elements, ga));
         EDGEIST_RETURN_IF_ERROR(arena_->allocate(max_activation_elements, gb));
         EDGEIST_RETURN_IF_ERROR(arena_->allocate_bytes(saved_total_bytes, saved));
@@ -199,14 +246,16 @@ auto ModelRuntime::init(ModelView view, StorageBackend& trainable_storage, Scrat
             EDGEIST_RETURN_IF_ERROR(arena_->allocate(optimizer_total_per_state, opt2));
             std::fill(opt2, opt2 + optimizer_total_per_state, 0.0F);
         }
-        EDGEIST_RETURN_IF_ERROR(arena_->allocate(max_argmax_elements, argmax));
+        EDGEIST_RETURN_IF_ERROR(arena_->allocate(retained_argmax_elements, argmax));
+        EDGEIST_RETURN_IF_ERROR(arena_->allocate(dropout_mask_elements, dropout_masks));
         grad_a_ = Span<float>(ga, max_activation_elements);
         grad_b_ = Span<float>(gb, max_activation_elements);
         saved_activations_ = ByteSpan(saved, saved_total_bytes);
         gradients_ = Span<float>(grads, gradient_total);
         opt_state_1_ = Span<float>(opt1, (config_.optimizer == OptimizerKind::Momentum || config_.optimizer == OptimizerKind::Adam) ? optimizer_total_per_state : 0U);
         opt_state_2_ = Span<float>(opt2, config_.optimizer == OptimizerKind::Adam ? optimizer_total_per_state : 0U);
-        argmax_ = Span<std::uint32_t>(argmax, max_argmax_elements);
+        argmax_ = Span<std::uint32_t>(argmax, retained_argmax_elements);
+        dropout_masks_ = Span<std::uint8_t>(dropout_masks, dropout_mask_elements);
         std::fill(gradients_.begin(), gradients_.end(), 0.0F);
     } else if (max_argmax_elements > 0U) {
         std::uint32_t* argmax = nullptr;
@@ -214,6 +263,7 @@ auto ModelRuntime::init(ModelView view, StorageBackend& trainable_storage, Scrat
         argmax_ = Span<std::uint32_t>(argmax, max_argmax_elements);
     }
 
+    rng_state_ = config_.deterministic_seed;
     initialized_ = true;
     return Status::success();
 }
@@ -366,8 +416,11 @@ auto ModelRuntime::forward_impl(ConstSpan<float> input, Span<float> output, bool
             break;
         case LayerId::MaxPool2d: {
             layers::Pool2DParams params { layer.input.channels, layer.input.height, layer.input.width, layer.output.height,
-                layer.output.width, layer.kernel[0], layer.kernel[1], layer.kernel[2], layer.kernel[2], layer.kernel[3], layer.kernel[3] };
-            EDGEIST_RETURN_IF_ERROR(layers::MaxPool2DLayer::forward(current, out, Span<std::uint32_t>(argmax_.data(), out_size), params));
+                layer.output.width, layer.kernel[0], layer.kernel[1], layer.kernel[2], layer.kernel[3], layer.kernel[4], layer.kernel[5],
+                layer.dilation[0], layer.dilation[1] };
+            const auto argmax_offset = training ? argmax_offsets_[i] : 0U;
+            EDGEIST_RETURN_IF_ERROR(layers::MaxPool2DLayer::forward(current, out,
+                Span<std::uint32_t>(argmax_.data() + argmax_offset, out_size), params));
             break;
         }
         case LayerId::AdaptiveAvgPool1d:
@@ -383,15 +436,31 @@ auto ModelRuntime::forward_impl(ConstSpan<float> input, Span<float> output, bool
             ParameterConstViews params_view;
             EDGEIST_RETURN_IF_ERROR(layer_param_const_views(layer, params_view));
             layers::Conv2DParams params { layer.input.channels, layer.output.channels, layer.input.height, layer.input.width,
-                layer.output.height, layer.output.width, layer.kernel[0], layer.kernel[1], layer.kernel[2], layer.kernel[2],
-                layer.kernel[3], layer.kernel[3], layer.dilation[0], layer.dilation[1], layer.groups };
+                layer.output.height, layer.output.width, layer.kernel[0], layer.kernel[1], layer.kernel[2], layer.kernel[3],
+                layer.kernel[4], layer.kernel[5], layer.dilation[0], layer.dilation[1], layer.groups };
             EDGEIST_RETURN_IF_ERROR(layers::Conv2DLayer::forward(current, params_view.weights, params_view.bias, out, params));
             break;
         }
         case LayerId::BatchNorm1d:
-        case LayerId::BatchNorm2d:
+        case LayerId::BatchNorm2d: {
+            EDGEIST_RETURN_IF_ERROR(require_layer_encoding(layer, execution_type));
+            ParameterConstViews params;
+            EDGEIST_RETURN_IF_ERROR(layer_param_const_views(layer, params));
+            const auto channels = layer.batch_norm_channels();
+            const auto gamma = const_tensor_subview(params.weights, 0U, channels);
+            const auto mean = const_tensor_subview(params.weights, channels, channels);
+            const auto beta = const_tensor_subview(params.bias, 0U, channels);
+            const auto variance = const_tensor_subview(params.bias, channels, channels);
+            EDGEIST_RETURN_IF_ERROR(layers::BatchNormLayer::forward(current, gamma, beta, mean, variance, out, 1.0e-5F));
+            break;
+        }
         case LayerId::Dropout:
-            EDGEIST_RETURN_IF_ERROR(layers::DropoutLayer::forward_inference(current, out));
+            if (training) {
+                EDGEIST_RETURN_IF_ERROR(layers::DropoutLayer::forward_training(current, out,
+                    Span<std::uint8_t>(dropout_masks_.data() + dropout_offsets_[i], in_size), layer.dropout_rate, rng_state_));
+            } else {
+                EDGEIST_RETURN_IF_ERROR(layers::DropoutLayer::forward_inference(current, out));
+            }
             break;
         }
 
@@ -504,6 +573,68 @@ auto ModelRuntime::train_sample(ConstSpan<float> input, ConstSpan<float> expecte
         case LayerId::Flatten:
             EDGEIST_RETURN_IF_ERROR(layers::FlattenLayer::backward(current_grad, dst));
             break;
+        case LayerId::AdaptiveAvgPool1d:
+            EDGEIST_RETURN_IF_ERROR(layers::AdaptiveAvgPool1DLayer::backward(current_grad, dst,
+                layer.input.channels, layer.input.width, layer.output.width));
+            break;
+        case LayerId::AdaptiveAvgPool2d:
+            EDGEIST_RETURN_IF_ERROR(layers::AdaptiveAvgPool2DLayer::backward(current_grad, dst,
+                layer.input.channels, layer.input.height, layer.input.width, layer.output.height, layer.output.width));
+            break;
+        case LayerId::Dropout:
+            EDGEIST_RETURN_IF_ERROR(layers::DropoutLayer::backward(current_grad,
+                ConstSpan<std::uint8_t>(dropout_masks_.data() + dropout_offsets_[idx], in_size), dst, layer.dropout_rate));
+            break;
+        case LayerId::MaxPool2d: {
+            layers::Pool2DParams params { layer.input.channels, layer.input.height, layer.input.width, layer.output.height,
+                layer.output.width, layer.kernel[0], layer.kernel[1], layer.kernel[2], layer.kernel[3], layer.kernel[4], layer.kernel[5],
+                layer.dilation[0], layer.dilation[1] };
+            EDGEIST_RETURN_IF_ERROR(layers::MaxPool2DLayer::backward(current_grad,
+                ConstSpan<std::uint32_t>(argmax_.data() + argmax_offsets_[idx], out_size), dst, params));
+            break;
+        }
+        case LayerId::Conv2d: {
+            ParameterConstViews params_view;
+            EDGEIST_RETURN_IF_ERROR(layer_param_const_views(layer, params_view));
+            layers::Conv2DParams params { layer.input.channels, layer.output.channels, layer.input.height, layer.input.width,
+                layer.output.height, layer.output.width, layer.kernel[0], layer.kernel[1], layer.kernel[2], layer.kernel[3],
+                layer.kernel[4], layer.kernel[5], layer.dilation[0], layer.dilation[1], layer.groups };
+            const bool train_this_layer = should_train_layer(idx) && gradient_offsets_[idx] != npos;
+            if (train_this_layer) {
+                Span<float> gw(gradients_.data() + gradient_offsets_[idx], layer.weights_trainable);
+                Span<float> gb(gradients_.data() + gradient_offsets_[idx] + layer.weights_trainable, layer.bias_trainable);
+                EDGEIST_RETURN_IF_ERROR(layers::Conv2DLayer::backward(saved, current_grad, params_view.weights, dst, gw, gb,
+                    params, true));
+                EDGEIST_RETURN_IF_ERROR(apply_gradient_precision(gw, config_.training_data_type, config_.quantization.gradient_scale));
+                EDGEIST_RETURN_IF_ERROR(apply_gradient_precision(gb, config_.training_data_type, config_.quantization.gradient_scale));
+            } else {
+                EDGEIST_RETURN_IF_ERROR(layers::Conv2DLayer::backward(saved, current_grad, params_view.weights, dst, {}, {},
+                    params, false, false));
+            }
+            break;
+        }
+        case LayerId::BatchNorm1d:
+        case LayerId::BatchNorm2d: {
+            ParameterConstViews params;
+            EDGEIST_RETURN_IF_ERROR(layer_param_const_views(layer, params));
+            const auto channels = layer.batch_norm_channels();
+            const auto gamma = const_tensor_subview(params.weights, 0U, channels);
+            const auto mean = const_tensor_subview(params.weights, channels, channels);
+            const auto variance = const_tensor_subview(params.bias, channels, channels);
+            const bool train_this_layer = should_train_layer(idx) && gradient_offsets_[idx] != npos;
+            if (train_this_layer) {
+                Span<float> grad_gamma(gradients_.data() + gradient_offsets_[idx], channels);
+                Span<float> grad_beta(gradients_.data() + gradient_offsets_[idx] + channels, channels);
+                EDGEIST_RETURN_IF_ERROR(layers::BatchNormLayer::backward_affine(saved, current_grad, gamma, mean, variance,
+                    dst, grad_gamma, grad_beta, 1.0e-5F, true));
+                EDGEIST_RETURN_IF_ERROR(apply_gradient_precision(grad_gamma, config_.training_data_type, config_.quantization.gradient_scale));
+                EDGEIST_RETURN_IF_ERROR(apply_gradient_precision(grad_beta, config_.training_data_type, config_.quantization.gradient_scale));
+            } else {
+                EDGEIST_RETURN_IF_ERROR(layers::BatchNormLayer::backward_affine(saved, current_grad, gamma, mean, variance,
+                    dst, {}, {}, 1.0e-5F, false, false));
+            }
+            break;
+        }
         case LayerId::Linear: {
             ParameterConstViews params;
             EDGEIST_RETURN_IF_ERROR(layer_param_const_views(layer, params));
@@ -611,24 +742,29 @@ auto ModelRuntime::apply_updates(std::uint32_t accumulated_samples) noexcept -> 
         }
         ParameterMutableViews params;
         EDGEIST_RETURN_IF_ERROR(layer_param_mutable_views(layer, params));
-        Span<float> gw(gradients_.data() + gradient_offsets_[i], layer.weights_trainable);
-        Span<float> gb(gradients_.data() + gradient_offsets_[i] + layer.weights_trainable, layer.bias_trainable);
+        const bool batch_norm = layer.id == LayerId::BatchNorm1d || layer.id == LayerId::BatchNorm2d;
+        const auto weight_elements = batch_norm ? layer.batch_norm_channels() : layer.weights_trainable;
+        const auto bias_elements = batch_norm ? layer.batch_norm_channels() : layer.bias_trainable;
+        auto weights = batch_norm ? mutable_tensor_subview(params.weights, 0U, weight_elements) : params.weights;
+        auto bias = batch_norm ? mutable_tensor_subview(params.bias, 0U, bias_elements) : params.bias;
+        Span<float> gw(gradients_.data() + gradient_offsets_[i], weight_elements);
+        Span<float> gb(gradients_.data() + gradient_offsets_[i] + weight_elements, bias_elements);
         const auto state_offset = optimizer_offsets_[i];
         OptimizerStateView state_w {};
         OptimizerStateView state_b {};
         state_w.timestep = std::max<std::uint32_t>(1U, stats_.trained_samples / accumulated_samples);
         state_b.timestep = state_w.timestep;
         if (config_.optimizer == OptimizerKind::Momentum) {
-            state_w.momentum_or_m = Span<float>(opt_state_1_.data() + state_offset, layer.weights_trainable);
-            state_b.momentum_or_m = Span<float>(opt_state_1_.data() + state_offset + layer.weights_trainable, layer.bias_trainable);
+            state_w.momentum_or_m = Span<float>(opt_state_1_.data() + state_offset, weight_elements);
+            state_b.momentum_or_m = Span<float>(opt_state_1_.data() + state_offset + weight_elements, bias_elements);
         } else if (config_.optimizer == OptimizerKind::Adam) {
-            state_w.momentum_or_m = Span<float>(opt_state_1_.data() + state_offset, layer.weights_trainable);
-            state_w.velocity_or_v = Span<float>(opt_state_2_.data() + state_offset, layer.weights_trainable);
-            state_b.momentum_or_m = Span<float>(opt_state_1_.data() + state_offset + layer.weights_trainable, layer.bias_trainable);
-            state_b.velocity_or_v = Span<float>(opt_state_2_.data() + state_offset + layer.weights_trainable, layer.bias_trainable);
+            state_w.momentum_or_m = Span<float>(opt_state_1_.data() + state_offset, weight_elements);
+            state_w.velocity_or_v = Span<float>(opt_state_2_.data() + state_offset, weight_elements);
+            state_b.momentum_or_m = Span<float>(opt_state_1_.data() + state_offset + weight_elements, bias_elements);
+            state_b.velocity_or_v = Span<float>(opt_state_2_.data() + state_offset + weight_elements, bias_elements);
         }
-        EDGEIST_RETURN_IF_ERROR(apply_typed_optimizer(params.weights, ConstSpan<float>(gw.data(), gw.size()), state_w, scale));
-        EDGEIST_RETURN_IF_ERROR(apply_typed_optimizer(params.bias, ConstSpan<float>(gb.data(), gb.size()), state_b, scale));
+        EDGEIST_RETURN_IF_ERROR(apply_typed_optimizer(weights, ConstSpan<float>(gw.data(), gw.size()), state_w, scale));
+        EDGEIST_RETURN_IF_ERROR(apply_typed_optimizer(bias, ConstSpan<float>(gb.data(), gb.size()), state_b, scale));
     }
 
     return Status::success();

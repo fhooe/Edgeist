@@ -15,8 +15,8 @@ auto MaxPool2DLayer::forward(ConstTypedTensorView input, MutableTypedTensorView 
     EDGEIST_RETURN_IF_ERROR(validate_typed_tensor(input, "maxpool input tensor invalid"));
     EDGEIST_RETURN_IF_ERROR(validate_typed_tensor(output, "maxpool output tensor invalid"));
     EDGEIST_RETURN_IF_ERROR(require_span_size(argmax.size(), output_needed, "maxpool argmax too small"));
-    if (p.kernel_h == 0U || p.kernel_w == 0U || p.stride_h == 0U || p.stride_w == 0U) {
-        return make_status(ErrorCode::ShapeMismatch, "maxpool kernel and stride must be non-zero");
+    if (p.kernel_h == 0U || p.kernel_w == 0U || p.stride_h == 0U || p.stride_w == 0U || p.dilation_h == 0U || p.dilation_w == 0U) {
+        return make_status(ErrorCode::ShapeMismatch, "maxpool kernel, stride, and dilation must be non-zero");
     }
 
     for (std::uint32_t c = 0; c < p.channels; ++c) {
@@ -26,8 +26,8 @@ auto MaxPool2DLayer::forward(ConstTypedTensorView input, MutableTypedTensorView 
                 std::uint32_t best_index = 0;
                 for (std::uint32_t ky = 0; ky < p.kernel_h; ++ky) {
                     for (std::uint32_t kx = 0; kx < p.kernel_w; ++kx) {
-                        const auto in_y = static_cast<int>(oy * p.stride_h + ky) - static_cast<int>(p.pad_h);
-                        const auto in_x = static_cast<int>(ox * p.stride_w + kx) - static_cast<int>(p.pad_w);
+                        const auto in_y = static_cast<int>(oy * p.stride_h + ky * p.dilation_h) - static_cast<int>(p.pad_h);
+                        const auto in_x = static_cast<int>(ox * p.stride_w + kx * p.dilation_w) - static_cast<int>(p.pad_w);
                         if (in_y < 0 || in_x < 0 || in_y >= static_cast<int>(p.input_h) || in_x >= static_cast<int>(p.input_w)) {
                             continue;
                         }

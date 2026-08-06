@@ -290,7 +290,7 @@ struct LayerInfo {
     std::uint32_t bias_frozen { 0 };
     std::uint32_t bias_trainable { 0 };
     ParamOffsets offsets {};
-    std::array<std::uint32_t, 4> kernel { 1, 1, 0, 1 }; // kH/kW, padding, stride for compact symmetric Conv metadata.
+    std::array<std::uint32_t, 6> kernel { 1, 1, 0, 0, 1, 1 }; // kH, kW, padH, padW, strideH, strideW.
     std::array<std::uint32_t, 2> dilation { 1, 1 };
     std::uint32_t groups { 1 };
     float dropout_rate { 0.0F };
@@ -298,6 +298,17 @@ struct LayerInfo {
     [[nodiscard]] auto input_elements(std::size_t& out) const noexcept -> Status { return input.elements(out); }
     [[nodiscard]] auto output_elements(std::size_t& out) const noexcept -> Status { return output.elements(out); }
     [[nodiscard]] auto has_trainable_params() const noexcept -> bool { return (weights_trainable + bias_trainable) > 0U; }
+    [[nodiscard]] auto batch_norm_channels() const noexcept -> std::size_t
+    {
+        return id == LayerId::BatchNorm1d ? output.width : output.channels;
+    }
+    [[nodiscard]] auto training_parameter_elements() const noexcept -> std::size_t
+    {
+        if (id == LayerId::BatchNorm1d || id == LayerId::BatchNorm2d) {
+            return 2U * batch_norm_channels();
+        }
+        return static_cast<std::size_t>(weights_trainable) + bias_trainable;
+    }
 };
 
 struct ModelInfo {

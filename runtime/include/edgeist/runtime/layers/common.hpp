@@ -38,6 +38,8 @@ struct Pool2DParams {
     std::uint32_t pad_w { 0 };
     std::uint32_t stride_h { 1 };
     std::uint32_t stride_w { 1 };
+    std::uint32_t dilation_h { 1 };
+    std::uint32_t dilation_w { 1 };
 };
 
 [[nodiscard]] auto require_span_size(std::size_t actual, std::size_t needed, const char* message) noexcept -> Status;

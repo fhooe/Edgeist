@@ -61,7 +61,7 @@ def summary(model, input_size, batch_size=-1, device=torch.device("cpu"), dtypes
 
             # Dropout rate for Dropout layers
             if hasattr(module, "p"):
-                summary[m_key]["DropoutRate"] = module.p
+                summary[m_key]["dropoutRate"] = module.p
 
         if not isinstance(module, nn.Sequential) and not isinstance(module, nn.ModuleList):
             hooks.append(module.register_forward_hook(hook))

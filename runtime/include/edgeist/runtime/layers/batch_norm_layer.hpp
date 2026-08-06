@@ -11,7 +11,7 @@ public:
 
     [[nodiscard]] static auto backward_affine(ConstTypedTensorView input, ConstSpan<float> grad_output, ConstTypedTensorView gamma,
         ConstTypedTensorView mean, ConstTypedTensorView variance, Span<float> grad_input, Span<float> grad_gamma,
-        Span<float> grad_beta, float epsilon, bool accumulate) noexcept -> Status;
+        Span<float> grad_beta, float epsilon, bool accumulate, bool compute_parameter_gradients = true) noexcept -> Status;
 };
 
 } // namespace edgeist::layers

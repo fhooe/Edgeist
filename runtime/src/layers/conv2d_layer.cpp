@@ -85,7 +85,7 @@ auto Conv2DLayer::forward(ConstTypedTensorView input, ConstTypedTensorView weigh
 
 auto Conv2DLayer::backward(ConstTypedTensorView input, ConstSpan<float> grad_output, ConstTypedTensorView weights,
     Span<float> grad_input, Span<float> grad_weights, Span<float> grad_bias,
-    const Conv2DParams& p, bool accumulate) noexcept -> Status
+    const Conv2DParams& p, bool accumulate, bool compute_parameter_gradients) noexcept -> Status
 {
     EDGEIST_RETURN_IF_ERROR(validate_conv_params(p));
     const auto input_needed = static_cast<std::size_t>(p.channels_in) * p.input_h * p.input_w;
@@ -98,11 +98,13 @@ auto Conv2DLayer::backward(ConstTypedTensorView input, ConstSpan<float> grad_out
     EDGEIST_RETURN_IF_ERROR(validate_typed_tensor(weights, "conv2d backward weight tensor invalid"));
     EDGEIST_RETURN_IF_ERROR(require_span_size(grad_output.size(), output_needed, "conv2d backward grad_output too small"));
     EDGEIST_RETURN_IF_ERROR(require_span_size(grad_input.size(), input_needed, "conv2d backward grad_input too small"));
-    EDGEIST_RETURN_IF_ERROR(require_span_size(grad_weights.size(), weights_needed, "conv2d backward grad_weights too small"));
-    EDGEIST_RETURN_IF_ERROR(require_span_size(grad_bias.size(), p.channels_out, "conv2d backward grad_bias too small"));
+    if (compute_parameter_gradients) {
+        EDGEIST_RETURN_IF_ERROR(require_span_size(grad_weights.size(), weights_needed, "conv2d backward grad_weights too small"));
+        EDGEIST_RETURN_IF_ERROR(require_span_size(grad_bias.size(), p.channels_out, "conv2d backward grad_bias too small"));
+    }
 
     std::fill(grad_input.begin(), grad_input.begin() + input_needed, 0.0F);
-    if (!accumulate) {
+    if (compute_parameter_gradients && !accumulate) {
         std::fill(grad_weights.begin(), grad_weights.begin() + weights_needed, 0.0F);
         std::fill(grad_bias.begin(), grad_bias.begin() + p.channels_out, 0.0F);
     }
@@ -114,7 +116,9 @@ auto Conv2DLayer::backward(ConstTypedTensorView input, ConstSpan<float> grad_out
             for (std::uint32_t oy = 0; oy < p.output_h; ++oy) {
                 for (std::uint32_t ox = 0; ox < p.output_w; ++ox) {
                     const float go = grad_output[input_index(oc, oy, ox, p.output_h, p.output_w)];
-                    grad_bias[oc] += go;
+                    if (compute_parameter_gradients) {
+                        grad_bias[oc] += go;
+                    }
                     for (std::uint32_t icg = 0; icg < channels_per_group; ++icg) {
                         const auto ic = g * channels_per_group + icg;
                         for (std::uint32_t ky = 0; ky < p.kernel_h; ++ky) {
@@ -128,9 +132,11 @@ auto Conv2DLayer::backward(ConstTypedTensorView input, ConstSpan<float> grad_out
                                 const auto wi = conv_weight_index(oc, icg, ky, kx, channels_per_group, p.kernel_h, p.kernel_w);
                                 float xv = 0.0F;
                                 float wv = 0.0F;
-                                EDGEIST_RETURN_IF_ERROR(read_typed_value(input, ii, xv));
                                 EDGEIST_RETURN_IF_ERROR(read_typed_value(weights, wi, wv));
-                                grad_weights[wi] += go * xv;
+                                if (compute_parameter_gradients) {
+                                    EDGEIST_RETURN_IF_ERROR(read_typed_value(input, ii, xv));
+                                    grad_weights[wi] += go * xv;
+                                }
                                 grad_input[ii] += go * wv;
                             }
                         }
